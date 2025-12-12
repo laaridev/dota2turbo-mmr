@@ -27,7 +27,7 @@ export default function LeaderboardPage() {
         <div className="container mx-auto p-4 space-y-8 pb-20 mt-8">
             <div className="text-center space-y-2">
                 <h1 className="text-3xl font-bold tracking-tight text-glow">Ranking Global</h1>
-                <p className="text-muted-foreground">TOP 100 Guerreiros do Turbo</p>
+                <p className="text-muted-foreground">Os Top 100 que não veem a luz do dia.</p>
             </div>
 
             <Card className="bg-card/30 border-white/5 backdrop-blur-sm max-w-4xl mx-auto">

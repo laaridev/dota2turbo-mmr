@@ -40,7 +40,7 @@ export default function Home() {
             Dota2<span className="text-primary">Turbo</span>
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-[600px] mx-auto">
-            O marketplace de ranking definitivo para Dota 2 Turbo. Analise suas partidas, descubra seu TMMR e entre para o Hall da Fama.
+            Chega de papo furado. Cole seu ID, descubra seu Rank Real™ e prove que você não é só mais um "Mono Hero" na fila do Turbo.
           </p>
         </div>
 
@@ -57,7 +57,7 @@ export default function Home() {
                 <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
-                  Analisar <Zap className="ml-2 h-4 w-4" />
+                  Quem sou eu? <Zap className="ml-2 h-4 w-4" />
                 </>
               )}
             </Button>
@@ -67,18 +67,18 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-12 text-left">
           <FeatureCard
             icon={<Trophy className="h-6 w-6 text-yellow-500" />}
-            title="TMMR Personalizado"
-            description="Receba um MMR exclusivo para o modo Turbo baseado no seu histórico de vitórias."
+            title="Seu MMR de Verdade"
+            description="Esqueça o ranking da Valve. Aqui o que conta é ganhar rápido e stompar com estilo."
           />
           <FeatureCard
             icon={<Zap className="h-6 w-6 text-blue-500" />}
-            title="Análise Instantânea"
-            description="Buscamos todo o seu histórico Turbo em segundos usando a API OpenDota."
+            title="Análise Flash"
+            description="Buscamos todo o seu histórico num piscar de olhos. Sem enrolação, direto ao ponto."
           />
           <FeatureCard
             icon={<Clock className="h-6 w-6 text-purple-500" />}
-            title="Ranking Semanal"
-            description="Competição com reset semanal e lugar garantido no Hall da Fama."
+            title="Rei da Semana"
+            description="Reseta toda semana. Quem spamma mais e ganha mais, vira lenda. Simples assim."
           />
         </div>
       </motion.div>

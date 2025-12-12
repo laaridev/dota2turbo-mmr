@@ -7,7 +7,7 @@ export default function HallOfFamePage() {
         <div className="container mx-auto p-4 space-y-8 pb-20 mt-8">
             <div className="text-center space-y-2">
                 <h1 className="text-3xl font-bold tracking-tight text-glow">Hall da Fama</h1>
-                <p className="text-muted-foreground">Os Imortais do Modo Turbo</p>
+                <p className="text-muted-foreground">Onde os tryhards viram imortais.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -28,7 +28,7 @@ export default function HallOfFamePage() {
                                 <Badge variant="gold">TBD</Badge>
                             </div>
                             <div className="text-center text-sm text-muted-foreground pt-4">
-                                Temporada acabou de começar.
+                                Calma lá, a temporada mal começou. Vá jogar!
                             </div>
                         </div>
                     </CardContent>
@@ -44,7 +44,7 @@ export default function HallOfFamePage() {
                     <CardContent>
                         <div className="space-y-4">
                             <div className="text-center text-sm text-muted-foreground pt-4">
-                                Nenhuma lenda registrada ainda.
+                                Vago. Você tem coragem de tomar esse lugar?
                             </div>
                         </div>
                     </CardContent>
@@ -60,7 +60,7 @@ export default function HallOfFamePage() {
                     <CardContent>
                         <div className="space-y-4">
                             <div className="text-center text-sm text-muted-foreground pt-4">
-                                Aguardando a primeira sequência...
+                                Ninguém conseguiu 10 vitórias seguidas ainda? Sério?
                             </div>
                         </div>
                     </CardContent>
