@@ -40,7 +40,7 @@ export default function Home() {
             Dota2<span className="text-primary">Turbo</span>
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-[600px] mx-auto">
-            A plataforma definitiva para ranking de Dota 2 Turbo. Descubra seu verdadeiro nível, suba de patente e marque seu nome na história.
+            Descubra seu **Rank Real nas Turbos**. Uma plataforma premium feita exclusivamente para quem vive a velocidade do Dota 2 Turbo.
           </p>
         </div>
 
@@ -67,18 +67,18 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-12 text-left">
           <FeatureCard
             icon={<Trophy className="h-6 w-6 text-yellow-500" />}
-            title="MMR Turbo Real"
-            description="Um sistema de pontuação justo e exclusivo, calculado 100% com base no seu desempenho no modo Turbo."
+            title="Seu Rank Turbo Real"
+            description="O MMR normal não importa aqui. Calculamos sua patente baseado puramente no seu desempenho em partidas Turbo."
           />
           <FeatureCard
             icon={<Zap className="h-6 w-6 text-blue-500" />}
-            title="Análise Instantânea"
-            description="Processamos seu histórico completo em segundos. Sem espera, apenas dados precisos."
+            title="Análise Fast Turbo"
+            description="Algoritmo otimizado para ler milhares de partidas Turbo em segundos. Sem espera."
           />
           <FeatureCard
             icon={<Clock className="h-6 w-6 text-purple-500" />}
-            title="Ranking Semanal"
-            description="Dispute o topo toda semana. Os melhores jogadores garantem seu lugar permanente no Hall da Fama."
+            title="Lendas do Turbo"
+            description="Um Hall da Fama exclusivo para os reis da velocidade. Dispute o topo semanalmente."
           />
         </div>
       </motion.div>
