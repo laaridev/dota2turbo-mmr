@@ -7,7 +7,7 @@ export default function HallOfFamePage() {
         <div className="container mx-auto p-4 space-y-8 pb-20 mt-8">
             <div className="text-center space-y-2">
                 <h1 className="text-3xl font-bold tracking-tight text-glow">Hall da Fama</h1>
-                <p className="text-muted-foreground">Onde os tryhards viram imortais.</p>
+                <p className="text-muted-foreground">A galeria dos melhores jogadores de Turbo.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -28,7 +28,7 @@ export default function HallOfFamePage() {
                                 <Badge variant="gold">TBD</Badge>
                             </div>
                             <div className="text-center text-sm text-muted-foreground pt-4">
-                                Calma lá, a temporada mal começou. Vá jogar!
+                                A temporada atual ainda está em andamento.
                             </div>
                         </div>
                     </CardContent>
@@ -44,7 +44,7 @@ export default function HallOfFamePage() {
                     <CardContent>
                         <div className="space-y-4">
                             <div className="text-center text-sm text-muted-foreground pt-4">
-                                Vago. Você tem coragem de tomar esse lugar?
+                                Nenhuma lenda registrada nesta categoria ainda.
                             </div>
                         </div>
                     </CardContent>
@@ -60,7 +60,7 @@ export default function HallOfFamePage() {
                     <CardContent>
                         <div className="space-y-4">
                             <div className="text-center text-sm text-muted-foreground pt-4">
-                                Ninguém conseguiu 10 vitórias seguidas ainda? Sério?
+                                Aguardando a primeira grande sequência de vitórias...
                             </div>
                         </div>
                     </CardContent>

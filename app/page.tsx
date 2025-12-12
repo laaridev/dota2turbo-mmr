@@ -40,7 +40,7 @@ export default function Home() {
             Dota2<span className="text-primary">Turbo</span>
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-[600px] mx-auto">
-            Chega de papo furado. Cole seu ID, descubra seu Rank Real™ e prove que você não é só mais um "Mono Hero" na fila do Turbo.
+            A plataforma definitiva para ranking de Dota 2 Turbo. Descubra seu verdadeiro nível, suba de patente e marque seu nome na história.
           </p>
         </div>
 
@@ -57,7 +57,7 @@ export default function Home() {
                 <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
-                  Quem sou eu? <Zap className="ml-2 h-4 w-4" />
+                  Ver meu Rank <Zap className="ml-2 h-4 w-4" />
                 </>
               )}
             </Button>
@@ -67,18 +67,18 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-12 text-left">
           <FeatureCard
             icon={<Trophy className="h-6 w-6 text-yellow-500" />}
-            title="Seu MMR de Verdade"
-            description="Esqueça o ranking da Valve. Aqui o que conta é ganhar rápido e stompar com estilo."
+            title="MMR Turbo Real"
+            description="Um sistema de pontuação justo e exclusivo, calculado 100% com base no seu desempenho no modo Turbo."
           />
           <FeatureCard
             icon={<Zap className="h-6 w-6 text-blue-500" />}
-            title="Análise Flash"
-            description="Buscamos todo o seu histórico num piscar de olhos. Sem enrolação, direto ao ponto."
+            title="Análise Instantânea"
+            description="Processamos seu histórico completo em segundos. Sem espera, apenas dados precisos."
           />
           <FeatureCard
             icon={<Clock className="h-6 w-6 text-purple-500" />}
-            title="Rei da Semana"
-            description="Reseta toda semana. Quem spamma mais e ganha mais, vira lenda. Simples assim."
+            title="Ranking Semanal"
+            description="Dispute o topo toda semana. Os melhores jogadores garantem seu lugar permanente no Hall da Fama."
           />
         </div>
       </motion.div>
