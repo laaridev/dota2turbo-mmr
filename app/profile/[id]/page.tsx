@@ -208,8 +208,12 @@ export default function ProfilePage() {
                                         >
                                             <span className={`text-xs font-bold w-5 ${i < 3 ? 'text-primary' : 'text-muted-foreground'}`}>#{i + 1}</span>
                                             <div className="relative">
-                                                <div className="absolute inset-0 rounded-lg bg-primary/20 blur-md opacity-0 group-hover:opacity-60 transition-opacity" />
-                                                <img src={getHeroImageUrl(hero.heroId)} alt="" className="w-10 h-10 rounded-lg relative z-10 shadow-md" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                                                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity" style={{ padding: '2px' }}>
+                                                    <div className="w-full h-full rounded-full bg-background" />
+                                                </div>
+                                                <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white/10 group-hover:border-transparent relative z-10">
+                                                    <img src={getHeroImageUrl(hero.heroId)} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                                                </div>
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="font-medium text-sm truncate">{HERO_NAMES[hero.heroId] || `Hero ${hero.heroId}`}</div>
@@ -247,7 +251,9 @@ export default function ProfilePage() {
                                         transition={{ delay: 0.5 + i * 0.03 }}
                                     >
                                         <div className={`w-1 h-10 rounded-full ${match.win ? 'bg-gradient-to-b from-emerald-400 to-emerald-600' : 'bg-gradient-to-b from-rose-400 to-rose-600'}`} />
-                                        <img src={getHeroImageUrl(match.heroId)} alt="" className="w-10 h-10 rounded-lg shadow-md" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                                        <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white/10 flex-shrink-0">
+                                            <img src={getHeroImageUrl(match.heroId)} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                                        </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="font-medium text-sm truncate">{HERO_NAMES[match.heroId] || `Hero ${match.heroId}`}</div>
                                             <div className="text-xs text-muted-foreground">{match.kda} • {Math.floor(match.duration / 60)}m</div>
