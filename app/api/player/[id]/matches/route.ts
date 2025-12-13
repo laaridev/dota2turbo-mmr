@@ -10,18 +10,16 @@ export async function GET(
         await dbConnect();
         const { id } = await params;
 
+        // Get ALL matches from MongoDB (no limit!)
         const matches = await Match.find({ playerSteamId: id })
             .sort({ timestamp: -1 })
-            .limit(100)
             .lean();
 
-        // Aggregate hero stats
+        // Aggregate hero stats from ALL matches
         const heroMap = new Map<number, { games: number; wins: number; kills: number; deaths: number; assists: number; totalDuration: number }>();
 
         for (const match of matches) {
             const existing = heroMap.get(match.heroId) || { games: 0, wins: 0, kills: 0, deaths: 0, assists: 0, totalDuration: 0 };
-
-            // Parse KDA string (format: "K/D/A")
             const [kills, deaths, assists] = (match.kda as string).split('/').map(Number);
 
             heroMap.set(match.heroId, {
@@ -34,7 +32,7 @@ export async function GET(
             });
         }
 
-        // Convert to array and add computed fields
+        // Convert to array sorted by games played
         const heroStats = Array.from(heroMap.entries())
             .map(([heroId, stats]) => ({
                 heroId,
@@ -42,10 +40,9 @@ export async function GET(
                 wins: stats.wins,
                 winrate: Math.round((stats.wins / stats.games) * 100),
                 avgKDA: `${(stats.kills / stats.games).toFixed(1)}/${(stats.deaths / stats.games).toFixed(1)}/${(stats.assists / stats.games).toFixed(1)}`,
-                avgDuration: Math.round(stats.totalDuration / stats.games),
             }))
             .sort((a, b) => b.games - a.games)
-            .slice(0, 8);
+            .slice(0, 10); // Top 10 heroes
 
         // Calculate overall performance metrics
         let totalKills = 0, totalDeaths = 0, totalAssists = 0, totalDuration = 0;
@@ -67,6 +64,36 @@ export async function GET(
             }).length,
         };
 
+        // Aggregate matches by day for chart (last 30 days of data)
+        const dailyMap = new Map<string, { wins: number; losses: number }>();
+        const now = new Date();
+
+        // Initialize last 30 days
+        for (let i = 0; i < 30; i++) {
+            const date = new Date(now);
+            date.setDate(date.getDate() - i);
+            const key = date.toISOString().split('T')[0];
+            dailyMap.set(key, { wins: 0, losses: 0 });
+        }
+
+        // Fill with match data
+        for (const match of matches) {
+            const date = new Date(match.timestamp as Date).toISOString().split('T')[0];
+            if (dailyMap.has(date)) {
+                const existing = dailyMap.get(date)!;
+                if (match.win) {
+                    existing.wins++;
+                } else {
+                    existing.losses++;
+                }
+            }
+        }
+
+        // Convert to array sorted by date ascending
+        const dailyStats = Array.from(dailyMap.entries())
+            .map(([date, data]) => ({ date, ...data }))
+            .sort((a, b) => a.date.localeCompare(b.date));
+
         // Recent matches (last 10)
         const recentMatches = matches.slice(0, 10).map(m => ({
             matchId: m.matchId,
@@ -81,6 +108,7 @@ export async function GET(
             heroStats,
             performance,
             recentMatches,
+            dailyStats,
             totalMatches: matchCount,
         });
     } catch (error) {
