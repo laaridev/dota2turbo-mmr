@@ -10,6 +10,7 @@ import { getTier, getTierCategory, TIER_NAMES } from '@/lib/tmmr';
 import { HERO_NAMES, getHeroImageUrl } from '@/lib/heroes';
 import { RefreshCw, Shield, Swords, Timer, Trophy, Flame, Clock, Target, TrendingUp, TrendingDown, Gamepad2, BarChart3, Zap } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { motion } from 'framer-motion';
 
 type Player = {
@@ -117,7 +118,7 @@ export default function ProfilePage() {
                             ) : (
                                 <Button onClick={fetchProfile} size="sm" disabled={loading} className="shadow-md shadow-primary/20">{loading ? 'Analisando...' : <><RefreshCw className="mr-2 h-4 w-4" />Atualizar</>}</Button>
                             )}
-                            <p className="text-xs text-muted-foreground">Atualizado {formatDistanceToNow(new Date(player.lastUpdate))} atrás</p>
+                            <p className="text-xs text-muted-foreground">Atualizado {formatDistanceToNow(new Date(player.lastUpdate), { locale: ptBR })}</p>
                         </div>
                     </div>
                 </motion.div>
