@@ -6,8 +6,8 @@ import { cn } from '@/lib/utils';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Dota2Turbo | Ranking Premium de Dota 2 Turbo',
-  description: 'O leaderboard premium para jogadores de Dota 2 Turbo.',
+  title: 'TurboRank | Seu Rank Real no Dota 2 Turbo',
+  description: 'Descubra seu verdadeiro rank no modo Turbo do Dota 2. Ranking exclusivo baseado em partidas Turbo.',
 };
 
 export default function RootLayout({
@@ -22,8 +22,8 @@ export default function RootLayout({
           <header className="sticky top-0 z-50 w-full border-b border-white/5 bg-background/60 backdrop-blur-xl transition-all">
             <div className="container flex h-16 items-center space-x-4 sm:justify-between sm:space-x-0 mx-auto px-4">
               <div className="flex gap-2 items-center">
-                <div className="h-8 w-8 rounded bg-gradient-to-br from-primary to-orange-500 box-glow" />
-                <span className="font-bold text-xl tracking-tight">Dota2<span className="text-primary">Turbo</span></span>
+                <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-orange-500 box-glow flex items-center justify-center font-bold text-white text-sm">T</div>
+                <span className="font-bold text-xl tracking-tight">Turbo<span className="text-primary">Rank</span></span>
               </div>
               <nav className="flex items-center space-x-6 text-sm font-medium">
                 <a href="/" className="transition-colors hover:text-primary">Início</a>

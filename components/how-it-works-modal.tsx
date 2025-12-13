@@ -23,7 +23,7 @@ export function HowItWorksModal({ isOpen, onClose }: HowItWorksModalProps) {
                 </button>
 
                 {/* Title */}
-                <h2 className="text-2xl font-bold mb-6">Como Funciona?</h2>
+                <h2 className="text-2xl font-bold mb-6">Como o TurboRank Funciona?</h2>
 
                 {/* Steps */}
                 <div className="space-y-6">
