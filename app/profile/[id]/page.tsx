@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getTier, TIER_NAMES } from '@/lib/tmmr'; // We might need to duplicate logic or import if client-side safe. It is.
+import { PrivateProfileModal } from '@/components/private-profile-modal';
+import { getTier, TIER_NAMES } from '@/lib/tmmr';
 import { RefreshCw, Shield, Swords, Timer, Trophy, ArrowUp, ArrowDown, Zap } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { motion } from 'framer-motion';
@@ -43,6 +44,7 @@ export default function ProfilePage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [lockTimer, setLockTimer] = useState<number | null>(null);
+    const [showPrivateModal, setShowPrivateModal] = useState(false);
 
     const fetchProfile = async (forceUpdate = false) => {
         setLoading(true);
@@ -68,17 +70,14 @@ export default function ProfilePage() {
                     // Locked, but we usually get the player data back in the error response if it exists
                     if (data.player) {
                         setPlayer(data.player);
-                        // Matches might need separate fetch if not included in player object (refs).
-                        // For MVP let's assume we might need a separate GET route for full details 
-                        // OR the 429 response includes the player. The API I wrote returns `player` in 429.
-                        // But `player.matches` in Mongoose is just IDs.
-                        // We need hydration. 
-                        // Use a separate useEffect to fetch matches details if we have IDs?
-                        // For now, let's just display what we have.
                         setLockTimer(data.remainingDays);
                     } else {
                         setError(data.error);
                     }
+                } else if (res.status === 403 && data.isPrivate) {
+                    // Private profile detected
+                    setShowPrivateModal(true);
+                    setError('Perfil privado');
                 } else {
                     setError(data.error || 'Failed to fetch profile');
                 }
@@ -129,6 +128,11 @@ export default function ProfilePage() {
 
     return (
         <div className="container mx-auto p-4 space-y-8 pb-20">
+            {/* Private Profile Modal */}
+            <PrivateProfileModal
+                isOpen={showPrivateModal}
+                onClose={() => setShowPrivateModal(false)}
+            />
 
             {/* Header */}
             <motion.div

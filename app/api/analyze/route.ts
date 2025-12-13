@@ -58,11 +58,14 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Player not found on OpenDota' }, { status: 404 });
         }
 
-        // OpenDota doesn't explicitly flag "private" easy in all endpoints, 
-        // but if profile is missing name/avatar or matches are empty when they shouldn't be...
-        // Usually if history is disabled, matches might be empty or `leaver_status` etc are null.
-        // However, the prompt says "Se dados estiverem privados: Modal elegante".
-        // We'll rely on matches being returned.
+        // Check if profile is private (no matches returned)
+        if (!matchesData || matchesData.length === 0) {
+            return NextResponse.json({
+                error: 'Perfil privado detectado',
+                isPrivate: true,
+                message: 'Não conseguimos acessar seu histórico de partidas. Isso acontece quando os dados estão privados no Dota 2.'
+            }, { status: 403 });
+        }
 
         // Calculate TMMR
         const calculation = calculateTMMR(matchesData);
