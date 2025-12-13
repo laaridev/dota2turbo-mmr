@@ -61,9 +61,9 @@ export async function POST(request: Request) {
         // Check if profile is private (no matches returned)
         if (!matchesData || matchesData.length === 0) {
             return NextResponse.json({
-                error: 'Perfil privado detectado',
+                error: 'Sem partidas Turbo encontradas',
                 isPrivate: true,
-                message: 'Não conseguimos acessar seu histórico de partidas. Isso acontece quando os dados estão privados no Dota 2.'
+                message: 'Não encontramos partidas Turbo para este jogador no OpenDota. Verifique se: 1) O perfil está público no Dota 2, 2) As partidas foram parseadas no OpenDota (visite opendota.com e clique em Refresh).'
             }, { status: 403 });
         }
 
