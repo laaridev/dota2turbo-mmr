@@ -25,7 +25,7 @@ export default function HallOfFamePage() {
                                     <div className="font-bold">Semana 1</div>
                                     <div className="text-xs text-muted-foreground">Out 2025</div>
                                 </div>
-                                <Badge variant="gold">TBD</Badge>
+                                <Badge variant="default">TBD</Badge>
                             </div>
                             <div className="text-center text-sm text-muted-foreground pt-4">
                                 A temporada atual ainda está em andamento.
