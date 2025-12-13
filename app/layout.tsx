@@ -36,7 +36,7 @@ export default function RootLayout({
           <footer className="border-t border-white/5 bg-background/50 backdrop-blur-sm">
             <div className="container mx-auto px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
               <div className="flex items-center gap-1">
-                <span>© 2024 TurboRank</span>
+                <span>© 2025 TurboRank</span>
               </div>
               <div className="flex items-center gap-4">
                 <span>Idealizadora: <span className="text-foreground font-medium">Yolanda</span></span>
