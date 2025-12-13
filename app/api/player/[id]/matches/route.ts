@@ -13,12 +13,20 @@ export async function GET(
 
         // Convert to Account ID (32-bit) if necessary
         const accountId = opendota.steamId64to32(id);
-        console.log(`[Matches API] Looking for playerSteamId: ${accountId} (original: ${id})`);
+        console.log(`[Matches API] Looking for playerSteamId: "${accountId}" or "${id}"`);
 
-        // Get ALL matches from MongoDB (no limit!)
-        const matches = await Match.find({ playerSteamId: accountId })
+        // Get ALL matches from MongoDB - try both ID formats
+        let matches = await Match.find({ playerSteamId: accountId })
             .sort({ timestamp: -1 })
             .lean();
+
+        // If no matches found with converted ID, try original ID
+        if (matches.length === 0) {
+            console.log(`[Matches API] No matches with converted ID, trying original...`);
+            matches = await Match.find({ playerSteamId: id })
+                .sort({ timestamp: -1 })
+                .lean();
+        }
 
         console.log(`[Matches API] Found ${matches.length} matches`);
 
