@@ -4,13 +4,14 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Trophy, Zap, Clock } from 'lucide-react';
-import { Card } from '@/components/ui/card';
+import { Search, HelpCircle } from 'lucide-react';
+import { HowItWorksModal } from '@/components/how-it-works-modal';
 import { motion } from 'framer-motion';
 
 export default function Home() {
   const [inputId, setInputId] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showHowItWorks, setShowHowItWorks] = useState(false);
   const router = useRouter();
 
   const handleAnalyze = async (e: React.FormEvent) => {
@@ -18,80 +19,85 @@ export default function Home() {
     if (!inputId.trim()) return;
 
     setLoading(true);
-    // Ideally we might validate ID format here, but we'll let the profile page or API handle it.
-    // We direct the user to the profile page which will trigger the fetch if needed (SSR or Client fetch).
-    // Actually, for better UX with "fetching", sending to a loading state on the profile page is good.
     router.push(`/profile/${inputId.trim()}`);
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] p-4 relative overflow-hidden">
-      {/* Background Effects */}
-      <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-primary/20 rounded-full blur-[120px] pointer-events-none" />
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] p-4 relative overflow-hidden">
+      {/* Background Glow Effect */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-br from-primary/15 to-orange-500/10 rounded-full blur-[100px] pointer-events-none" />
+
+      {/* How it Works Modal */}
+      <HowItWorksModal isOpen={showHowItWorks} onClose={() => setShowHowItWorks(false)} />
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="text-center space-y-6 max-w-3xl relative z-10"
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="text-center space-y-8 max-w-2xl relative z-10"
       >
-        <div className="space-y-2">
-          <h1 className="text-4xl md:text-7xl font-bold tracking-tighter text-glow">
-            Dota2<span className="text-primary">Turbo</span>
+        {/* Logo/Title */}
+        <div className="space-y-4">
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
+            <span className="gradient-text">Dota2Turbo</span>
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-[600px] mx-auto">
-            Descubra seu **Rank Real nas Turbos**. Uma plataforma premium feita exclusivamente para quem vive a velocidade do Dota 2 Turbo.
+          <p className="text-muted-foreground text-lg md:text-xl max-w-md mx-auto">
+            Coloque seu ID do Dota e descubra qual seu MMR nas Turbos.
           </p>
         </div>
 
-        <Card className="p-2 bg-background/50 border-white/10 backdrop-blur-md max-w-lg mx-auto box-glow">
-          <form onSubmit={handleAnalyze} className="flex gap-2">
-            <Input
-              placeholder="Cole seu Dota ID (ex: 15998782)"
-              className="bg-transparent border-0 focus-visible:ring-0 text-lg h-12"
-              value={inputId}
-              onChange={(e) => setInputId(e.target.value)}
-            />
-            <Button size="lg" className="h-12 w-32" type="submit" disabled={loading} variant="premium">
-              {loading ? (
-                <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <>
-                  Ver meu Rank <Zap className="ml-2 h-4 w-4" />
-                </>
-              )}
-            </Button>
-          </form>
-        </Card>
+        {/* Search Box - Google Style */}
+        <form onSubmit={handleAnalyze} className="w-full max-w-xl mx-auto">
+          <div className="relative group">
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-orange-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-300" />
+            <div className="relative flex items-center bg-secondary/80 backdrop-blur-sm border border-white/10 rounded-full px-6 py-2 hover:border-white/20 focus-within:border-primary/50 transition-all duration-300">
+              <Search className="h-5 w-5 text-muted-foreground mr-3 flex-shrink-0" />
+              <Input
+                placeholder="Seu Dota ID (ex: 15998782)"
+                className="bg-transparent border-0 focus-visible:ring-0 text-lg h-12 placeholder:text-muted-foreground/60"
+                value={inputId}
+                onChange={(e) => setInputId(e.target.value)}
+              />
+              <Button
+                type="submit"
+                disabled={loading || !inputId.trim()}
+                className="rounded-full px-6 h-10 bg-gradient-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-500/90 text-white font-medium transition-all"
+              >
+                {loading ? (
+                  <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  'Buscar'
+                )}
+              </Button>
+            </div>
+          </div>
+        </form>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-12 text-left">
-          <FeatureCard
-            icon={<Trophy className="h-6 w-6 text-yellow-500" />}
-            title="Seu Rank Turbo Real"
-            description="O MMR normal não importa aqui. Calculamos sua patente baseado puramente no seu desempenho em partidas Turbo."
-          />
-          <FeatureCard
-            icon={<Zap className="h-6 w-6 text-blue-500" />}
-            title="Análise Fast Turbo"
-            description="Algoritmo otimizado para ler milhares de partidas Turbo em segundos. Sem espera."
-          />
-          <FeatureCard
-            icon={<Clock className="h-6 w-6 text-purple-500" />}
-            title="Lendas do Turbo"
-            description="Um Hall da Fama exclusivo para os reis da velocidade. Dispute o topo semanalmente."
-          />
+        {/* How it works link */}
+        <button
+          onClick={() => setShowHowItWorks(true)}
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors group"
+        >
+          <HelpCircle className="h-4 w-4 group-hover:rotate-12 transition-transform" />
+          Como funciona?
+        </button>
+
+      </motion.div>
+
+      {/* Bottom Stats Teaser */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4, duration: 0.6 }}
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-8 text-sm text-muted-foreground"
+      >
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+          <span>Ranking ao vivo</span>
         </div>
+        <div className="hidden md:block h-4 w-px bg-white/10" />
+        <span className="hidden md:block">Exclusivo para modo Turbo</span>
       </motion.div>
     </div>
   );
-}
-
-function FeatureCard({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) {
-  return (
-    <div className="p-6 rounded-xl border border-white/5 bg-white/5 backdrop-blur-sm hover:bg-white/10 transition-colors">
-      <div className="mb-3 p-3 w-fit rounded-lg bg-background/50">{icon}</div>
-      <h3 className="font-semibold text-lg mb-2">{title}</h3>
-      <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
-    </div>
-  )
 }

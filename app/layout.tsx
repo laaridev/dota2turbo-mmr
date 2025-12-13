@@ -22,7 +22,7 @@ export default function RootLayout({
           <header className="sticky top-0 z-50 w-full border-b border-white/5 bg-background/60 backdrop-blur-xl transition-all">
             <div className="container flex h-16 items-center space-x-4 sm:justify-between sm:space-x-0 mx-auto px-4">
               <div className="flex gap-2 items-center">
-                <div className="h-8 w-8 rounded bg-gradient-to-br from-purple-600 to-blue-600 box-glow" />
+                <div className="h-8 w-8 rounded bg-gradient-to-br from-primary to-orange-500 box-glow" />
                 <span className="font-bold text-xl tracking-tight">Dota2<span className="text-primary">Turbo</span></span>
               </div>
               <nav className="flex items-center space-x-6 text-sm font-medium">

@@ -2,33 +2,33 @@
 
 @layer theme {
   :root {
-    --background: hsl(240 10% 4%);
+    --background: hsl(0 0% 4%);
     --foreground: hsl(0 0% 98%);
 
-    --card: hsl(240 10% 6%);
+    --card: hsl(0 0% 7%);
     --card-foreground: hsl(0 0% 98%);
 
-    --popover: hsl(240 10% 4%);
+    --popover: hsl(0 0% 4%);
     --popover-foreground: hsl(0 0% 98%);
 
-    --primary: hsl(263 90% 65%);
+    --primary: hsl(15 100% 55%);
     --primary-foreground: hsl(0 0% 100%);
 
-    --secondary: hsl(240 4% 16%);
+    --secondary: hsl(0 0% 12%);
     --secondary-foreground: hsl(0 0% 98%);
 
-    --muted: hsl(240 4% 16%);
-    --muted-foreground: hsl(240 5% 65%);
+    --muted: hsl(0 0% 15%);
+    --muted-foreground: hsl(0 0% 60%);
 
-    --accent: hsl(263 90% 65%);
+    --accent: hsl(25 100% 50%);
     --accent-foreground: hsl(0 0% 98%);
 
     --destructive: hsl(0 63% 31%);
     --destructive-foreground: hsl(0 0% 98%);
 
-    --border: hsl(240 4% 16%);
-    --input: hsl(240 4% 16%);
-    --ring: hsl(263 90% 65%);
+    --border: hsl(0 0% 15%);
+    --input: hsl(0 0% 15%);
+    --ring: hsl(15 100% 55%);
 
     --radius: 0.75rem;
   }
@@ -63,7 +63,6 @@
   ::after,
   ::before {
     border-color: var(--border);
-    /* Default border color replacement for @apply border-border which might flakey in v4 if not strict */
   }
 
   body {
@@ -75,9 +74,16 @@
 
 /* Custom Utilities */
 @utility text-glow {
-  text-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+  text-shadow: 0 0 30px rgba(255, 100, 50, 0.6), 0 0 60px rgba(255, 80, 30, 0.3);
 }
 
 @utility box-glow {
-  box-shadow: 0 0 40px -10px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 0 50px -10px rgba(255, 100, 50, 0.4);
+}
+
+@utility gradient-text {
+  background: linear-gradient(135deg, hsl(15, 100%, 55%) 0%, hsl(35, 100%, 55%) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
