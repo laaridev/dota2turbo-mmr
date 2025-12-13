@@ -23,7 +23,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] p-4 relative overflow-hidden">
+    <div className="flex flex-col items-center justify-center h-[calc(100vh-4rem)] p-4 relative overflow-hidden">
 
       {/* Animated Background Orbs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
