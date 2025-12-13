@@ -87,11 +87,29 @@ export default function Home() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="Seu ID da Steam"
+              placeholder="Seu ID do Dota 2"
               value={inputId}
               onChange={(e) => setInputId(e.target.value)}
-              className="pl-12 h-14 text-lg rounded-xl border-white/10 bg-card/50 backdrop-blur-sm focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
+              className="pl-12 pr-10 h-14 text-lg rounded-xl border-white/10 bg-card/50 backdrop-blur-sm focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
             />
+            {/* Help tooltip */}
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 group">
+              <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center cursor-help text-muted-foreground hover:text-foreground hover:bg-white/20 transition-colors">
+                <span className="text-xs font-medium">?</span>
+              </div>
+              <div className="absolute bottom-full right-0 mb-2 w-64 p-3 bg-card border border-white/10 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                <div className="text-xs space-y-2">
+                  <p className="font-medium text-foreground">Como encontrar seu ID:</p>
+                  <ol className="list-decimal list-inside text-muted-foreground space-y-1">
+                    <li>Abra o Dota 2</li>
+                    <li>Clique no seu perfil</li>
+                    <li>O ID aparece na URL ou na tela de perfil</li>
+                  </ol>
+                  <p className="text-muted-foreground pt-1">Exemplo: <span className="text-primary font-mono">123456789</span></p>
+                </div>
+                <div className="absolute -bottom-1 right-4 w-2 h-2 bg-card border-r border-b border-white/10 rotate-45" />
+              </div>
+            </div>
           </div>
           <Button
             type="submit"
