@@ -70,7 +70,14 @@ export default function ProfilePage() {
     useEffect(() => { if (id) { fetchProfile(); fetchMatches(); } }, [id]);
 
     if (loading && !player) return <LoadingSkeleton />;
-    if (error && !player) return <ErrorState error={error} />;
+    if (error && !player) {
+        return (
+            <>
+                <PrivateProfileModal isOpen={showPrivateModal} onClose={() => setShowPrivateModal(false)} />
+                <ErrorState error={error} showPrivateModal={showPrivateModal} onShowModal={() => setShowPrivateModal(true)} />
+            </>
+        );
+    }
     if (!player) return null;
 
     const tier = getTier(player.tmmr);
@@ -321,11 +328,18 @@ function LoadingSkeleton() {
     );
 }
 
-function ErrorState({ error }: { error: string }) {
+function ErrorState({ error, showPrivateModal, onShowModal }: { error: string; showPrivateModal?: boolean; onShowModal?: () => void }) {
+    const isPrivateError = error.includes('privado') || error.includes('Turbo');
     return (
-        <div className="container mx-auto p-4 flex flex-col items-center justify-center min-h-[50vh]">
-            <div className="text-red-500 mb-4 text-lg">⚠️ {error}</div>
-            <Button onClick={() => window.location.reload()}>Tentar Novamente</Button>
+        <div className="container mx-auto p-4 flex flex-col items-center justify-center min-h-[50vh] gap-4">
+            <div className="text-yellow-500 mb-2 text-lg">⚠️ {error}</div>
+            {isPrivateError && onShowModal && (
+                <Button onClick={onShowModal} variant="default">
+                    Ver instruções para liberar dados
+                </Button>
+            )}
+            <Button variant="secondary" onClick={() => window.location.reload()}>Tentar Novamente</Button>
         </div>
     );
 }
+
