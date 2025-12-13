@@ -64,35 +64,26 @@ export async function GET(
             }).length,
         };
 
-        // Aggregate matches by day for chart (last 30 days of data)
+        // Aggregate matches by day for chart
         const dailyMap = new Map<string, { wins: number; losses: number }>();
-        const now = new Date();
 
-        // Initialize last 30 days
-        for (let i = 0; i < 30; i++) {
-            const date = new Date(now);
-            date.setDate(date.getDate() - i);
-            const key = date.toISOString().split('T')[0];
-            dailyMap.set(key, { wins: 0, losses: 0 });
-        }
-
-        // Fill with match data
+        // Fill with match data (use actual match dates)
         for (const match of matches) {
             const date = new Date(match.timestamp as Date).toISOString().split('T')[0];
-            if (dailyMap.has(date)) {
-                const existing = dailyMap.get(date)!;
-                if (match.win) {
-                    existing.wins++;
-                } else {
-                    existing.losses++;
-                }
+            const existing = dailyMap.get(date) || { wins: 0, losses: 0 };
+            if (match.win) {
+                existing.wins++;
+            } else {
+                existing.losses++;
             }
+            dailyMap.set(date, existing);
         }
 
-        // Convert to array sorted by date ascending
+        // Convert to array sorted by date ascending, take last 30 days with data
         const dailyStats = Array.from(dailyMap.entries())
             .map(([date, data]) => ({ date, ...data }))
-            .sort((a, b) => a.date.localeCompare(b.date));
+            .sort((a, b) => a.date.localeCompare(b.date))
+            .slice(-30);
 
         // Recent matches (last 10)
         const recentMatches = matches.slice(0, 10).map(m => ({
