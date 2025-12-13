@@ -40,7 +40,7 @@ export default function LeaderboardPage() {
 
     return (
         <div className="h-[calc(100vh-4rem)] overflow-hidden flex flex-col">
-            <div className="container mx-auto px-4 py-4 flex flex-col h-full max-w-4xl">
+            <div className="container mx-auto px-4 py-4 flex flex-col h-full max-w-3xl">
 
                 {/* Week Header */}
                 <motion.div
@@ -61,10 +61,10 @@ export default function LeaderboardPage() {
 
                 {loading ? (
                     <div className="space-y-4 flex-1">
-                        <div className="flex items-end justify-center gap-2 mb-4">
-                            <Skeleton className="w-28 h-32 rounded-xl" />
-                            <Skeleton className="w-36 h-40 rounded-xl" />
-                            <Skeleton className="w-28 h-32 rounded-xl" />
+                        <div className="flex gap-2 mb-4">
+                            <Skeleton className="flex-1 h-48 rounded-xl" />
+                            <Skeleton className="flex-[1.3] h-56 rounded-xl" />
+                            <Skeleton className="flex-1 h-48 rounded-xl" />
                         </div>
                         <div className="space-y-2">
                             {[1, 2, 3, 4, 5].map(i => <Skeleton key={i} className="h-12 w-full rounded-lg" />)}
@@ -72,10 +72,10 @@ export default function LeaderboardPage() {
                     </div>
                 ) : (
                     <>
-                        {/* Top 3 Podium */}
+                        {/* Top 3 Podium - Full width grid */}
                         {topThree.length >= 3 && (
                             <motion.div
-                                className="flex items-end justify-center gap-2 mb-4 flex-shrink-0"
+                                className="grid grid-cols-[1fr_1.3fr_1fr] gap-2 mb-4 flex-shrink-0"
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.5 }}
@@ -122,40 +122,36 @@ function PodiumCard({ player, position }: { player: any; position: number }) {
     const isFirst = position === 1;
 
     const styles = {
-        1: { w: 'w-40', h: 'h-44', avatar: 'w-16 h-16', bg: 'from-yellow-500/25 to-amber-700/10', border: 'border-yellow-500/50', color: '#FFD700' },
-        2: { w: 'w-32', h: 'h-36', avatar: 'w-12 h-12', bg: 'from-slate-400/25 to-slate-600/10', border: 'border-slate-400/50', color: '#C0C0C0' },
-        3: { w: 'w-32', h: 'h-36', avatar: 'w-12 h-12', bg: 'from-orange-500/25 to-orange-700/10', border: 'border-orange-600/50', color: '#CD7F32' },
+        1: { h: 'h-56', avatar: 'w-20 h-20', bg: 'from-yellow-500/25 to-amber-700/10', border: 'border-yellow-500/50', color: '#FFD700' },
+        2: { h: 'h-48', avatar: 'w-16 h-16', bg: 'from-slate-400/25 to-slate-600/10', border: 'border-slate-400/50', color: '#C0C0C0' },
+        3: { h: 'h-48', avatar: 'w-16 h-16', bg: 'from-orange-500/25 to-orange-700/10', border: 'border-orange-600/50', color: '#CD7F32' },
     }[position]!;
 
     return (
-        <Link href={`/profile/${player.steamId}`}>
+        <Link href={`/profile/${player.steamId}`} className="block self-end">
             <motion.div
-                className={`relative ${styles.w} ${styles.h} rounded-xl bg-gradient-to-b ${styles.bg} border ${styles.border} p-2 flex flex-col items-center justify-center hover:scale-[1.03] transition-transform cursor-pointer`}
+                className={`relative ${styles.h} rounded-xl bg-gradient-to-b ${styles.bg} border ${styles.border} p-4 flex flex-col items-center justify-between hover:scale-[1.02] transition-transform cursor-pointer`}
                 whileHover={{ y: -3 }}
             >
-                {/* Icon */}
-                <div className="absolute top-2 left-1/2 -translate-x-1/2">
-                    {isFirst ? <Crown className="h-5 w-5" style={{ color: styles.color }} /> : <Medal className="h-4 w-4" style={{ color: styles.color }} />}
+                {/* Top row: Position + Icon */}
+                <div className="flex items-center justify-between w-full">
+                    <span className="text-lg font-bold text-white/30">#{position}</span>
+                    {isFirst ? <Crown className="h-6 w-6" style={{ color: styles.color }} /> : <Medal className="h-5 w-5" style={{ color: styles.color }} />}
                 </div>
 
-                {/* Position */}
-                <div className="absolute top-2 left-2 text-sm font-bold text-white/20">#{position}</div>
-
-                {/* Avatar */}
-                <div className={`${styles.avatar} mb-2`}>
-                    <img src={player.avatar} alt={player.name} className="w-full h-full rounded-full object-cover" style={{ border: `2px solid ${styles.color}` }} />
+                {/* Center: Avatar */}
+                <div className={`${styles.avatar} flex-shrink-0`}>
+                    <img src={player.avatar} alt={player.name} className="w-full h-full rounded-full object-cover" style={{ border: `3px solid ${styles.color}` }} />
                 </div>
 
-                {/* Name */}
-                <div className="font-semibold text-xs truncate max-w-full text-center">{player.name}</div>
-
-                {/* TMMR */}
-                <div className="flex items-center gap-1 text-primary font-bold text-sm mt-1">
-                    <Trophy className="h-3 w-3" />{player.tmmr}
+                {/* Bottom: Info */}
+                <div className="text-center space-y-1">
+                    <div className="font-semibold text-sm truncate max-w-full">{player.name}</div>
+                    <div className="flex items-center justify-center gap-1 text-primary font-bold">
+                        <Trophy className="h-4 w-4" />{player.tmmr}
+                    </div>
+                    <Badge variant={getTierCategory(tier) as any} className="text-[10px]">{TIER_NAMES[tier]}</Badge>
                 </div>
-
-                {/* Badge */}
-                <Badge variant={getTierCategory(tier) as any} className="text-[9px] mt-1">{TIER_NAMES[tier]}</Badge>
             </motion.div>
         </Link>
     );
