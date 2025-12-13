@@ -14,12 +14,15 @@ const badgeVariants = cva(
                 destructive:
                     "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
                 outline: "text-foreground",
-                bronze: "border-transparent bg-orange-700/20 text-orange-500 border-orange-500/50",
-                silver: "border-transparent bg-slate-400/20 text-slate-300 border-slate-400/50",
-                gold: "border-transparent bg-yellow-500/20 text-yellow-500 border-yellow-500/50",
-                diamond: "border-transparent bg-blue-400/20 text-blue-400 border-blue-400/50",
-                master: "border-transparent bg-purple-500/20 text-purple-400 border-purple-500/50",
-                divine: "border-transparent bg-rose-500/20 text-rose-400 border-rose-500/50 box-glow",
+                // Dota 2 Ranks
+                herald: "border-transparent bg-zinc-600/30 text-zinc-400 border-zinc-500/50",
+                guardian: "border-transparent bg-teal-600/20 text-teal-400 border-teal-500/50",
+                crusader: "border-transparent bg-lime-600/20 text-lime-400 border-lime-500/50",
+                archon: "border-transparent bg-yellow-500/20 text-yellow-400 border-yellow-500/50",
+                legend: "border-transparent bg-sky-500/20 text-sky-400 border-sky-500/50",
+                ancient: "border-transparent bg-purple-500/20 text-purple-400 border-purple-500/50",
+                divine: "border-transparent bg-rose-500/20 text-rose-400 border-rose-500/50",
+                immortal: "border-transparent bg-gradient-to-r from-amber-500/30 to-orange-500/30 text-amber-300 border-amber-500/50 box-glow",
             },
         },
         defaultVariants: {

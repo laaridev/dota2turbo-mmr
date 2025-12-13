@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Need to build avatar or use img
-import { getTier, TIER_NAMES } from '@/lib/tmmr';
+import { getTier, getTierCategory, TIER_NAMES } from '@/lib/tmmr';
 import { Trophy } from 'lucide-react';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -59,7 +59,7 @@ export default function LeaderboardPage() {
                                             <div className="font-bold text-primary flex items-center justify-end gap-1">
                                                 <Trophy className="h-3 w-3" /> {player.tmmr}
                                             </div>
-                                            <Badge variant={tier} className="text-[10px] px-1.5 h-4">
+                                            <Badge variant={getTierCategory(tier) as any} className="text-[10px] px-1.5 h-4">
                                                 {TIER_NAMES[tier]}
                                             </Badge>
                                         </div>

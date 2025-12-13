@@ -82,20 +82,117 @@ export function calculateTMMR(matches: OpenDotaMatch[]): TmmrCalculationResult {
     };
 }
 
-export function getTier(tmmr: number): 'bronze' | 'silver' | 'gold' | 'diamond' | 'master' | 'divine' {
-    if (tmmr < 2000) return 'bronze';
-    if (tmmr < 3000) return 'silver';
-    if (tmmr < 4000) return 'gold';
-    if (tmmr < 5000) return 'diamond';
-    if (tmmr < 6000) return 'master';
-    return 'divine';
+export type TierKey =
+    | 'herald1' | 'herald2' | 'herald3' | 'herald4' | 'herald5'
+    | 'guardian1' | 'guardian2' | 'guardian3' | 'guardian4' | 'guardian5'
+    | 'crusader1' | 'crusader2' | 'crusader3' | 'crusader4' | 'crusader5'
+    | 'archon1' | 'archon2' | 'archon3' | 'archon4' | 'archon5'
+    | 'legend1' | 'legend2' | 'legend3' | 'legend4' | 'legend5'
+    | 'ancient1' | 'ancient2' | 'ancient3' | 'ancient4' | 'ancient5'
+    | 'divine1' | 'divine2' | 'divine3' | 'divine4' | 'divine5'
+    | 'immortal';
+
+export function getTier(tmmr: number): TierKey {
+    // Herald: 1-769
+    if (tmmr < 154) return 'herald1';
+    if (tmmr < 308) return 'herald2';
+    if (tmmr < 462) return 'herald3';
+    if (tmmr < 616) return 'herald4';
+    if (tmmr < 770) return 'herald5';
+
+    // Guardian: 770-1539
+    if (tmmr < 924) return 'guardian1';
+    if (tmmr < 1078) return 'guardian2';
+    if (tmmr < 1232) return 'guardian3';
+    if (tmmr < 1386) return 'guardian4';
+    if (tmmr < 1540) return 'guardian5';
+
+    // Crusader: 1540-2309
+    if (tmmr < 1694) return 'crusader1';
+    if (tmmr < 1848) return 'crusader2';
+    if (tmmr < 2002) return 'crusader3';
+    if (tmmr < 2156) return 'crusader4';
+    if (tmmr < 2310) return 'crusader5';
+
+    // Archon: 2310-3079
+    if (tmmr < 2464) return 'archon1';
+    if (tmmr < 2618) return 'archon2';
+    if (tmmr < 2772) return 'archon3';
+    if (tmmr < 2926) return 'archon4';
+    if (tmmr < 3080) return 'archon5';
+
+    // Legend: 3080-3849
+    if (tmmr < 3234) return 'legend1';
+    if (tmmr < 3388) return 'legend2';
+    if (tmmr < 3542) return 'legend3';
+    if (tmmr < 3696) return 'legend4';
+    if (tmmr < 3850) return 'legend5';
+
+    // Ancient: 3850-4619
+    if (tmmr < 4004) return 'ancient1';
+    if (tmmr < 4158) return 'ancient2';
+    if (tmmr < 4312) return 'ancient3';
+    if (tmmr < 4466) return 'ancient4';
+    if (tmmr < 4620) return 'ancient5';
+
+    // Divine: 4620-5620
+    if (tmmr < 4820) return 'divine1';
+    if (tmmr < 5020) return 'divine2';
+    if (tmmr < 5220) return 'divine3';
+    if (tmmr < 5420) return 'divine4';
+    if (tmmr < 5620) return 'divine5';
+
+    // Immortal: 5620+
+    return 'immortal';
 }
 
-export const TIER_NAMES: Record<string, string> = {
-    bronze: 'Bronze',
-    silver: 'Prata',
-    gold: 'Ouro',
-    diamond: 'Diamante',
-    master: 'Mestre',
-    divine: 'Divino'
+// Tier base category (for badge styling)
+export function getTierCategory(tier: TierKey): string {
+    if (tier.startsWith('herald')) return 'herald';
+    if (tier.startsWith('guardian')) return 'guardian';
+    if (tier.startsWith('crusader')) return 'crusader';
+    if (tier.startsWith('archon')) return 'archon';
+    if (tier.startsWith('legend')) return 'legend';
+    if (tier.startsWith('ancient')) return 'ancient';
+    if (tier.startsWith('divine')) return 'divine';
+    return 'immortal';
+}
+
+export const TIER_NAMES: Record<TierKey, string> = {
+    herald1: 'Arauto 1',
+    herald2: 'Arauto 2',
+    herald3: 'Arauto 3',
+    herald4: 'Arauto 4',
+    herald5: 'Arauto 5',
+    guardian1: 'Guardião 1',
+    guardian2: 'Guardião 2',
+    guardian3: 'Guardião 3',
+    guardian4: 'Guardião 4',
+    guardian5: 'Guardião 5',
+    crusader1: 'Cruzado 1',
+    crusader2: 'Cruzado 2',
+    crusader3: 'Cruzado 3',
+    crusader4: 'Cruzado 4',
+    crusader5: 'Cruzado 5',
+    archon1: 'Arconte 1',
+    archon2: 'Arconte 2',
+    archon3: 'Arconte 3',
+    archon4: 'Arconte 4',
+    archon5: 'Arconte 5',
+    legend1: 'Lenda 1',
+    legend2: 'Lenda 2',
+    legend3: 'Lenda 3',
+    legend4: 'Lenda 4',
+    legend5: 'Lenda 5',
+    ancient1: 'Ancião 1',
+    ancient2: 'Ancião 2',
+    ancient3: 'Ancião 3',
+    ancient4: 'Ancião 4',
+    ancient5: 'Ancião 5',
+    divine1: 'Divino 1',
+    divine2: 'Divino 2',
+    divine3: 'Divino 3',
+    divine4: 'Divino 4',
+    divine5: 'Divino 5',
+    immortal: 'Imortal'
 };

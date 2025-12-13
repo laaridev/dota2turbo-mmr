@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PrivateProfileModal } from '@/components/private-profile-modal';
-import { getTier, TIER_NAMES } from '@/lib/tmmr';
+import { getTier, getTierCategory, TIER_NAMES } from '@/lib/tmmr';
 import { RefreshCw, Shield, Swords, Timer, Trophy, ArrowUp, ArrowDown, Zap } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { motion } from 'framer-motion';
@@ -143,7 +143,7 @@ export default function ProfilePage() {
                 <div className="relative">
                     <img src={player.avatar} alt={player.name} className="h-24 w-24 md:h-32 md:w-32 rounded-full border-4 border-primary/20 box-glow" />
                     <div className="absolute -bottom-2 -right-2 bg-background p-1 rounded-full">
-                        <Badge variant={tier} className="text-sm px-3 py-1 uppercase tracking-wider">
+                        <Badge variant={getTierCategory(tier) as any} className="text-sm px-3 py-1 uppercase tracking-wider">
                             {TIER_NAMES[tier]}
                         </Badge>
                     </div>
