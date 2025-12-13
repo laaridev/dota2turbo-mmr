@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Match from '@/lib/models/Match';
+import { opendota } from '@/lib/opendota';
 
 export async function GET(
     request: Request,
@@ -10,10 +11,16 @@ export async function GET(
         await dbConnect();
         const { id } = await params;
 
+        // Convert to Account ID (32-bit) if necessary
+        const accountId = opendota.steamId64to32(id);
+        console.log(`[Matches API] Looking for playerSteamId: ${accountId} (original: ${id})`);
+
         // Get ALL matches from MongoDB (no limit!)
-        const matches = await Match.find({ playerSteamId: id })
+        const matches = await Match.find({ playerSteamId: accountId })
             .sort({ timestamp: -1 })
             .lean();
+
+        console.log(`[Matches API] Found ${matches.length} matches`);
 
         // Aggregate hero stats from ALL matches
         const heroMap = new Map<number, { games: number; wins: number; kills: number; deaths: number; assists: number; totalDuration: number }>();
