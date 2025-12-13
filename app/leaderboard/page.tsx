@@ -42,17 +42,7 @@ export default function LeaderboardPage() {
         <div className="min-h-screen">
             <div className="container mx-auto px-4 py-6 max-w-3xl">
 
-                {/* Header */}
-                <div className="flex items-center justify-between mb-6">
-                    <div>
-                        <h1 className="text-xl font-bold">Ranking Semanal</h1>
-                        <p className="text-sm text-muted-foreground">Semana {weekInfo.weekNumber}</p>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Clock className="h-4 w-4" />
-                        <span>{weekInfo.daysLeft}d {weekInfo.hoursLeft}h</span>
-                    </div>
-                </div>
+
 
                 {loading ? (
                     <div className="space-y-4">
