@@ -1,13 +1,7 @@
 'use client';
 
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import { Trophy, TrendingUp, Target, Activity, Star } from 'lucide-react';
+import { Trophy, TrendingUp, Target, Activity, Star, X } from 'lucide-react';
+import { useEffect } from 'react';
 
 interface RankingInfoModalProps {
     isOpen: boolean;
@@ -78,22 +72,56 @@ export function RankingInfoModal({ isOpen, onClose, mode }: RankingInfoModalProp
     const info = INFO_CONTENT[mode] || INFO_CONTENT.general;
     const Icon = info.icon;
 
-    return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-md border-white/10 bg-card/95 backdrop-blur-xl">
-                <DialogHeader>
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className={`p-2 rounded-lg ${mode === 'pro' ? 'bg-amber-500/20' : 'bg-primary/20'}`}>
-                            <Icon className={`w-6 h-6 ${mode === 'pro' ? 'text-amber-400' : 'text-primary'}`} />
-                        </div>
-                        <DialogTitle className="text-xl">{info.title}</DialogTitle>
-                    </div>
-                    <DialogDescription className="text-muted-foreground text-sm leading-relaxed">
-                        {info.description}
-                    </DialogDescription>
-                </DialogHeader>
+    // Lock body scroll when modal is open
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [isOpen]);
 
-                <div className="space-y-4 mt-2">
+    if (!isOpen) return null;
+
+    return (
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            onClick={onClose}
+        >
+            {/* Backdrop */}
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+
+            {/* Modal Content */}
+            <div
+                className="relative bg-card border border-white/10 rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+                onClick={(e) => e.stopPropagation()}
+            >
+                {/* Header */}
+                <div className="sticky top-0 bg-card border-b border-white/10 p-6 pb-4">
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                            <div className={`p-2 rounded-lg ${mode === 'pro' ? 'bg-amber-500/20' : 'bg-primary/20'}`}>
+                                <Icon className={`w-6 h-6 ${mode === 'pro' ? 'text-amber-400' : 'text-primary'}`} />
+                            </div>
+                            <h2 className="text-xl font-bold text-white">{info.title}</h2>
+                        </div>
+                        <button
+                            onClick={onClose}
+                            className="p-2 rounded-lg hover:bg-white/10 transition-colors text-muted-foreground"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                        {info.description}
+                    </p>
+                </div>
+
+                {/* Body */}
+                <div className="p-6 space-y-4">
                     <div className="bg-white/5 rounded-lg p-4 space-y-3 border border-white/5">
                         <h4 className="text-sm font-semibold text-white">Como funciona:</h4>
                         <ul className="space-y-2">
@@ -110,7 +138,7 @@ export function RankingInfoModal({ isOpen, onClose, mode }: RankingInfoModalProp
                         Todas as métricas são atualizadas automaticamente a cada nova partida analisada.
                     </div>
                 </div>
-            </DialogContent>
-        </Dialog>
+            </div>
+        </div>
     );
 }
