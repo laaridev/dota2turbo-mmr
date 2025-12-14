@@ -38,37 +38,75 @@ function getPeriodDates(periodId: string): { start: Date; end: Date } | null {
 
 export async function GET(request: Request) {
     try {
-        const { searchParams } = new URL(request.url);
-        const limit = parseInt(searchParams.get('limit') || '100');
-        const page = parseInt(searchParams.get('page') || '1');
+        const searchParams = new URL(request.url).searchParams;
         const period = searchParams.get('period') || 'all';
+        const rankingMode = searchParams.get('mode') || 'general'; // general, winrate, performance, consistency, pro
+        const page = parseInt(searchParams.get('page') || '1');
+        const limit = parseInt(searchParams.get('limit') || '100');
         const skip = (page - 1) * limit;
 
         await dbConnect();
 
-        // For 'all' period, use the stored TMMR values
-        if (period === 'all') {
-            const players = await Player.find({ isPrivate: false })
-                .sort({ tmmr: -1 })
-                .skip(skip)
-                .limit(limit)
-                .select('steamId name avatar tmmr wins losses streak');
-
-            const total = await Player.countDocuments({ isPrivate: false });
-
-            return NextResponse.json({
-                players,
-                periods: PERIODS,
-                currentPeriod: period,
-                pagination: { total, page, pages: Math.ceil(total / limit) }
-            });
-        }
-
-        // Check cache for period-specific calculations
-        const cacheKey = `${period}-${page}-${limit}`;
+        // Check cache
+        const cacheKey = `${period}-${rankingMode}-${page}-${limit}`;
         const cached = periodCache.get(cacheKey);
         if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
             return NextResponse.json(cached.data);
+        }
+
+        // For 'all' period, use pre-calculated data
+        if (period === 'all') {
+            let query: any = { isPrivate: false };
+            let sortField: any = {};
+            let minGamesFilter: any = {};
+
+            // Define sorting and filtering based on ranking mode
+            switch (rankingMode) {
+                case 'winrate':
+                    sortField = { winrate: -1 };
+                    minGamesFilter = { $expr: { $gte: [{ $add: ['$wins', '$losses'] }, 50] } };
+                    break;
+                case 'performance':
+                    sortField = { avgKDA: -1 };
+                    minGamesFilter = { $expr: { $gte: [{ $add: ['$wins', '$losses'] }, 20] } };
+                    break;
+                case 'consistency':
+                    sortField = { kdaVariance: 1 }; // Lower variance = more consistent
+                    minGamesFilter = { $expr: { $gte: [{ $add: ['$wins', '$losses'] }, 30] } };
+                    break;
+                case 'pro':
+                    sortField = { proWinrate: -1, proKDA: -1 };
+                    minGamesFilter = { proGames: { $gte: 10 } };
+                    break;
+                case 'general':
+                default:
+                    sortField = { tmmr: -1 };
+                    break;
+            }
+
+            // Apply minimum games filter
+            if (Object.keys(minGamesFilter).length > 0) {
+                query = { ...query, ...minGamesFilter };
+            }
+
+            const players = await Player.find(query)
+                .sort(sortField)
+                .skip(skip)
+                .limit(limit)
+                .lean();
+
+            const total = await Player.countDocuments(query);
+
+            const response = {
+                players,
+                periods: PERIODS,
+                currentPeriod: period,
+                rankingMode,
+                pagination: { total, page, pages: Math.ceil(total / limit) }
+            };
+
+            periodCache.set(cacheKey, { data: response, timestamp: Date.now() });
+            return NextResponse.json(response);
         }
 
         // Period filter - simple version using current TMMR

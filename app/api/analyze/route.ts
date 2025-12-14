@@ -70,6 +70,10 @@ export async function POST(request: Request) {
         // Calculate TMMR
         const calculation = calculateTMMR(matchesData);
 
+        // Calculate Multi-Ranking Stats
+        const { calculateRankingStats } = await import('@/lib/ranking-stats');
+        const rankingStats = calculateRankingStats(matchesData);
+
         // Save Matches
         // We only save matches that are NOT already in DB or update them?
         // For simplicity and "snapshot" nature, and to avoid huge complexity, 
@@ -119,7 +123,15 @@ export async function POST(request: Request) {
             streak: calculation.streak,
             lastUpdate: new Date(),
             matches: calculation.processedMatches.map(m => m.matchId),
-            isPrivate: false // assumed public if we got this far
+            isPrivate: false, // assumed public if we got this far
+
+            // Multi-Ranking Stats
+            winrate: rankingStats.winrate,
+            avgKDA: rankingStats.avgKDA,
+            kdaVariance: rankingStats.kdaVariance,
+            proGames: rankingStats.proGames,
+            proWinrate: rankingStats.proWinrate,
+            proKDA: rankingStats.proKDA
         };
 
         const player = await Player.findOneAndUpdate(

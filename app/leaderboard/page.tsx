@@ -1,13 +1,21 @@
 'use client';
 
 import { Suspense, useEffect, useState, useMemo } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { getTier, getTierCategory, TIER_NAMES } from '@/lib/tmmr';
-import { Trophy } from 'lucide-react';
+import { Trophy, TrendingUp, Target, Activity, Star, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
+
+const RANKING_MODES = [
+    { id: 'general', label: 'Geral', icon: Trophy, description: 'TMMR Principal' },
+    { id: 'winrate', label: 'Winrate', icon: TrendingUp, description: 'Taxa de Vitória' },
+    { id: 'performance', label: 'Performance', icon: Target, description: 'KDA Médio' },
+    { id: 'consistency', label: 'Consistência', icon: Activity, description: 'Estabilidade' },
+    { id: 'pro', label: 'PRO', icon: Star, description: 'Alto Nível (Rank 65+)', premium: true },
+];
 
 export default function LeaderboardPage() {
     return (
@@ -19,7 +27,7 @@ export default function LeaderboardPage() {
 
 function LeaderboardSkeleton() {
     return (
-        <div className="container mx-auto px-4 py-6 max-w-3xl">
+        <div className="container mx-auto px-4 py-6 max-w-4xl">
             <div className="space-y-2">
                 {[...Array(15)].map((_, i) => (
                     <Skeleton key={i} className="h-16 rounded-xl" />
@@ -31,17 +39,19 @@ function LeaderboardSkeleton() {
 
 function LeaderboardContent() {
     const searchParams = useSearchParams();
+    const router = useRouter();
     const [players, setPlayers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     const searchQuery = searchParams.get('search') || '';
     const currentPeriod = searchParams.get('period') || 'all';
+    const rankingMode = searchParams.get('mode') || 'general';
 
     useEffect(() => {
         const fetchLeaderboard = async () => {
             setLoading(true);
             try {
-                const res = await fetch(`/api/leaderboard?period=${currentPeriod}&limit=100`);
+                const res = await fetch(`/api/leaderboard?period=${currentPeriod}&mode=${rankingMode}&limit=100`);
                 const data = await res.json();
                 setPlayers(data.players || []);
             } catch (e) {
@@ -51,7 +61,7 @@ function LeaderboardContent() {
             }
         };
         fetchLeaderboard();
-    }, [currentPeriod]);
+    }, [currentPeriod, rankingMode]);
 
     const filteredPlayers = useMemo(() => {
         if (!searchQuery.trim()) return players;
@@ -59,9 +69,17 @@ function LeaderboardContent() {
         return players.filter(p => p.name.toLowerCase().includes(query));
     }, [players, searchQuery]);
 
+    const handleModeChange = (mode: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('mode', mode);
+        router.push(`/leaderboard?${params.toString()}`);
+    };
+
     if (loading) {
         return <LeaderboardSkeleton />;
     }
+
+    const currentMode = RANKING_MODES.find(m => m.id === rankingMode) || RANKING_MODES[0];
 
     return (
         <>
@@ -69,11 +87,45 @@ function LeaderboardContent() {
             <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary/10 blur-[120px] rounded-full pointer-events-none z-0" />
 
             {/* Main content */}
-            <div className="container mx-auto px-4 py-6 max-w-3xl relative z-10">
+            <div className="container mx-auto px-4 py-6 max-w-4xl relative z-10">
+                {/* Ranking Mode Tabs */}
+                <div className="mb-6 overflow-x-auto">
+                    <div className="flex gap-2 min-w-max pb-2">
+                        {RANKING_MODES.map((mode) => {
+                            const Icon = mode.icon;
+                            const isActive = rankingMode === mode.id;
+                            return (
+                                <button
+                                    key={mode.id}
+                                    onClick={() => handleModeChange(mode.id)}
+                                    className={`relative flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all ${isActive
+                                            ? mode.premium
+                                                ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 border-2 border-amber-500/50 text-amber-400'
+                                                : 'bg-primary/20 border-2 border-primary text-primary'
+                                            : 'bg-card/40 border border-white/10 text-muted-foreground hover:bg-white/5'
+                                        }`}
+                                >
+                                    {mode.premium && isActive && (
+                                        <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-lg animate-pulse" />
+                                    )}
+                                    <Icon className={`h-4 w-4 ${mode.premium && isActive ? 'animate-pulse' : ''}`} />
+                                    <div className="text-left relative z-10">
+                                        <div className="font-semibold text-sm flex items-center gap-1">
+                                            {mode.label}
+                                            {mode.premium && <Zap className="h-3 w-3 text-amber-400" />}
+                                        </div>
+                                        <div className="text-[10px] opacity-70">{mode.description}</div>
+                                    </div>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
                 {/* Header */}
                 <div className="flex items-center gap-2 mb-4">
-                    <Trophy className="h-5 w-5 text-primary" />
-                    <h1 className="text-xl font-bold text-white">Ranking</h1>
+                    <currentMode.icon className={`h-5 w-5 ${currentMode.premium ? 'text-amber-400' : 'text-primary'}`} />
+                    <h1 className="text-xl font-bold text-white">Ranking {currentMode.label}</h1>
                     <span className="text-sm text-muted-foreground ml-auto">
                         {filteredPlayers.length} jogadores
                     </span>
@@ -87,6 +139,7 @@ function LeaderboardContent() {
                             player={player}
                             position={index + 1}
                             isTopThree={index < 3}
+                            rankingMode={rankingMode}
                         />
                     ))}
                     {filteredPlayers.length === 0 && (
@@ -100,10 +153,42 @@ function LeaderboardContent() {
     );
 }
 
-function PlayerRow({ player, position, isTopThree }: { player: any; position: number; isTopThree: boolean }) {
+function PlayerRow({ player, position, isTopThree, rankingMode }: {
+    player: any;
+    position: number;
+    isTopThree: boolean;
+    rankingMode: string;
+}) {
     const tier = getTier(player.tmmr);
     const category = getTierCategory(tier);
-    const winRate = ((player.wins / (player.wins + player.losses)) * 100).toFixed(1);
+    const totalGames = player.wins + player.losses;
+
+    // Get the metric value based on ranking mode
+    let metricValue = '';
+    let metricLabel = '';
+
+    switch (rankingMode) {
+        case 'winrate':
+            metricValue = `${player.winrate?.toFixed(1)}%`;
+            metricLabel = 'WR';
+            break;
+        case 'performance':
+            metricValue = player.avgKDA?.toFixed(2) || '0';
+            metricLabel = 'KDA';
+            break;
+        case 'consistency':
+            metricValue = player.kdaVariance?.toFixed(2) || '0';
+            metricLabel = 'Variância';
+            break;
+        case 'pro':
+            metricValue = `${player.proWinrate?.toFixed(1)}%`;
+            metricLabel = `${player.proGames} jogos PRO`;
+            break;
+        default:
+            metricValue = player.tmmr?.toString() || '0';
+            metricLabel = TIER_NAMES[tier];
+            break;
+    }
 
     const bgClass = position === 1 ? 'bg-gradient-to-r from-amber-500/20 to-transparent border-amber-500/40' :
         position === 2 ? 'bg-gradient-to-r from-gray-400/15 to-transparent border-gray-400/30' :
@@ -120,9 +205,9 @@ function PlayerRow({ player, position, isTopThree }: { player: any; position: nu
             >
                 {/* Position Badge */}
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0 ${position === 1 ? 'bg-gradient-to-br from-amber-500 to-amber-600 text-white shadow-lg shadow-amber-500/50' :
-                    position === 2 ? 'bg-gradient-to-br from-gray-400 to-gray-500 text-white shadow-lg shadow-gray-400/50' :
-                        position === 3 ? 'bg-gradient-to-br from-amber-700 to-amber-800 text-white shadow-lg shadow-amber-700/50' :
-                            'bg-white/5 text-muted-foreground'
+                        position === 2 ? 'bg-gradient-to-br from-gray-400 to-gray-500 text-white shadow-lg shadow-gray-400/50' :
+                            position === 3 ? 'bg-gradient-to-br from-amber-700 to-amber-800 text-white shadow-lg shadow-amber-700/50' :
+                                'bg-white/5 text-muted-foreground'
                     }`}>
                     {position}
                 </div>
@@ -142,22 +227,20 @@ function PlayerRow({ player, position, isTopThree }: { player: any; position: nu
                         {player.name}
                     </div>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                        <span className={Number(winRate) >= 50 ? 'text-green-400 font-medium' : 'text-red-400 font-medium'}>
-                            {winRate}% WR
-                        </span>
-                        <span className="text-white/20">•</span>
-                        <span>{player.wins + player.losses} jogos</span>
+                        <span>{totalGames} jogos</span>
                     </div>
                 </div>
 
-                {/* TMMR + Badge */}
-                <div className="text-right flex items-center gap-3 flex-shrink-0">
-                    <div className="text-right">
-                        <div className="font-bold text-white text-lg">{player.tmmr}</div>
-                        <Badge variant={category as any} className="text-[10px] px-2 h-5 mt-1">
-                            {TIER_NAMES[tier]}
+                {/* Metric Value */}
+                <div className="text-right flex flex-col items-end gap-1 flex-shrink-0">
+                    <div className="font-bold text-white text-lg">{metricValue}</div>
+                    {rankingMode === 'general' ? (
+                        <Badge variant={category as any} className="text-[10px] px-2 h-5">
+                            {metricLabel}
                         </Badge>
-                    </div>
+                    ) : (
+                        <span className="text-[10px] text-muted-foreground">{metricLabel}</span>
+                    )}
                 </div>
             </motion.div>
         </Link>

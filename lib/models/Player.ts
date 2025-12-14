@@ -11,19 +11,35 @@ export interface IPlayer extends Document {
     lastUpdate: Date;
     matches: number[]; // Array of Match IDs
     isPrivate: boolean;
+
+    // Multi-Ranking Stats
+    winrate: number; // Percentage (0-100)
+    avgKDA: number; // Average KDA across all matches
+    kdaVariance: number; // Variance for consistency ranking
+    proGames: number; // Games with average_rank >= 65
+    proWinrate: number; // Winrate in pro games
+    proKDA: number; // Average KDA in pro games
 }
 
 const PlayerSchema: Schema = new Schema({
     steamId: { type: String, required: true, unique: true, index: true },
     name: { type: String, required: true },
     avatar: { type: String, required: true },
-    tmmr: { type: Number, default: 2000, index: true }, // Initial TMMR default
+    tmmr: { type: Number, default: 2000, index: true },
     wins: { type: Number, default: 0 },
     losses: { type: Number, default: 0 },
     streak: { type: Number, default: 0 },
     lastUpdate: { type: Date, default: Date.now },
-    matches: [{ type: Number }], // Store match IDs for reference
+    matches: [{ type: Number }],
     isPrivate: { type: Boolean, default: false },
+
+    // Multi-Ranking Stats (indexed for leaderboards)
+    winrate: { type: Number, default: 0, index: true },
+    avgKDA: { type: Number, default: 0, index: true },
+    kdaVariance: { type: Number, default: 0, index: true },
+    proGames: { type: Number, default: 0, index: true },
+    proWinrate: { type: Number, default: 0, index: true },
+    proKDA: { type: Number, default: 0, index: true },
 }, { timestamps: true });
 
 // Prevent recompilation in development
