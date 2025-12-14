@@ -170,33 +170,49 @@ function calculateK(gamesSoFar: number): number {
 /**
  * Calculate difficulty weight based on match data
  * Uses both average_rank and skill bracket, with fallbacks
+ * IMPORTANT: This is the main differentiator in Turbo - playing hard games should be rewarded!
  */
 function calculateDifficultyWeight(avgRank: number | undefined, skill: number | undefined): number {
     let rankWeight = 1.0;
     let skillWeight = 1.0;
 
-    // Primary: average_rank (0-80 scale, 50 = Legend)
+    // Primary: average_rank (0-80 scale, 50 = Legend, 60 = Ancient, 70 = Divine)
+    // Progressive bonus for higher tiers - Ancient+ gets significant bonus
     if (avgRank !== undefined && avgRank > 0 && avgRank <= 80) {
-        // Each tier away from 50 adjusts by 1%
-        // Range: 0.75 (rank 25) to 1.25 (rank 75)
-        rankWeight = 1 + (avgRank - 50) * 0.01;
-        rankWeight = clamp(rankWeight, 0.75, 1.25);
+        if (avgRank >= 70) {
+            // Divine/Immortal: +25% to +50%
+            rankWeight = 1.25 + (avgRank - 70) * 0.025;
+        } else if (avgRank >= 60) {
+            // Ancient: +12% to +25%
+            rankWeight = 1.12 + (avgRank - 60) * 0.013;
+        } else if (avgRank >= 50) {
+            // Legend: +0% to +12%
+            rankWeight = 1.0 + (avgRank - 50) * 0.012;
+        } else if (avgRank >= 40) {
+            // Archon: -5% to 0%
+            rankWeight = 0.95 + (avgRank - 40) * 0.005;
+        } else {
+            // Crusader and below: -15% to -5%
+            rankWeight = 0.85 + (avgRank - 30) * 0.01;
+        }
+        rankWeight = clamp(rankWeight, 0.70, 1.60);
     }
 
-    // Secondary: skill bracket
+    // Secondary: skill bracket (fallback when avg_rank is not available)
     if (skill !== undefined && skill >= 1 && skill <= 3) {
-        // 1=Normal (below avg), 2=High (avg), 3=Very High (above avg)
+        // 1=Normal (low), 2=High (mid), 3=Very High (high)
         const skillMap: Record<number, number> = {
-            1: 0.95,  // Normal bracket = slight penalty
+            1: 0.85,  // Normal bracket = -15%
             2: 1.00,  // High bracket = neutral
-            3: 1.08   // Very High = bonus
+            3: 1.20   // Very High = +20%
         };
         skillWeight = skillMap[skill] || 1.0;
     }
 
     // Combine multiplicatively, then clamp
+    // Allow up to 80% bonus for high-tier games
     const combined = rankWeight * skillWeight;
-    return clamp(combined, 0.70, 1.35);
+    return clamp(combined, 0.60, 1.80);
 }
 
 /**
