@@ -36,10 +36,12 @@ function calculateMatchKDA(match: MatchData): number {
 
 /**
  * Check if player won the match
+ * Note: In our Match model, radiant_win is actually stored as 'win' (boolean)
+ * So we just return it directly
  */
 function isWin(match: MatchData): boolean {
-    const isRadiant = match.player_slot < 128;
-    return isRadiant === match.radiant_win;
+    // radiant_win in our case is actually the player's win status
+    return match.radiant_win;
 }
 
 /**
