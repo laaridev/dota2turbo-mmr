@@ -9,6 +9,9 @@ import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
 
+// Fixed height for the list area (accounts for navbar 48px + footer 28px + headers ~32px + padding)
+const LIST_HEIGHT = 'calc(100vh - 140px)';
+
 export default function LeaderboardPage() {
     return (
         <Suspense fallback={<LeaderboardSkeleton />}>
@@ -19,21 +22,18 @@ export default function LeaderboardPage() {
 
 function LeaderboardSkeleton() {
     return (
-        <div className="h-[calc(100vh-48px-28px)] p-4">
-            <div className="container mx-auto max-w-5xl h-full">
-                {/* Grid with FIXED height from parent */}
-                <div className="h-full grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-hidden">
-                    <div className="flex flex-col overflow-hidden">
-                        <div className="flex-shrink-0 mb-2 h-6" />
-                        <div className="flex-1 min-h-0 overflow-y-auto space-y-1.5 pr-1">
-                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => <Skeleton key={i} className="h-11 rounded-lg" />)}
-                        </div>
+        <div className="container mx-auto max-w-5xl px-4 py-3">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div>
+                    <div className="mb-2 h-5" />
+                    <div className="space-y-1.5" style={{ height: LIST_HEIGHT, overflow: 'hidden' }}>
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => <Skeleton key={i} className="h-11 rounded-lg" />)}
                     </div>
-                    <div className="flex flex-col overflow-hidden">
-                        <div className="flex-shrink-0 mb-2 h-6" />
-                        <div className="flex-1 min-h-0 overflow-y-auto space-y-1.5 pr-1">
-                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => <Skeleton key={i} className="h-11 rounded-lg" />)}
-                        </div>
+                </div>
+                <div>
+                    <div className="mb-2 h-5" />
+                    <div className="space-y-1.5" style={{ height: LIST_HEIGHT, overflow: 'hidden' }}>
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => <Skeleton key={i} className="h-11 rounded-lg" />)}
                     </div>
                 </div>
             </div>
@@ -77,78 +77,65 @@ function LeaderboardContent() {
         };
     }, [topTen, restPlayers, searchQuery]);
 
+    if (loading) {
+        return <LeaderboardSkeleton />;
+    }
+
     return (
         <>
-            {/* Background glow - outside of layout flow */}
+            {/* Background glow */}
             <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary/10 blur-[120px] rounded-full pointer-events-none z-0" />
 
-            {/* Main container with FIXED HEIGHT: viewport - navbar(48px) - footer(28px) */}
-            <div className="h-[calc(100vh-48px-28px)] p-4">
-                <div className="container mx-auto max-w-5xl h-full relative z-10">
-                    {loading ? (
-                        <div className="h-full grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-hidden">
-                            <div className="flex flex-col overflow-hidden">
-                                <div className="flex-shrink-0 mb-2 h-6" />
-                                <div className="flex-1 min-h-0 overflow-y-auto space-y-1.5 pr-1">
-                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => <Skeleton key={i} className="h-11 rounded-lg" />)}
-                                </div>
-                            </div>
-                            <div className="flex flex-col overflow-hidden">
-                                <div className="flex-shrink-0 mb-2 h-6" />
-                                <div className="flex-1 min-h-0 overflow-y-auto space-y-1.5 pr-1">
-                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => <Skeleton key={i} className="h-11 rounded-lg" />)}
-                                </div>
-                            </div>
+            <div className="container mx-auto max-w-5xl px-4 py-3 relative z-10">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {/* Left Column: Top 10 */}
+                    <div>
+                        <div className="flex items-center gap-1.5 mb-2">
+                            <Trophy className="h-3.5 w-3.5 text-primary" />
+                            <h2 className="font-semibold text-white text-xs">Top 10</h2>
                         </div>
-                    ) : (
-                        /* Grid with FIXED height inherited from parent h-full */
-                        <div className="h-full grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-hidden">
-                            {/* Left Column: Top 10 */}
-                            <div className="flex flex-col overflow-hidden">
-                                {/* Header - fixed, never grows/shrinks */}
-                                <div className="flex-shrink-0 flex items-center gap-1.5 mb-2">
-                                    <Trophy className="h-3.5 w-3.5 text-primary" />
-                                    <h2 className="font-semibold text-white text-xs">Top 10</h2>
-                                </div>
 
-                                {/* List - flex-1 with min-h-0 to enable scroll */}
-                                <div className="flex-1 min-h-0 overflow-y-auto space-y-1.5 pr-1">
-                                    {(searchQuery ? filteredPlayers.top : topTen).map((player) => (
-                                        <PlayerRow key={player.steamId} player={player} position={players.indexOf(player) + 1} />
-                                    ))}
-                                    {topTen.length === 0 && (
-                                        <div className="text-center py-6 text-muted-foreground text-xs">
-                                            Nenhum jogador neste período
-                                        </div>
-                                    )}
+                        {/* List with FIXED height and scroll */}
+                        <div
+                            className="space-y-1.5 overflow-y-auto pr-1 scrollbar-thin"
+                            style={{ height: LIST_HEIGHT }}
+                        >
+                            {(searchQuery ? filteredPlayers.top : topTen).map((player) => (
+                                <PlayerRow key={player.steamId} player={player} position={players.indexOf(player) + 1} />
+                            ))}
+                            {topTen.length === 0 && (
+                                <div className="text-center py-6 text-muted-foreground text-xs">
+                                    Nenhum jogador neste período
                                 </div>
-                            </div>
-
-                            {/* Right Column: Rest */}
-                            <div className="flex flex-col overflow-hidden">
-                                {/* Header - fixed, never grows/shrinks */}
-                                <div className="flex-shrink-0 flex items-center justify-end mb-2">
-                                    <span className="text-[10px] text-muted-foreground">{restPlayers.length} jogadores</span>
-                                </div>
-
-                                {/* List - flex-1 with min-h-0 to enable scroll */}
-                                <div className="flex-1 min-h-0 overflow-y-auto space-y-1.5 pr-1">
-                                    {(searchQuery ? filteredPlayers.rest : restPlayers).map((player) => (
-                                        <PlayerRow
-                                            key={player.steamId}
-                                            player={player}
-                                            position={players.indexOf(player) + 1}
-                                        />
-                                    ))}
-                                    {restPlayers.length === 0 && (
-                                        <div className="text-center py-6 text-muted-foreground text-xs">
-                                            Sem mais jogadores
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
+                            )}
                         </div>
-                    )}
+                    </div>
+
+                    {/* Right Column: Rest */}
+                    <div>
+                        <div className="flex items-center justify-end mb-2">
+                            <span className="text-[10px] text-muted-foreground">{restPlayers.length} jogadores</span>
+                        </div>
+
+                        {/* List with SAME FIXED height and scroll */}
+                        <div
+                            className="space-y-1.5 overflow-y-auto pr-1 scrollbar-thin"
+                            style={{ height: LIST_HEIGHT }}
+                        >
+                            {(searchQuery ? filteredPlayers.rest : restPlayers).map((player) => (
+                                <PlayerRow
+                                    key={player.steamId}
+                                    player={player}
+                                    position={players.indexOf(player) + 1}
+                                />
+                            ))}
+                            {restPlayers.length === 0 && (
+                                <div className="text-center py-6 text-muted-foreground text-xs">
+                                    Sem mais jogadores
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
         </>
