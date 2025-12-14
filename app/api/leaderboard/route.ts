@@ -87,7 +87,7 @@ export async function GET(request: Request) {
                 timestamp: { $gte: dates.start, $lte: dates.end }
             }).sort({ timestamp: 1 }).lean();
 
-            if (matches.length < 10) continue; // Min 10 games in period
+            if (matches.length < 1) continue; // At least 1 game in period
 
             const openDotaMatches = matches.map(m => ({
                 match_id: m.matchId,

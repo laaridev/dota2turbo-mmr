@@ -19,13 +19,13 @@ export default function LeaderboardPage() {
 
 function LeaderboardSkeleton() {
     return (
-        <div className="h-[calc(100vh-76px)] overflow-hidden p-4">
+        <div className="fixed inset-0 top-12 bottom-7 overflow-hidden p-4">
             <div className="container mx-auto max-w-5xl h-full">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full">
-                    <div className="space-y-1.5">
+                    <div className="space-y-1.5 overflow-hidden">
                         {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => <Skeleton key={i} className="h-11 rounded-lg" />)}
                     </div>
-                    <div className="space-y-1.5">
+                    <div className="space-y-1.5 overflow-hidden">
                         {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => <Skeleton key={i} className="h-11 rounded-lg" />)}
                     </div>
                 </div>
@@ -70,14 +70,13 @@ function LeaderboardContent() {
         };
     }, [topTen, restPlayers, searchQuery]);
 
-    // Height: 100vh - navbar(48px) - footer(28px)
     return (
-        <div className="h-[calc(100vh-76px)] overflow-hidden">
+        <div className="fixed inset-0 top-12 bottom-7 overflow-hidden">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
 
-            <div className="container mx-auto px-4 py-2 max-w-5xl relative z-10 h-full">
+            <div className="container mx-auto px-4 py-3 max-w-5xl relative z-10 h-full flex flex-col">
                 {loading ? (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 overflow-hidden">
                         <div className="space-y-1.5">
                             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => <Skeleton key={i} className="h-11 rounded-lg" />)}
                         </div>
@@ -86,14 +85,14 @@ function LeaderboardContent() {
                         </div>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 overflow-hidden">
                         {/* Left: Top 10 */}
-                        <div className="flex flex-col h-full">
+                        <div className="flex flex-col overflow-hidden">
                             <div className="flex items-center gap-1.5 mb-2 flex-shrink-0">
                                 <Trophy className="h-3.5 w-3.5 text-primary" />
                                 <h2 className="font-semibold text-white text-xs">Top 10</h2>
                             </div>
-                            <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 min-h-0">
+                            <div className="flex-1 overflow-y-auto space-y-1.5 pr-1">
                                 {(searchQuery ? filteredPlayers.top : topTen).map((player) => (
                                     <PlayerRow key={player.steamId} player={player} position={players.indexOf(player) + 1} />
                                 ))}
@@ -105,12 +104,12 @@ function LeaderboardContent() {
                             </div>
                         </div>
 
-                        {/* Right: Rest of players - same height as left */}
-                        <div className="flex flex-col h-full">
+                        {/* Right: Rest of players */}
+                        <div className="flex flex-col overflow-hidden">
                             <div className="flex items-center justify-end mb-2 flex-shrink-0">
                                 <span className="text-[10px] text-muted-foreground">{restPlayers.length} jogadores</span>
                             </div>
-                            <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 min-h-0">
+                            <div className="flex-1 overflow-y-auto space-y-1.5 pr-1">
                                 {(searchQuery ? filteredPlayers.rest : restPlayers).map((player) => (
                                     <PlayerRow
                                         key={player.steamId}
