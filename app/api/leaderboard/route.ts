@@ -71,14 +71,58 @@ export async function GET(request: Request) {
             return NextResponse.json(cached.data);
         }
 
-        // Calculate for specific period - OPTIMIZED VERSION
+        // Calculate for specific period - USE SNAPSHOTS
         const dates = getPeriodDates(period);
         if (!dates) {
             return NextResponse.json({ error: 'Invalid period' }, { status: 400 });
         }
 
-        // Get all players who had activity in the period
-        // Use aggregation to check match activity efficiently
+        // Try to use pre-calculated snapshots first
+        const MonthlySnapshot = (await import('@/lib/models/MonthlySnapshot')).default;
+        const snapshots = await MonthlySnapshot.find({ period }).lean();
+
+        if (snapshots.length > 0) {
+            // Use snapshots (fast path)
+            const players = await Player.find({
+                steamId: { $in: snapshots.map(s => s.playerSteamId) },
+                isPrivate: false
+            }).lean();
+
+            const playerMap = new Map(players.map(p => [p.steamId, p]));
+
+            const periodResults = snapshots
+                .filter(s => playerMap.has(s.playerSteamId))
+                .map(s => {
+                    const player = playerMap.get(s.playerSteamId)!;
+                    return {
+                        steamId: s.playerSteamId,
+                        name: player.name,
+                        avatar: player.avatar,
+                        tmmr: s.tmmr,
+                        wins: s.wins,
+                        losses: s.losses,
+                        streak: 0,
+                        periodGames: s.gamesInPeriod
+                    };
+                })
+                .sort((a, b) => b.tmmr - a.tmmr);
+
+            const paginatedResults = periodResults.slice(skip, skip + limit);
+            const total = periodResults.length;
+
+            const response = {
+                players: paginatedResults,
+                periods: PERIODS,
+                currentPeriod: period,
+                pagination: { total, page, pages: Math.ceil(total / limit) },
+                usingSnapshot: true
+            };
+
+            periodCache.set(cacheKey, { data: response, timestamp: Date.now() });
+            return NextResponse.json(response);
+        }
+
+        // Fallback: Use current TMMR with activity filter (slower but works)
         const playersWithActivity = await Match.aggregate([
             {
                 $match: {
@@ -95,13 +139,11 @@ export async function GET(request: Request) {
 
         const activeSteamIds = playersWithActivity.map(p => p._id);
 
-        // Get player data for those who were active (using pre-calculated TMMR)
         const activePlayers = await Player.find({
             steamId: { $in: activeSteamIds },
             isPrivate: false
         }).lean();
 
-        // Create a map of period games count
         const periodGamesMap = new Map(
             playersWithActivity.map(p => [p._id, p.periodGames])
         );
@@ -110,14 +152,13 @@ export async function GET(request: Request) {
             steamId: player.steamId,
             name: player.name,
             avatar: player.avatar,
-            tmmr: player.tmmr, // Use pre-calculated TMMR
+            tmmr: player.tmmr,
             wins: player.wins,
             losses: player.losses,
             streak: player.streak,
             periodGames: periodGamesMap.get(player.steamId) || 0
         }));
 
-        // Sort by TMMR
         periodResults.sort((a, b) => b.tmmr - a.tmmr);
 
         const paginatedResults = periodResults.slice(skip, skip + limit);
@@ -127,12 +168,11 @@ export async function GET(request: Request) {
             players: paginatedResults,
             periods: PERIODS,
             currentPeriod: period,
-            pagination: { total, page, pages: Math.ceil(total / limit) }
+            pagination: { total, page, pages: Math.ceil(total / limit) },
+            usingSnapshot: false
         };
 
-        // Cache the results
         periodCache.set(cacheKey, { data: response, timestamp: Date.now() });
-
         return NextResponse.json(response);
 
     } catch (error) {

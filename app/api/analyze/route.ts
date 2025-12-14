@@ -128,10 +128,63 @@ export async function POST(request: Request) {
             { new: true, upsert: true }
         );
 
+        // Generate monthly snapshots for this player (async, don't wait)
+        generatePlayerSnapshots(accountId, matchesData).catch(err =>
+            console.error('Snapshot generation failed:', err)
+        );
+
         return NextResponse.json({ player });
 
     } catch (error: any) {
         console.error('Analyze Error:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+}
+
+// Helper function to generate snapshots for a player
+async function generatePlayerSnapshots(steamId: string, allMatches: any[]) {
+    const MonthlySnapshot = (await import('@/lib/models/MonthlySnapshot')).default;
+
+    const periods = [
+        '2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06',
+        '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12'
+    ];
+
+    for (const period of periods) {
+        const [year, month] = period.split('-').map(Number);
+        const periodEnd = new Date(year, month, 0, 23, 59, 59, 999);
+        const periodStart = new Date(year, month - 1, 1);
+
+        // Get matches up to end of period
+        const matchesUpToPeriod = allMatches.filter(m =>
+            m.start_time * 1000 <= periodEnd.getTime()
+        );
+
+        if (matchesUpToPeriod.length < 1) continue;
+
+        // Count games in this period
+        const gamesInPeriod = matchesUpToPeriod.filter(m => {
+            const matchDate = m.start_time * 1000;
+            return matchDate >= periodStart.getTime() && matchDate <= periodEnd.getTime();
+        }).length;
+
+        if (gamesInPeriod < 1) continue;
+
+        // Calculate TMMR
+        const calc = calculateTMMR(matchesUpToPeriod);
+
+        // Upsert snapshot
+        await MonthlySnapshot.findOneAndUpdate(
+            { period, playerSteamId: steamId },
+            {
+                tmmr: calc.currentTmmr,
+                wins: calc.wins,
+                losses: calc.losses,
+                gamesInPeriod,
+                totalGamesUpToPeriod: matchesUpToPeriod.length,
+                calculatedAt: new Date()
+            },
+            { upsert: true }
+        );
     }
 }

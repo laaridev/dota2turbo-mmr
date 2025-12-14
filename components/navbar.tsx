@@ -83,7 +83,7 @@ function NavbarFilters() {
                 </svg>
                 <input
                     type="text"
-                    placeholder="Buscar jogador..."
+                    placeholder="Buscar..."
                     value={search}
                     onChange={(e) => {
                         setSearch(e.target.value);
