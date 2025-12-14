@@ -85,28 +85,28 @@ function TopCard({ player, position }: { player: any; position: number }) {
 
     const config = {
         1: {
-            height: 'h-56',
-            avatar: 'w-20 h-20',
+            height: 'h-60',
+            avatar: 'w-24 h-24',
             gradient: 'from-amber-500/20 via-orange-500/10 to-transparent',
             border: 'border-amber-500/40',
             glow: 'shadow-[0_0_40px_rgba(251,146,60,0.3)]',
-            ring: 'ring-4 ring-amber-500/50 ring-offset-2 ring-offset-background',
+            avatarBorder: 'border-4 border-amber-500/60',
         },
         2: {
-            height: 'h-48',
-            avatar: 'w-16 h-16',
+            height: 'h-52',
+            avatar: 'w-20 h-20',
             gradient: 'from-zinc-400/10 via-zinc-500/5 to-transparent',
             border: 'border-zinc-500/30',
             glow: '',
-            ring: 'ring-2 ring-zinc-400/40',
+            avatarBorder: 'border-2 border-zinc-400/50',
         },
         3: {
-            height: 'h-48',
-            avatar: 'w-16 h-16',
+            height: 'h-52',
+            avatar: 'w-20 h-20',
             gradient: 'from-orange-700/15 via-orange-600/5 to-transparent',
             border: 'border-orange-700/30',
             glow: '',
-            ring: 'ring-2 ring-orange-700/40',
+            avatarBorder: 'border-2 border-orange-600/50',
         },
     }[position]!;
 
@@ -152,8 +152,8 @@ function TopCard({ player, position }: { player: any; position: number }) {
                         )}
                     </div>
 
-                    {/* Avatar with ring */}
-                    <div className={`${config.avatar} rounded-full overflow-hidden ${config.ring}`}>
+                    {/* Avatar with border */}
+                    <div className={`${config.avatar} rounded-full overflow-hidden ${config.avatarBorder} shadow-lg`}>
                         <img
                             src={player.avatar}
                             alt={player.name}
