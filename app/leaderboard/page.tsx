@@ -82,7 +82,7 @@ export default function LeaderboardPage() {
                             </svg>
                             <input
                                 type="text"
-                                placeholder="Buscar jogador..."
+                                placeholder="Buscar Player..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="w-full pl-11 pr-4 py-3 bg-card border border-white/10 rounded-xl text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
