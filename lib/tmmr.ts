@@ -580,12 +580,12 @@ export function getTierCategory(tier: TierKey): string {
 }
 
 export const TIER_NAMES: Record<TierKey, string> = {
-    herald1: 'Arauto I', herald2: 'Arauto II', herald3: 'Arauto III', herald4: 'Arauto IV', herald5: 'Arauto V',
-    guardian1: 'Guardião I', guardian2: 'Guardião II', guardian3: 'Guardião III', guardian4: 'Guardião IV', guardian5: 'Guardião V',
-    crusader1: 'Cruzado I', crusader2: 'Cruzado II', crusader3: 'Cruzado III', crusader4: 'Cruzado IV', crusader5: 'Cruzado V',
-    archon1: 'Arconte I', archon2: 'Arconte II', archon3: 'Arconte III', archon4: 'Arconte IV', archon5: 'Arconte V',
-    legend1: 'Lenda I', legend2: 'Lenda II', legend3: 'Lenda III', legend4: 'Lenda IV', legend5: 'Lenda V',
-    ancient1: 'Ancião I', ancient2: 'Ancião II', ancient3: 'Ancião III', ancient4: 'Ancião IV', ancient5: 'Ancião V',
-    divine1: 'Divino I', divine2: 'Divino II', divine3: 'Divino III', divine4: 'Divino IV', divine5: 'Divino V',
-    immortal: 'Imortal'
+    herald1: 'Herald I', herald2: 'Herald II', herald3: 'Herald III', herald4: 'Herald IV', herald5: 'Herald V',
+    guardian1: 'Guardian I', guardian2: 'Guardian II', guardian3: 'Guardian III', guardian4: 'Guardian IV', guardian5: 'Guardian V',
+    crusader1: 'Crusader I', crusader2: 'Crusader II', crusader3: 'Crusader III', crusader4: 'Crusader IV', crusader5: 'Crusader V',
+    archon1: 'Archon I', archon2: 'Archon II', archon3: 'Archon III', archon4: 'Archon IV', archon5: 'Archon V',
+    legend1: 'Legend I', legend2: 'Legend II', legend3: 'Legend III', legend4: 'Legend IV', legend5: 'Legend V',
+    ancient1: 'Ancient I', ancient2: 'Ancient II', ancient3: 'Ancient III', ancient4: 'Ancient IV', ancient5: 'Ancient V',
+    divine1: 'Divine I', divine2: 'Divine II', divine3: 'Divine III', divine4: 'Divine IV', divine5: 'Divine V',
+    immortal: 'Immortal'
 };
