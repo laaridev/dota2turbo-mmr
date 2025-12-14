@@ -71,66 +71,51 @@ export async function GET(request: Request) {
             return NextResponse.json(cached.data);
         }
 
-        // Calculate for specific period
+        // Calculate for specific period - OPTIMIZED VERSION
         const dates = getPeriodDates(period);
         if (!dates) {
             return NextResponse.json({ error: 'Invalid period' }, { status: 400 });
         }
 
-        // Get all players and calculate TMMR based on ALL matches UP TO the end of the period
-        const allPlayers = await Player.find({ isPrivate: false }).lean();
-        const periodResults: any[] = [];
+        // Get all players who had activity in the period
+        // Use aggregation to check match activity efficiently
+        const playersWithActivity = await Match.aggregate([
+            {
+                $match: {
+                    timestamp: { $gte: dates.start, $lte: dates.end }
+                }
+            },
+            {
+                $group: {
+                    _id: '$playerSteamId',
+                    periodGames: { $sum: 1 }
+                }
+            }
+        ]);
 
-        for (const player of allPlayers) {
-            // Get ALL matches up to the end of the selected period
-            const matchesUpToPeriod = await Match.find({
-                playerSteamId: player.steamId,
-                timestamp: { $lte: dates.end }
-            }).sort({ timestamp: 1 }).lean();
+        const activeSteamIds = playersWithActivity.map(p => p._id);
 
-            if (matchesUpToPeriod.length < 1) continue;
+        // Get player data for those who were active (using pre-calculated TMMR)
+        const activePlayers = await Player.find({
+            steamId: { $in: activeSteamIds },
+            isPrivate: false
+        }).lean();
 
-            // Also check if player had at least 1 game WITHIN the period (for activity filter)
-            const matchesInPeriod = matchesUpToPeriod.filter(m =>
-                new Date(m.timestamp) >= dates.start && new Date(m.timestamp) <= dates.end
-            );
+        // Create a map of period games count
+        const periodGamesMap = new Map(
+            playersWithActivity.map(p => [p._id, p.periodGames])
+        );
 
-            // Skip if no activity in this period
-            if (matchesInPeriod.length < 1) continue;
-
-            const openDotaMatches = matchesUpToPeriod.map(m => ({
-                match_id: m.matchId,
-                player_slot: 0,
-                radiant_win: m.win,
-                duration: m.duration || 1200,
-                game_mode: 23,
-                lobby_type: 0,
-                hero_id: m.heroId,
-                start_time: Math.floor(new Date(m.timestamp).getTime() / 1000),
-                version: 0,
-                kills: parseInt(String(m.kda).split('/')[0]) || 0,
-                deaths: parseInt(String(m.kda).split('/')[1]) || 0,
-                assists: parseInt(String(m.kda).split('/')[2]) || 0,
-                leaver_status: 0,
-                party_size: 1,
-                skill: m.skill,
-                average_rank: m.averageRank
-            }));
-
-            const calc = calculateTMMR(openDotaMatches);
-
-            periodResults.push({
-                steamId: player.steamId,
-                name: player.name,
-                avatar: player.avatar,
-                tmmr: calc.currentTmmr,
-                wins: calc.wins,
-                losses: calc.losses,
-                streak: calc.streak,
-                periodGames: matchesInPeriod.length,
-                totalGames: matchesUpToPeriod.length
-            });
-        }
+        const periodResults = activePlayers.map(player => ({
+            steamId: player.steamId,
+            name: player.name,
+            avatar: player.avatar,
+            tmmr: player.tmmr, // Use pre-calculated TMMR
+            wins: player.wins,
+            losses: player.losses,
+            streak: player.streak,
+            periodGames: periodGamesMap.get(player.steamId) || 0
+        }));
 
         // Sort by TMMR
         periodResults.sort((a, b) => b.tmmr - a.tmmr);
