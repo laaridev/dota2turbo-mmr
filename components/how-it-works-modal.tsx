@@ -1,6 +1,6 @@
 'use client';
 
-import { X, Database, Zap, Trophy, BarChart3 } from 'lucide-react';
+import { X, Database, Zap, Trophy, BarChart3, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface HowItWorksModalProps {
@@ -47,36 +47,56 @@ export function HowItWorksModal({ isOpen, onClose }: HowItWorksModalProps) {
                             <BarChart3 className="h-6 w-6 text-orange-500" />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-lg mb-1">2. Calculamos seu TMMR</h3>
+                            <h3 className="font-semibold text-lg mb-1">2. Simulamos suas partidas</h3>
                             <p className="text-muted-foreground text-sm">
-                                Criamos um sistema de pontuação exclusivo para Turbo. Você começa com <strong className="text-white">2000 pontos base</strong>.
-                                Cada vitória adiciona ~25-30 pontos e cada derrota remove a mesma quantidade.
-                                Apenas partidas Turbo contam!
+                                Você começa com <strong className="text-white">2000 TMMR base</strong>.
+                                Simulamos cada partida cronologicamente: vitórias ganham pontos, derrotas perdem.
+                                Nas <strong className="text-primary">primeiras 100 partidas (calibração)</strong>,
+                                o impacto é maior - igual no Dota real!
                             </p>
                         </div>
                     </div>
 
-                    {/* Step 3 */}
+                    {/* Step 3 - NEW */}
                     <div className="flex gap-4">
-                        <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center">
-                            <Trophy className="h-6 w-6 text-yellow-500" />
+                        <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center">
+                            <TrendingUp className="h-6 w-6 text-amber-500" />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-lg mb-1">3. Você entra no Ranking</h3>
+                            <h3 className="font-semibold text-lg mb-1">3. Winrate é o fator principal</h3>
                             <p className="text-muted-foreground text-sm">
-                                Com base no seu TMMR, você recebe uma <strong className="text-white">patente</strong> (Bronze → Divino)
-                                e entra no ranking global. Os melhores jogadores aparecem no topo!
+                                Seu TMMR final combina <strong className="text-white">70% baseado na sua winrate</strong> e
+                                30% na simulação de partidas. Isso significa que um jogador com
+                                <strong className="text-primary"> 60% de winrate</strong> sempre ficará acima de alguém com 55%,
+                                independente de quantas partidas jogou.
                             </p>
+                            <div className="mt-2 p-3 bg-white/5 rounded-lg text-xs text-muted-foreground">
+                                <strong className="text-white">Exemplo:</strong> 50% WR = ~2000 TMMR | 57% WR = ~2700 TMMR | 67% WR = ~4000+ TMMR
+                            </div>
                         </div>
                     </div>
 
                     {/* Step 4 */}
                     <div className="flex gap-4">
+                        <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center">
+                            <Trophy className="h-6 w-6 text-yellow-500" />
+                        </div>
+                        <div>
+                            <h3 className="font-semibold text-lg mb-1">4. Você entra no Ranking</h3>
+                            <p className="text-muted-foreground text-sm">
+                                Com base no seu TMMR, você recebe uma <strong className="text-white">patente</strong> (Herald → Immortal)
+                                e entra no ranking global. Os melhores jogadores aparecem no topo!
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Step 5 */}
+                    <div className="flex gap-4">
                         <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center">
                             <Zap className="h-6 w-6 text-green-500" />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-lg mb-1">4. Atualize semanalmente</h3>
+                            <h3 className="font-semibold text-lg mb-1">5. Atualize semanalmente</h3>
                             <p className="text-muted-foreground text-sm">
                                 Seu perfil pode ser atualizado a cada <strong className="text-white">7 dias</strong>.
                                 Continue jogando Turbo e suba no ranking!
