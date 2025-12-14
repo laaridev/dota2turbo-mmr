@@ -19,14 +19,21 @@ export default function LeaderboardPage() {
 
 function LeaderboardSkeleton() {
     return (
-        <div className="fixed inset-0 top-12 bottom-7 overflow-hidden p-4">
+        <div className="h-[calc(100vh-48px-28px)] p-4">
             <div className="container mx-auto max-w-5xl h-full">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full">
-                    <div className="space-y-1.5 overflow-hidden">
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => <Skeleton key={i} className="h-11 rounded-lg" />)}
+                {/* Grid with FIXED height from parent */}
+                <div className="h-full grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-hidden">
+                    <div className="flex flex-col overflow-hidden">
+                        <div className="flex-shrink-0 mb-2 h-6" />
+                        <div className="flex-1 min-h-0 overflow-y-auto space-y-1.5 pr-1">
+                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => <Skeleton key={i} className="h-11 rounded-lg" />)}
+                        </div>
                     </div>
-                    <div className="space-y-1.5 overflow-hidden">
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => <Skeleton key={i} className="h-11 rounded-lg" />)}
+                    <div className="flex flex-col overflow-hidden">
+                        <div className="flex-shrink-0 mb-2 h-6" />
+                        <div className="flex-1 min-h-0 overflow-y-auto space-y-1.5 pr-1">
+                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => <Skeleton key={i} className="h-11 rounded-lg" />)}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -71,63 +78,80 @@ function LeaderboardContent() {
     }, [topTen, restPlayers, searchQuery]);
 
     return (
-        <div className="fixed inset-0 top-12 bottom-7 overflow-hidden">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
+        <>
+            {/* Background glow - outside of layout flow */}
+            <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary/10 blur-[120px] rounded-full pointer-events-none z-0" />
 
-            <div className="container mx-auto px-4 py-3 max-w-5xl relative z-10 h-full flex flex-col">
-                {loading ? (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 overflow-hidden">
-                        <div className="space-y-1.5">
-                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => <Skeleton key={i} className="h-11 rounded-lg" />)}
-                        </div>
-                        <div className="space-y-1.5">
-                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => <Skeleton key={i} className="h-11 rounded-lg" />)}
-                        </div>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 overflow-hidden">
-                        {/* Left: Top 10 */}
-                        <div className="flex flex-col overflow-hidden">
-                            <div className="flex items-center gap-1.5 mb-2 flex-shrink-0">
-                                <Trophy className="h-3.5 w-3.5 text-primary" />
-                                <h2 className="font-semibold text-white text-xs">Top 10</h2>
+            {/* Main container with FIXED HEIGHT: viewport - navbar(48px) - footer(28px) */}
+            <div className="h-[calc(100vh-48px-28px)] p-4">
+                <div className="container mx-auto max-w-5xl h-full relative z-10">
+                    {loading ? (
+                        <div className="h-full grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-hidden">
+                            <div className="flex flex-col overflow-hidden">
+                                <div className="flex-shrink-0 mb-2 h-6" />
+                                <div className="flex-1 min-h-0 overflow-y-auto space-y-1.5 pr-1">
+                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => <Skeleton key={i} className="h-11 rounded-lg" />)}
+                                </div>
                             </div>
-                            <div className="flex-1 overflow-y-auto space-y-1.5 pr-1">
-                                {(searchQuery ? filteredPlayers.top : topTen).map((player) => (
-                                    <PlayerRow key={player.steamId} player={player} position={players.indexOf(player) + 1} />
-                                ))}
-                                {topTen.length === 0 && (
-                                    <div className="text-center py-6 text-muted-foreground text-xs">
-                                        Nenhum jogador neste período
-                                    </div>
-                                )}
+                            <div className="flex flex-col overflow-hidden">
+                                <div className="flex-shrink-0 mb-2 h-6" />
+                                <div className="flex-1 min-h-0 overflow-y-auto space-y-1.5 pr-1">
+                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => <Skeleton key={i} className="h-11 rounded-lg" />)}
+                                </div>
                             </div>
                         </div>
+                    ) : (
+                        /* Grid with FIXED height inherited from parent h-full */
+                        <div className="h-full grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-hidden">
+                            {/* Left Column: Top 10 */}
+                            <div className="flex flex-col overflow-hidden">
+                                {/* Header - fixed, never grows/shrinks */}
+                                <div className="flex-shrink-0 flex items-center gap-1.5 mb-2">
+                                    <Trophy className="h-3.5 w-3.5 text-primary" />
+                                    <h2 className="font-semibold text-white text-xs">Top 10</h2>
+                                </div>
 
-                        {/* Right: Rest of players */}
-                        <div className="flex flex-col overflow-hidden">
-                            <div className="flex items-center justify-end mb-2 flex-shrink-0">
-                                <span className="text-[10px] text-muted-foreground">{restPlayers.length} jogadores</span>
+                                {/* List - flex-1 with min-h-0 to enable scroll */}
+                                <div className="flex-1 min-h-0 overflow-y-auto space-y-1.5 pr-1">
+                                    {(searchQuery ? filteredPlayers.top : topTen).map((player) => (
+                                        <PlayerRow key={player.steamId} player={player} position={players.indexOf(player) + 1} />
+                                    ))}
+                                    {topTen.length === 0 && (
+                                        <div className="text-center py-6 text-muted-foreground text-xs">
+                                            Nenhum jogador neste período
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                            <div className="flex-1 overflow-y-auto space-y-1.5 pr-1">
-                                {(searchQuery ? filteredPlayers.rest : restPlayers).map((player) => (
-                                    <PlayerRow
-                                        key={player.steamId}
-                                        player={player}
-                                        position={players.indexOf(player) + 1}
-                                    />
-                                ))}
-                                {restPlayers.length === 0 && (
-                                    <div className="text-center py-6 text-muted-foreground text-xs">
-                                        Sem mais jogadores
-                                    </div>
-                                )}
+
+                            {/* Right Column: Rest */}
+                            <div className="flex flex-col overflow-hidden">
+                                {/* Header - fixed, never grows/shrinks */}
+                                <div className="flex-shrink-0 flex items-center justify-end mb-2">
+                                    <span className="text-[10px] text-muted-foreground">{restPlayers.length} jogadores</span>
+                                </div>
+
+                                {/* List - flex-1 with min-h-0 to enable scroll */}
+                                <div className="flex-1 min-h-0 overflow-y-auto space-y-1.5 pr-1">
+                                    {(searchQuery ? filteredPlayers.rest : restPlayers).map((player) => (
+                                        <PlayerRow
+                                            key={player.steamId}
+                                            player={player}
+                                            position={players.indexOf(player) + 1}
+                                        />
+                                    ))}
+                                    {restPlayers.length === 0 && (
+                                        <div className="text-center py-6 text-muted-foreground text-xs">
+                                            Sem mais jogadores
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
-        </div>
+        </>
     );
 }
 
@@ -149,7 +173,7 @@ function PlayerRow({ player, position }: { player: any; position: number }) {
                 transition={{ delay: Math.min(position * 0.015, 0.15) }}
                 className={`flex items-center gap-2 p-2 rounded-lg border ${bgClass} hover:bg-white/5 transition-colors cursor-pointer`}
             >
-                <div className={`w-6 h-6 rounded-md flex items-center justify-center font-bold text-[10px] ${position === 1 ? 'bg-amber-500/20 text-amber-400' :
+                <div className={`w-6 h-6 rounded-md flex items-center justify-center font-bold text-[10px] flex-shrink-0 ${position === 1 ? 'bg-amber-500/20 text-amber-400' :
                         position === 2 ? 'bg-gray-400/20 text-gray-300' :
                             position === 3 ? 'bg-amber-700/20 text-amber-600' :
                                 'bg-white/5 text-muted-foreground'
@@ -160,7 +184,7 @@ function PlayerRow({ player, position }: { player: any; position: number }) {
                 <img
                     src={player.avatar}
                     alt={player.name}
-                    className="w-8 h-8 rounded-md object-cover"
+                    className="w-8 h-8 rounded-md object-cover flex-shrink-0"
                 />
 
                 <div className="flex-1 min-w-0">
@@ -172,7 +196,7 @@ function PlayerRow({ player, position }: { player: any; position: number }) {
                     </div>
                 </div>
 
-                <div className="text-right flex items-center gap-1.5">
+                <div className="text-right flex items-center gap-1.5 flex-shrink-0">
                     <span className="font-bold text-white text-xs">{player.tmmr}</span>
                     <Badge variant={category as any} className="text-[9px] px-1">
                         {TIER_NAMES[tier]}
