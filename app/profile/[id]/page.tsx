@@ -43,7 +43,7 @@ export default function ProfilePage() {
     const [error, setError] = useState('');
     const [lockTimer, setLockTimer] = useState<number | null>(null);
     const [showPrivateModal, setShowPrivateModal] = useState(false);
-    const [chartDays, setChartDays] = useState<7 | 15 | 30>(7);
+    const [chartDays, setChartDays] = useState<7 | 15 | 30>(30);
 
     const fetchProfile = async () => {
         setLoading(true);
@@ -171,12 +171,12 @@ export default function ProfilePage() {
                                                 >
                                                     {/* Losses (bottom) */}
                                                     <div
-                                                        className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-rose-600 to-rose-500"
+                                                        className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-zinc-600 to-zinc-500"
                                                         style={{ height: `${100 - winPercent}%` }}
                                                     />
                                                     {/* Wins (top) */}
                                                     <div
-                                                        className="absolute top-0 left-0 right-0 bg-gradient-to-t from-emerald-500 to-emerald-400"
+                                                        className="absolute top-0 left-0 right-0 bg-gradient-to-t from-primary to-orange-400"
                                                         style={{ height: `${winPercent}%` }}
                                                     />
                                                 </div>
