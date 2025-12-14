@@ -63,7 +63,7 @@ export default function Home() {
           className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-sm text-primary"
         >
           <Zap className="w-3.5 h-3.5" />
-          Ranking exclusivo para Turbo
+          O MMR das turbinhos no dota 2
         </motion.div>
 
         {/* Title - Premium Typography */}
@@ -89,9 +89,7 @@ export default function Home() {
           />
         </div>
 
-        <p className="text-xl text-muted-foreground max-w-md mx-auto">
-          Descubra seu ranking no modo Turbo.
-        </p>
+
 
         {/* Search Form */}
         <motion.form
