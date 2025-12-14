@@ -23,6 +23,7 @@ export interface TmmrCalculationResult {
 
 // ============================================
 // TURBOMMR CALCULATION SYSTEM (Dota-like)
+// Sem caps artificiais - desaceleração natural
 // ============================================
 
 // Constants
@@ -33,12 +34,6 @@ const K_CALIBRATION_MAX = 40;
 const CALIBRATION_MATCHES = 50;
 const CONFIDENCE_MAX_MATCHES = 300;
 const CONFIDENCE_MIN = 0.2;
-const SOFT_CAP_THRESHOLD = 3500;
-const SOFT_CAP_REDUCTION = 0.5;
-const LOW_WINRATE_CAP = 2600;
-const LOW_WINRATE_THRESHOLD = 0.48;
-const TMMR_FLOOR = 1000;
-const TMMR_CEILING = 6000;
 
 /**
  * Clamps a value between min and max
@@ -49,6 +44,7 @@ function clamp(value: number, min: number, max: number): number {
 
 /**
  * Calculates confidence factor based on match count
+ * confidence = clamp(partidas / 300, 0.2, 1)
  * More matches = higher confidence = less volatility
  */
 function calculateConfidence(matchCount: number): number {
@@ -57,15 +53,15 @@ function calculateConfidence(matchCount: number): number {
 
 /**
  * Calculates K factor for a given match
- * During calibration (< 50 matches): K ranges from 40 to 10
- * After calibration: K ranges from 30 to 10
+ * K = Kmax - (confidence × (Kmax - K_BASE_MIN))
+ * During calibration (< 50 matches): Kmax = 40
+ * After calibration: Kmax = 30
  */
 function calculateKFactor(matchCount: number, confidence: number): number {
     const isCalibrating = matchCount < CALIBRATION_MATCHES;
     const Kmax = isCalibrating ? K_CALIBRATION_MAX : K_BASE_MAX;
 
     // K = Kmax - (confidence × (Kmax - K_BASE_MIN))
-    // New accounts: high K (volatile), old accounts: low K (stable)
     const K = Kmax - (confidence * (Kmax - K_BASE_MIN));
 
     return K;
@@ -73,7 +69,8 @@ function calculateKFactor(matchCount: number, confidence: number): number {
 
 /**
  * Calculates difficulty weight based on average match rank tier
- * Normalized around 50, with soft scaling ±15%
+ * tierWeight = clamp(1 + (avg_rank_tier - 50) × 0.01, 0.85, 1.15)
+ * Normalized around tier 50, with soft scaling ±15%
  */
 function calculateDifficultyWeight(averageRank: number | undefined): number {
     // If no rank data, use neutral weight
@@ -81,41 +78,17 @@ function calculateDifficultyWeight(averageRank: number | undefined): number {
         return 1.0;
     }
 
-    // Normalize around tier 50 (Legend 5 / Ancient 1 area)
-    // Weight = 1 + (avgRank - 50) × 0.01
-    // Results in range: 0.85 (rank 35) to 1.15 (rank 65) approximately
+    // tierWeight = 1 + (avg_rank_tier - 50) × 0.01
+    // Clamped to range [0.85, 1.15]
     const weight = 1 + (averageRank - 50) * 0.01;
 
     return clamp(weight, 0.85, 1.15);
 }
 
 /**
- * Applies soft cap reduction for high MMR players
- */
-function applySoftCap(tmmr: number, delta: number): number {
-    if (tmmr > SOFT_CAP_THRESHOLD && delta > 0) {
-        return delta * SOFT_CAP_REDUCTION;
-    }
-    return delta;
-}
-
-/**
- * Applies winrate-based cap for players with < 48% winrate
- */
-function applyWinrateCap(tmmr: number, wins: number, losses: number): number {
-    const totalGames = wins + losses;
-    if (totalGames < 20) return tmmr; // Not enough data
-
-    const winrate = wins / totalGames;
-    if (winrate < LOW_WINRATE_THRESHOLD && tmmr > LOW_WINRATE_CAP) {
-        return LOW_WINRATE_CAP;
-    }
-    return tmmr;
-}
-
-/**
  * Main TurboMMR calculation function
  * Processes matches chronologically and calculates MMR per-match
+ * No artificial caps - natural stabilization via K dynamic and confidence
  */
 export function calculateTMMR(matches: OpenDotaMatch[]): TmmrCalculationResult {
     // Sort matches by start_time ascending (oldest → newest)
@@ -145,20 +118,19 @@ export function calculateTMMR(matches: OpenDotaMatch[]): TmmrCalculationResult {
         // Calculate difficulty weight
         const difficultyWeight = calculateDifficultyWeight(match.average_rank);
 
-        // Calculate base delta
+        // Calculate delta: (±K) × confidence × tierWeight
         let delta = playerWon ? K : -K;
-
-        // Apply difficulty weight
+        delta *= confidence;
         delta *= difficultyWeight;
-
-        // Apply soft cap for high MMR gains
-        delta = applySoftCap(currentTmmr, delta);
 
         // Round to integer
         const tmmrChange = Math.round(delta);
 
-        // Update TMMR
+        // Update TMMR (no caps, natural progression)
         currentTmmr += tmmrChange;
+
+        // Ensure TMMR doesn't go below 0
+        if (currentTmmr < 0) currentTmmr = 0;
 
         // Update win/loss counters
         if (playerWon) {
@@ -168,12 +140,6 @@ export function calculateTMMR(matches: OpenDotaMatch[]): TmmrCalculationResult {
             losses++;
             currentStreak = currentStreak <= 0 ? currentStreak - 1 : -1;
         }
-
-        // Apply winrate cap after each match
-        currentTmmr = applyWinrateCap(currentTmmr, wins, losses);
-
-        // Apply global clamp
-        currentTmmr = clamp(currentTmmr, TMMR_FLOOR, TMMR_CEILING);
 
         // Record processed match
         processedMatches.push({
@@ -187,10 +153,6 @@ export function calculateTMMR(matches: OpenDotaMatch[]): TmmrCalculationResult {
             tmmrAfter: currentTmmr
         });
     }
-
-    // Final winrate cap check
-    currentTmmr = applyWinrateCap(currentTmmr, wins, losses);
-    currentTmmr = clamp(currentTmmr, TMMR_FLOOR, TMMR_CEILING);
 
     const totalMatches = wins + losses;
 
