@@ -4,10 +4,11 @@ import { Suspense, useEffect, useState, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { getTier, getTierCategory, TIER_NAMES } from '@/lib/tmmr';
-import { Trophy, TrendingUp, Target, Activity, Star, Zap } from 'lucide-react';
+import { Trophy, TrendingUp, Target, Activity, Star, Zap, Info } from 'lucide-react';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
+import { RankingInfoModal } from '@/components/ranking-info-modal';
 
 const RANKING_MODES = [
     { id: 'general', label: 'Geral', icon: Trophy, description: 'TMMR Principal' },
@@ -42,6 +43,7 @@ function LeaderboardContent() {
     const router = useRouter();
     const [players, setPlayers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
 
     const searchQuery = searchParams.get('search') || '';
     const currentPeriod = searchParams.get('period') || 'all';
@@ -126,10 +128,24 @@ function LeaderboardContent() {
                 <div className="flex items-center gap-2 mb-4">
                     <currentMode.icon className={`h-5 w-5 ${currentMode.premium ? 'text-amber-400' : 'text-primary'}`} />
                     <h1 className="text-xl font-bold text-white">Ranking {currentMode.label}</h1>
+                    <button
+                        onClick={() => setIsInfoModalOpen(true)}
+                        className="ml-1 p-1 rounded-full hover:bg-white/10 text-muted-foreground transition-colors"
+                        title="Como funciona este ranking?"
+                    >
+                        <Info className="h-4 w-4" />
+                    </button>
                     <span className="text-sm text-muted-foreground ml-auto">
                         {filteredPlayers.length} jogadores
                     </span>
                 </div>
+
+                {/* Info Modal */}
+                <RankingInfoModal
+                    isOpen={isInfoModalOpen}
+                    onClose={() => setIsInfoModalOpen(false)}
+                    mode={rankingMode}
+                />
 
                 {/* Single unified list */}
                 <div className="space-y-3">
