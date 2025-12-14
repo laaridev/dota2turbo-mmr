@@ -186,36 +186,39 @@ export function calculateTMMR(matches: OpenDotaMatch[]): TmmrCalculationResult {
 
     const totalMatches = wins + losses;
 
-    // Calculate average difficulty from all matches
+    // Calculate average difficulty from all matches (skill bracket + avg_rank)
     let avgDifficulty = 1.0;
-    const difficultiesWithData = processedMatches.filter(m => m.skill || m.averageRank);
-    if (difficultiesWithData.length > 0) {
-        const totalDifficulty = processedMatches.reduce((sum, m) => {
+    const matchesWithData = processedMatches.filter(m => m.skill || m.averageRank);
+    if (matchesWithData.length > 0) {
+        const totalDifficulty = matchesWithData.reduce((sum, m) => {
             return sum + calculateDifficultyWeight(m.averageRank, m.skill);
         }, 0);
-        avgDifficulty = totalDifficulty / processedMatches.length;
+        avgDifficulty = totalDifficulty / matchesWithData.length;
     }
 
-    // Final scoring: balanced between WR and experience
-    // New accounts (< 100 games) get heavily penalized to prevent abuse
+    // Final scoring: 90% WR + 10% experience
+    // Fair for both new and veteran players
     if (totalMatches >= 30) { // Min 30 games to be ranked
         const globalWR = wins / totalMatches;
 
-        // Experience factor: scales from 0.5 (30 games) to 1.0 (200+ games)
-        // This penalizes new accounts significantly
-        // 30 games = 0.50, 100 games = 0.79, 200+ games = 1.0
-        const experienceFactor = Math.sqrt(Math.min(totalMatches, 200) / 200);
+        // WR Component (90% weight): Each 1% above 50% = +100 TMMR base
+        // At 55% WR = +500, at 60% WR = +1000, at 70% WR = +2000
+        const wrComponent = (globalWR - 0.50) * 10000;
 
-        // WR adjustment: each 1% above 50% = +100 TMMR (before factors)
-        // At 60% WR = +1000, at 70% WR = +2000
-        const wrAdjustment = (globalWR - 0.50) * 10000;
+        // Experience Component (10% weight): Log scale for diminishing returns
+        // Caps at ~500 bonus for 1000+ games, small bonus for new accounts
+        // 30 games = ~85, 100 games = ~115, 500 games = ~155, 1000+ games = ~170
+        const expComponent = Math.log10(Math.max(totalMatches, 10)) * 50;
 
-        // Apply experience and difficulty factors
-        // New accounts with high WR will still be penalized
-        const adjustedWR = wrAdjustment * experienceFactor * avgDifficulty;
+        // Blend: 90% WR + 10% experience
+        const blendedScore = (wrComponent * 0.90) + (expComponent * 0.10);
+
+        // Apply difficulty multiplier
+        // Playing in higher skill brackets gives bonus, lower skill gives penalty
+        const difficultyAdjusted = blendedScore * avgDifficulty;
 
         // Final TMMR
-        currentTmmr = BASE_TMMR + adjustedWR;
+        currentTmmr = BASE_TMMR + difficultyAdjusted;
 
         // Ensure minimum TMMR
         if (currentTmmr < 500) currentTmmr = 500;
