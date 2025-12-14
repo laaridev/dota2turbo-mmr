@@ -186,23 +186,39 @@ export function calculateTMMR(matches: OpenDotaMatch[]): TmmrCalculationResult {
 
     const totalMatches = wins + losses;
 
-    // Final scoring: WR is the dominant factor, matches matter very little
-    if (totalMatches >= 50) {
+    // Calculate average difficulty from all matches
+    let avgDifficulty = 1.0;
+    const difficultiesWithData = processedMatches.filter(m => m.skill || m.averageRank);
+    if (difficultiesWithData.length > 0) {
+        const totalDifficulty = processedMatches.reduce((sum, m) => {
+            return sum + calculateDifficultyWeight(m.averageRank, m.skill);
+        }, 0);
+        avgDifficulty = totalDifficulty / processedMatches.length;
+    }
+
+    // Final scoring: balanced between WR and experience
+    // New accounts (< 100 games) get heavily penalized to prevent abuse
+    if (totalMatches >= 30) { // Min 30 games to be ranked
         const globalWR = wins / totalMatches;
 
-        // Confidence factor: minimum 70%, caps at 300 matches
-        // 50 matches = 0.82, 150 matches = 0.91, 300+ matches = 1.0
-        // This reduces the impact of match count significantly
-        const baseConfidence = 0.7;
-        const confidenceBonus = 0.3 * Math.sqrt(Math.min(totalMatches, 300) / 300);
-        const confidence = baseConfidence + confidenceBonus;
+        // Experience factor: scales from 0.5 (30 games) to 1.0 (200+ games)
+        // This penalizes new accounts significantly
+        // 30 games = 0.50, 100 games = 0.79, 200+ games = 1.0
+        const experienceFactor = Math.sqrt(Math.min(totalMatches, 200) / 200);
 
-        // WR adjustment: how much above/below 50% WR
-        const wrAdjustment = (globalWR - 0.50) * 5000;
+        // WR adjustment: each 1% above 50% = +100 TMMR (before factors)
+        // At 60% WR = +1000, at 70% WR = +2000
+        const wrAdjustment = (globalWR - 0.50) * 10000;
 
-        // Final MMR = Base + (WR adjustment * confidence)
-        // WR is ~90% of the formula, match count is ~10%
-        currentTmmr = BASE_TMMR + (wrAdjustment * confidence);
+        // Apply experience and difficulty factors
+        // New accounts with high WR will still be penalized
+        const adjustedWR = wrAdjustment * experienceFactor * avgDifficulty;
+
+        // Final TMMR
+        currentTmmr = BASE_TMMR + adjustedWR;
+
+        // Ensure minimum TMMR
+        if (currentTmmr < 500) currentTmmr = 500;
     }
 
     return {
