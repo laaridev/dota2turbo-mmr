@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Search, Zap } from 'lucide-react';
 import { HowItWorksModal } from '@/components/how-it-works-modal';
 import { AnalysisModal } from '@/components/analysis-modal';
+import { BetaNoticeModal } from '@/components/beta-notice-modal';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 
@@ -211,6 +212,7 @@ export default function Home() {
         remainingDays={remainingDays}
         onViewProfile={handleViewProfile}
       />
+      <BetaNoticeModal />
     </div>
   );
 }
