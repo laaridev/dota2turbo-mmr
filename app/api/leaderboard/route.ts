@@ -71,58 +71,13 @@ export async function GET(request: Request) {
             return NextResponse.json(cached.data);
         }
 
-        // Calculate for specific period - USE SNAPSHOTS
+        // Period filter - simple version using current TMMR
         const dates = getPeriodDates(period);
         if (!dates) {
             return NextResponse.json({ error: 'Invalid period' }, { status: 400 });
         }
 
-        // Try to use pre-calculated snapshots first
-        const MonthlySnapshot = (await import('@/lib/models/MonthlySnapshot')).default;
-        const snapshots = await MonthlySnapshot.find({ period }).lean();
-
-        if (snapshots.length > 0) {
-            // Use snapshots (fast path)
-            const players = await Player.find({
-                steamId: { $in: snapshots.map(s => s.playerSteamId) },
-                isPrivate: false
-            }).lean();
-
-            const playerMap = new Map(players.map(p => [p.steamId, p]));
-
-            const periodResults = snapshots
-                .filter(s => playerMap.has(s.playerSteamId))
-                .map(s => {
-                    const player = playerMap.get(s.playerSteamId)!;
-                    return {
-                        steamId: s.playerSteamId,
-                        name: player.name,
-                        avatar: player.avatar,
-                        tmmr: s.tmmr,
-                        wins: s.wins,
-                        losses: s.losses,
-                        streak: 0,
-                        periodGames: s.gamesInPeriod
-                    };
-                })
-                .sort((a, b) => b.tmmr - a.tmmr);
-
-            const paginatedResults = periodResults.slice(skip, skip + limit);
-            const total = periodResults.length;
-
-            const response = {
-                players: paginatedResults,
-                periods: PERIODS,
-                currentPeriod: period,
-                pagination: { total, page, pages: Math.ceil(total / limit) },
-                usingSnapshot: true
-            };
-
-            periodCache.set(cacheKey, { data: response, timestamp: Date.now() });
-            return NextResponse.json(response);
-        }
-
-        // Fallback: Use current TMMR with activity filter (slower but works)
+        // Get players who had activity in the period
         const playersWithActivity = await Match.aggregate([
             {
                 $match: {
@@ -168,8 +123,7 @@ export async function GET(request: Request) {
             players: paginatedResults,
             periods: PERIODS,
             currentPeriod: period,
-            pagination: { total, page, pages: Math.ceil(total / limit) },
-            usingSnapshot: false
+            pagination: { total, page, pages: Math.ceil(total / limit) }
         };
 
         periodCache.set(cacheKey, { data: response, timestamp: Date.now() });
