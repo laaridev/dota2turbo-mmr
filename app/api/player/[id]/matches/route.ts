@@ -84,14 +84,19 @@ export async function GET(
 
         // Fill with match data (use actual match dates)
         for (const match of matches) {
-            const date = new Date(match.timestamp as Date).toISOString().split('T')[0];
-            const existing = dailyMap.get(date) || { wins: 0, losses: 0 };
-            if (match.win) {
-                existing.wins++;
-            } else {
-                existing.losses++;
+            if (!match.timestamp) continue; // Skip if no timestamp
+            try {
+                const date = new Date(match.timestamp as Date).toISOString().split('T')[0];
+                const existing = dailyMap.get(date) || { wins: 0, losses: 0 };
+                if (match.win) {
+                    existing.wins++;
+                } else {
+                    existing.losses++;
+                }
+                dailyMap.set(date, existing);
+            } catch (e) {
+                console.log(`[Matches API] Invalid timestamp:`, match.timestamp);
             }
-            dailyMap.set(date, existing);
         }
 
         // Convert to array sorted by date ascending, take last 30 days with data
@@ -99,6 +104,8 @@ export async function GET(
             .map(([date, data]) => ({ date, ...data }))
             .sort((a, b) => a.date.localeCompare(b.date))
             .slice(-30);
+
+        console.log(`[Matches API] dailyStats count: ${dailyStats.length}`);
 
         // Recent matches (last 10)
         const recentMatches = matches.slice(0, 10).map(m => ({
