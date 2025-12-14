@@ -14,15 +14,15 @@ const badgeVariants = cva(
                 destructive:
                     "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
                 outline: "text-foreground",
-                // Dota 2 Ranks
-                herald: "border-transparent bg-zinc-600/30 text-zinc-400 border-zinc-500/50",
-                guardian: "border-transparent bg-teal-600/20 text-teal-400 border-teal-500/50",
-                crusader: "border-transparent bg-lime-600/20 text-lime-400 border-lime-500/50",
-                archon: "border-transparent bg-yellow-500/20 text-yellow-400 border-yellow-500/50",
-                legend: "border-transparent bg-sky-500/20 text-sky-400 border-sky-500/50",
-                ancient: "border-transparent bg-purple-500/20 text-purple-400 border-purple-500/50",
-                divine: "border-transparent bg-rose-500/20 text-rose-400 border-rose-500/50",
-                immortal: "border-transparent bg-gradient-to-r from-amber-500/30 to-orange-500/30 text-amber-300 border-amber-500/50 box-glow",
+                // Dota 2 Ranks - solid backgrounds with colored borders
+                herald: "bg-zinc-900 text-zinc-300 border-2 border-zinc-500",
+                guardian: "bg-teal-950 text-teal-300 border-2 border-teal-500",
+                crusader: "bg-lime-950 text-lime-300 border-2 border-lime-500",
+                archon: "bg-yellow-950 text-yellow-300 border-2 border-yellow-500",
+                legend: "bg-sky-950 text-sky-300 border-2 border-sky-500",
+                ancient: "bg-purple-950 text-purple-300 border-2 border-purple-500",
+                divine: "bg-rose-950 text-rose-300 border-2 border-rose-500",
+                immortal: "bg-gradient-to-r from-amber-900 to-orange-900 text-amber-200 border-2 border-amber-500 shadow-lg shadow-amber-500/20",
             },
         },
         defaultVariants: {
