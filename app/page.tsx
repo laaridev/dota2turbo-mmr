@@ -66,10 +66,28 @@ export default function Home() {
           Ranking exclusivo para Turbo
         </motion.div>
 
-        {/* Title */}
-        <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
-          <span className="gradient-text animate-shimmer bg-[length:200%_100%]">TurboRank</span>
-        </h1>
+        {/* Title - Premium Typography */}
+        <div className="relative">
+          {/* Glow effect behind text */}
+          <div className="absolute inset-0 blur-3xl bg-gradient-to-r from-primary/30 via-orange-500/20 to-primary/30 opacity-50" />
+
+          <h1 className="text-6xl md:text-8xl font-black tracking-tighter relative">
+            <span className="bg-gradient-to-r from-primary via-orange-400 to-amber-400 bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%] drop-shadow-2xl">
+              Turbo
+            </span>
+            <span className="text-white drop-shadow-lg">
+              Buff
+            </span>
+          </h1>
+
+          {/* Subtle underline accent */}
+          <motion.div
+            className="h-1 bg-gradient-to-r from-transparent via-primary to-transparent rounded-full mt-2 mx-auto max-w-48"
+            initial={{ scaleX: 0, opacity: 0 }}
+            animate={{ scaleX: 1, opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.6 }}
+          />
+        </div>
 
         <p className="text-xl text-muted-foreground max-w-md mx-auto">
           Descubra seu ranking no modo Turbo.
