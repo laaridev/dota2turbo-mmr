@@ -3,14 +3,15 @@
 import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { getTier, getTierCategory, TIER_NAMES } from '@/lib/tmmr';
-import { Trophy, Crown, Medal, TrendingDown, Flame, Sparkles } from 'lucide-react';
+import { Trophy, Crown, Medal, TrendingDown, Flame, Sparkles, ChevronUp } from 'lucide-react';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function LeaderboardPage() {
     const [players, setPlayers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [showScrollTop, setShowScrollTop] = useState(false);
 
     useEffect(() => {
         fetch('/api/leaderboard')
@@ -21,6 +22,19 @@ export default function LeaderboardPage() {
             })
             .catch(() => setLoading(false));
     }, []);
+
+    // Scroll to top button visibility
+    useEffect(() => {
+        const handleScroll = () => {
+            setShowScrollTop(window.scrollY > 400);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    const scrollToTop = () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     const topThree = players.slice(0, 3);
     const restPlayers = players.slice(3);
@@ -37,8 +51,8 @@ export default function LeaderboardPage() {
                         <div className="grid grid-cols-3 gap-4">
                             {[1, 2, 3].map(i => <Skeleton key={i} className="h-52 rounded-2xl" />)}
                         </div>
-                        <div className="space-y-2">
-                            {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-14 rounded-lg" />)}
+                        <div className="space-y-3">
+                            {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-16 rounded-xl" />)}
                         </div>
                     </div>
                 ) : (
@@ -52,25 +66,30 @@ export default function LeaderboardPage() {
                             </div>
                         )}
 
-                        {/* Table */}
-                        <div className="bg-gradient-to-b from-card/80 to-card/50 backdrop-blur-sm border border-white/[0.08] rounded-2xl overflow-hidden shadow-xl">
-                            <div className="grid grid-cols-12 gap-2 px-5 py-3 border-b border-white/[0.06] text-xs text-muted-foreground uppercase tracking-wider font-medium">
-                                <div className="col-span-1">#</div>
-                                <div className="col-span-4">Player</div>
-                                <div className="col-span-2 text-center">Rank</div>
-                                <div className="col-span-2 text-center hidden sm:block">Jogos</div>
-                                <div className="col-span-1 text-center">Streak</div>
-                                <div className="col-span-2 text-right">TMMR</div>
-                            </div>
-                            <div className="max-h-[400px] overflow-y-auto divide-y divide-white/[0.04]">
-                                {restPlayers.map((player, i) => (
-                                    <TableRow key={player.steamId} player={player} position={i + 4} />
-                                ))}
-                            </div>
+                        {/* Player List */}
+                        <div className="space-y-3">
+                            {restPlayers.map((player, i) => (
+                                <PlayerListItem key={player.steamId} player={player} position={i + 4} />
+                            ))}
                         </div>
                     </>
                 )}
             </div>
+
+            {/* Scroll to top button */}
+            <AnimatePresence>
+                {showScrollTop && (
+                    <motion.button
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 20 }}
+                        onClick={scrollToTop}
+                        className="fixed bottom-6 right-6 w-12 h-12 bg-primary hover:bg-primary/90 text-white rounded-full shadow-lg flex items-center justify-center transition-colors z-50"
+                    >
+                        <ChevronUp className="h-6 w-6" />
+                    </motion.button>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
@@ -79,14 +98,13 @@ export default function LeaderboardPage() {
 /* Premium TopCard Component                                    */
 /* ─────────────────────────────────────────────────────────── */
 function TopCard({ player, position }: { player: any; position: number }) {
+    const isFirst = position === 1;
     const tier = getTier(player.tmmr);
     const tierCategory = getTierCategory(tier);
-    const isFirst = position === 1;
-    const isSecond = position === 2;
 
     const config = {
         1: {
-            height: 'h-72',  // Increased for name
+            height: 'h-72',
             avatar: 'w-24 h-24',
             gradient: 'from-amber-500/20 via-orange-500/10 to-transparent',
             border: 'border-amber-500/40',
@@ -94,7 +112,7 @@ function TopCard({ player, position }: { player: any; position: number }) {
             avatarBorder: 'border-4 border-amber-500/60',
         },
         2: {
-            height: 'h-64',  // Increased for name
+            height: 'h-64',
             avatar: 'w-20 h-20',
             gradient: 'from-zinc-400/10 via-zinc-500/5 to-transparent',
             border: 'border-zinc-500/30',
@@ -102,7 +120,7 @@ function TopCard({ player, position }: { player: any; position: number }) {
             avatarBorder: 'border-2 border-zinc-400/50',
         },
         3: {
-            height: 'h-64',  // Increased for name
+            height: 'h-64',
             avatar: 'w-20 h-20',
             gradient: 'from-orange-700/15 via-orange-600/5 to-transparent',
             border: 'border-orange-700/30',
@@ -117,16 +135,12 @@ function TopCard({ player, position }: { player: any; position: number }) {
     return (
         <Link href={`/profile/${player.steamId}`}>
             <motion.div
-                className={`relative ${config.height} rounded-2xl overflow-hidden border ${config.border} ${config.glow} cursor-pointer group`}
-                whileHover={{ y: -8, scale: 1.02 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                className={`relative ${config.height} rounded-2xl bg-gradient-to-b ${config.gradient} border ${config.border} ${config.glow} backdrop-blur-sm overflow-hidden group cursor-pointer`}
+                whileHover={{ y: -4, scale: 1.02 }}
+                transition={{ type: 'spring', stiffness: 300 }}
             >
-                {/* Background gradient */}
-                <div className={`absolute inset-0 bg-gradient-to-b ${config.gradient}`} />
-                <div className="absolute inset-0 bg-card/80 backdrop-blur-sm" />
-
-                {/* Animated shine for #1 */}
-                {isFirst && (
+                {/* Shine effect on hover */}
+                {!isFirst && (
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                 )}
 
@@ -153,13 +167,9 @@ function TopCard({ player, position }: { player: any; position: number }) {
                         )}
                     </div>
 
-                    {/* Avatar - circular with fixed aspect ratio */}
+                    {/* Avatar */}
                     <div className={`${config.avatar} aspect-square rounded-full overflow-hidden ${config.avatarBorder} shadow-lg flex-shrink-0`}>
-                        <img
-                            src={player.avatar}
-                            alt={player.name}
-                            className="w-full h-full object-cover"
-                        />
+                        <img src={player.avatar} alt={player.name} className="w-full h-full object-cover" />
                     </div>
 
                     {/* Player name */}
@@ -167,7 +177,7 @@ function TopCard({ player, position }: { player: any; position: number }) {
                         {player.name}
                     </span>
 
-                    {/* TMMR only */}
+                    {/* TMMR */}
                     <div className="flex items-center gap-1">
                         <Trophy className={`h-4 w-4 ${isFirst ? 'text-amber-400' : 'text-primary'}`} />
                         <span className={`font-black ${isFirst ? 'text-lg text-amber-400' : 'text-primary'}`}>
@@ -193,13 +203,10 @@ function TopCard({ player, position }: { player: any; position: number }) {
 
                 {/* Sparkle effect for #1 */}
                 {isFirst && (
-                    <motion.div
-                        className="absolute top-4 right-4 text-amber-400/60"
-                        animate={{ opacity: [0.4, 1, 0.4], scale: [0.9, 1.1, 0.9] }}
-                        transition={{ repeat: Infinity, duration: 2 }}
-                    >
-                        <Sparkles className="h-4 w-4" />
-                    </motion.div>
+                    <div className="absolute inset-0 pointer-events-none">
+                        <Sparkles className="absolute top-4 right-4 h-4 w-4 text-amber-400/50 animate-pulse" />
+                        <Sparkles className="absolute bottom-6 left-4 h-3 w-3 text-amber-400/30 animate-pulse delay-300" />
+                    </div>
                 )}
             </motion.div>
         </Link>
@@ -207,46 +214,61 @@ function TopCard({ player, position }: { player: any; position: number }) {
 }
 
 /* ─────────────────────────────────────────────────────────── */
-/* TableRow Component                                           */
+/* Player List Item Component                                   */
 /* ─────────────────────────────────────────────────────────── */
-function TableRow({ player, position }: { player: any; position: number }) {
+function PlayerListItem({ player, position }: { player: any; position: number }) {
     const tier = getTier(player.tmmr);
     const tierCategory = getTierCategory(tier);
+    const winrate = ((player.wins / (player.wins + player.losses || 1)) * 100).toFixed(0);
 
     return (
         <Link href={`/profile/${player.steamId}`}>
             <motion.div
-                className="grid grid-cols-12 gap-2 px-5 py-3 items-center hover:bg-white/[0.03] transition-colors cursor-pointer group"
-                whileHover={{ x: 4 }}
+                className="flex items-center gap-4 p-4 bg-gradient-to-r from-card/80 to-card/50 backdrop-blur-sm border border-white/[0.08] rounded-xl hover:border-primary/30 transition-all cursor-pointer group"
+                whileHover={{ x: 4, scale: 1.01 }}
             >
-                <div className="col-span-1 text-muted-foreground font-medium">{position}</div>
-                <div className="col-span-4 flex items-center gap-3 min-w-0">
-                    <div className="w-8 h-8 rounded-full overflow-hidden ring-1 ring-white/10 group-hover:ring-primary/50 transition-all flex-shrink-0">
-                        <img src={player.avatar} alt={player.name} className="w-full h-full object-cover" />
+                {/* Position */}
+                <div className="w-8 text-center">
+                    <span className="text-lg font-bold text-muted-foreground">{position}</span>
+                </div>
+
+                {/* Avatar */}
+                <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-white/10 group-hover:ring-primary/40 transition-all flex-shrink-0">
+                    <img src={player.avatar} alt={player.name} className="w-full h-full object-cover" />
+                </div>
+
+                {/* Name and Badge */}
+                <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-white group-hover:text-primary transition-colors truncate">
+                        {player.name}
                     </div>
-                    <span className="font-medium text-sm truncate group-hover:text-primary transition-colors">{player.name}</span>
+                    <div className="flex items-center gap-2 mt-1">
+                        <Badge variant={tierCategory as any} className="text-[9px]">{TIER_NAMES[tier]}</Badge>
+                        <span className="text-xs text-muted-foreground">{player.wins + player.losses} jogos • {winrate}%</span>
+                    </div>
                 </div>
-                <div className="col-span-2 flex justify-center">
-                    <Badge variant={tierCategory as any} className="text-[9px]">{TIER_NAMES[tier]}</Badge>
-                </div>
-                <div className="col-span-2 text-center text-sm text-muted-foreground hidden sm:block">
-                    {player.wins + player.losses}
-                </div>
-                <div className="col-span-1 text-center">
+
+                {/* Streak */}
+                <div className="hidden sm:block">
                     {player.streak !== 0 && (
                         player.streak > 0 ? (
-                            <span className="flex items-center justify-center gap-0.5 text-orange-400 text-sm font-medium">
-                                <Flame className="h-3.5 w-3.5" />{player.streak}
+                            <span className="flex items-center gap-1 text-orange-400 text-sm font-medium">
+                                <Flame className="h-4 w-4" />{player.streak}
                             </span>
                         ) : (
-                            <span className="flex items-center justify-center gap-0.5 text-rose-400 text-sm">
-                                <TrendingDown className="h-3.5 w-3.5" />{Math.abs(player.streak)}
+                            <span className="flex items-center gap-1 text-rose-400 text-sm">
+                                <TrendingDown className="h-4 w-4" />{Math.abs(player.streak)}
                             </span>
                         )
                     )}
                 </div>
-                <div className="col-span-2 text-right">
-                    <span className="font-bold text-primary">{player.tmmr}</span>
+
+                {/* TMMR */}
+                <div className="text-right">
+                    <div className="flex items-center gap-1.5">
+                        <Trophy className="h-4 w-4 text-primary" />
+                        <span className="font-bold text-lg text-primary">{player.tmmr}</span>
+                    </div>
                 </div>
             </motion.div>
         </Link>
