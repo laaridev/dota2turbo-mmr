@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { getTier, getTierCategory, TIER_NAMES } from '@/lib/tmmr';
-import { Trophy, Crown, Medal, TrendingDown, Flame, Sparkles, ChevronUp } from 'lucide-react';
+import { Trophy, Crown, Medal, TrendingDown, Flame, Sparkles, ChevronUp, Search } from 'lucide-react';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -12,6 +12,7 @@ export default function LeaderboardPage() {
     const [players, setPlayers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showScrollTop, setShowScrollTop] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
         fetch('/api/leaderboard')
@@ -38,6 +39,14 @@ export default function LeaderboardPage() {
 
     const topThree = players.slice(0, 3);
     const restPlayers = players.slice(3);
+
+    // Filter players by search query
+    const filteredPlayers = useMemo(() => {
+        if (!searchQuery.trim()) return restPlayers;
+        return restPlayers.filter(p =>
+            p.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }, [restPlayers, searchQuery]);
 
     return (
         <div className="min-h-screen relative overflow-x-hidden">
@@ -66,11 +75,28 @@ export default function LeaderboardPage() {
                             </div>
                         )}
 
+                        {/* Search Input */}
+                        <div className="relative mb-4">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <input
+                                type="text"
+                                placeholder="Buscar jogador..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-11 pr-4 py-3 bg-card/50 backdrop-blur-sm border border-white/10 rounded-xl text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
+                            />
+                        </div>
+
                         {/* Player List */}
-                        <div className="space-y-3">
-                            {restPlayers.map((player, i) => (
-                                <PlayerListItem key={player.steamId} player={player} position={i + 4} />
+                        <div className="space-y-2">
+                            {filteredPlayers.map((player, i) => (
+                                <PlayerListItem key={player.steamId} player={player} position={restPlayers.indexOf(player) + 4} />
                             ))}
+                            {filteredPlayers.length === 0 && searchQuery && (
+                                <div className="text-center py-8 text-muted-foreground text-sm">
+                                    Nenhum jogador encontrado
+                                </div>
+                            )}
                         </div>
                     </>
                 )}
