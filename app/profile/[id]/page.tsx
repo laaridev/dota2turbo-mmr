@@ -155,15 +155,35 @@ export default function ProfilePage() {
                                     const total = day.wins + day.losses;
                                     const maxTotal = Math.max(...filteredDailyStats.map(d => d.wins + d.losses), 1);
                                     const height = total > 0 ? (total / maxTotal) * 100 : 0;
-                                    const winH = total > 0 ? (day.wins / total) * 100 : 0;
+                                    const winPercent = total > 0 ? (day.wins / total) * 100 : 0;
                                     return (
-                                        <motion.div key={day.date} className="flex-1 flex flex-col justify-end group relative cursor-pointer" initial={{ scaleY: 0 }} animate={{ scaleY: 1 }} transition={{ delay: i * 0.02, duration: 0.3 }} style={{ originY: 1 }}>
+                                        <motion.div
+                                            key={day.date}
+                                            className="flex-1 group relative cursor-pointer h-full flex flex-col justify-end"
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            transition={{ delay: i * 0.02, duration: 0.3 }}
+                                        >
                                             {total > 0 ? (
-                                                <div className="w-full rounded-t overflow-hidden group-hover:brightness-110 transition-all" style={{ height: `${height}%` }}>
-                                                    <div className="w-full bg-gradient-to-t from-emerald-600/90 to-emerald-400/90" style={{ height: `${winH}%` }} />
-                                                    <div className="w-full bg-gradient-to-t from-rose-600/90 to-rose-400/90" style={{ height: `${100 - winH}%` }} />
+                                                <div
+                                                    className="w-full rounded-t overflow-hidden group-hover:brightness-125 transition-all relative"
+                                                    style={{ height: `${height}%`, minHeight: '4px' }}
+                                                >
+                                                    {/* Losses (bottom) */}
+                                                    <div
+                                                        className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-rose-600 to-rose-500"
+                                                        style={{ height: `${100 - winPercent}%` }}
+                                                    />
+                                                    {/* Wins (top) */}
+                                                    <div
+                                                        className="absolute top-0 left-0 right-0 bg-gradient-to-t from-emerald-500 to-emerald-400"
+                                                        style={{ height: `${winPercent}%` }}
+                                                    />
                                                 </div>
-                                            ) : <div className="w-full h-1 bg-white/5 rounded-t" />}
+                                            ) : (
+                                                <div className="w-full h-1 bg-white/10 rounded-t" />
+                                            )}
+                                            {/* Tooltip */}
                                             <div className="absolute -top-10 left-1/2 -translate-x-1/2 hidden group-hover:block bg-card/95 backdrop-blur border border-white/10 rounded-lg px-2 py-1 text-xs whitespace-nowrap z-20 shadow-xl">
                                                 <span className="text-emerald-400">{day.wins}W</span> / <span className="text-rose-400">{day.losses}L</span>
                                             </div>
