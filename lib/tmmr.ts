@@ -9,6 +9,8 @@ export interface CalculatedMatchResult {
     timestamp: Date;
     tmmrChange: number;
     tmmrAfter: number;
+    skill?: number;        // 1=Normal, 2=High, 3=Very High
+    averageRank?: number;  // 0-80 rank tier
 }
 
 export interface TmmrCalculationResult {
@@ -73,21 +75,32 @@ function calculateKFactor(matchCount: number, confidence: number): number {
 }
 
 /**
- * Calculates difficulty weight based on average match rank tier
- * tierWeight = clamp(1 + (avg_rank_tier - 50) × 0.01, 0.85, 1.15)
- * Normalized around tier 50, with soft scaling ±15%
+ * Calculates difficulty weight based on skill bracket and average rank tier
+ * Uses both fields for more accurate weighting
+ * skill: 1=Normal, 2=High, 3=Very High
+ * averageRank: 0-80 scale (e.g., 50=Legend, 70=Divine)
  */
-function calculateDifficultyWeight(averageRank: number | undefined): number {
-    // If no rank data, use neutral weight
-    if (!averageRank || averageRank <= 0 || averageRank > 80) {
-        return 1.0;
+function calculateDifficultyWeight(averageRank: number | undefined, skill: number | undefined): number {
+    let weight = 1.0;
+
+    // Primary: use averageRank if available (more precise)
+    if (averageRank && averageRank > 0 && averageRank <= 80) {
+        // Normalized around tier 50 (Legend area)
+        // Each tier above/below 50 adds/removes 1% weight
+        // Range: 0.70 (tier 20) to 1.30 (tier 80)
+        weight = 1 + (averageRank - 50) * 0.01;
+        return clamp(weight, 0.70, 1.30);
     }
 
-    // tierWeight = 1 + (avg_rank_tier - 50) × 0.01
-    // Clamped to range [0.85, 1.15]
-    const weight = 1 + (averageRank - 50) * 0.01;
+    // Fallback: use skill bracket if averageRank not available
+    if (skill && skill >= 1 && skill <= 3) {
+        // 1 = Normal = 0.90, 2 = High = 1.05, 3 = Very High = 1.20
+        const skillWeights: Record<number, number> = { 1: 0.90, 2: 1.05, 3: 1.20 };
+        return skillWeights[skill] || 1.0;
+    }
 
-    return clamp(weight, 0.85, 1.15);
+    // No data available
+    return 1.0;
 }
 
 /**
@@ -120,8 +133,8 @@ export function calculateTMMR(matches: OpenDotaMatch[]): TmmrCalculationResult {
         // Calculate dynamic K factor
         const K = calculateKFactor(matchNumber, confidence);
 
-        // Calculate difficulty weight
-        const difficultyWeight = calculateDifficultyWeight(match.average_rank);
+        // Calculate difficulty weight (using averageRank and skill)
+        const difficultyWeight = calculateDifficultyWeight(match.average_rank, match.skill);
 
         // Calculate delta: (±K) × tierWeight
         let delta = playerWon ? K : -K;
@@ -165,7 +178,9 @@ export function calculateTMMR(matches: OpenDotaMatch[]): TmmrCalculationResult {
             kda: `${match.kills}/${match.deaths}/${match.assists}`,
             timestamp: new Date(match.start_time * 1000),
             tmmrChange,
-            tmmrAfter: currentTmmr
+            tmmrAfter: currentTmmr,
+            skill: match.skill,
+            averageRank: match.average_rank
         });
     }
 

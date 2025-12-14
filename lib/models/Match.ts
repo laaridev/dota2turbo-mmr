@@ -9,6 +9,8 @@ export interface IMatch extends Document {
     kda: string;
     timestamp: Date;
     tmmrChange: number;
+    skill?: number;        // 1=Normal, 2=High, 3=Very High
+    averageRank?: number;  // Average rank tier (0-80 scale, e.g. 50=Legend)
 }
 
 const MatchSchema: Schema = new Schema({
@@ -20,6 +22,8 @@ const MatchSchema: Schema = new Schema({
     kda: { type: String, required: true }, // User formatted string "K/D/A"
     timestamp: { type: Date, required: true }, // Match end time
     tmmrChange: { type: Number, required: true },
+    skill: { type: Number }, // 1=Normal, 2=High, 3=Very High
+    averageRank: { type: Number }, // Average rank tier (0-80)
 }, { timestamps: true });
 
 // Prevent recompilation in development

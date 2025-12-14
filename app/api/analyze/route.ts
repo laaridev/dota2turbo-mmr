@@ -94,7 +94,9 @@ export async function POST(request: Request) {
                         duration: m.duration,
                         kda: m.kda,
                         timestamp: m.timestamp,
-                        tmmrChange: m.tmmrChange
+                        tmmrChange: m.tmmrChange,
+                        skill: m.skill,
+                        averageRank: m.averageRank
                     }
                 },
                 upsert: true
