@@ -15,7 +15,7 @@ interface RankingInfoModalProps {
     mode: string;
 }
 
-const INFO_ content: Record<string, { title: string; icon: any; description: string; details: string[] }> = {
+const INFO_CONTENT: Record<string, { title: string; icon: any; description: string; details: string[] }> = {
     general: {
         title: 'Rank Geral (TMMR)',
         icon: Trophy,
@@ -75,7 +75,7 @@ const INFO_ content: Record<string, { title: string; icon: any; description: str
 };
 
 export function RankingInfoModal({ isOpen, onClose, mode }: RankingInfoModalProps) {
-    const info = INFO_content[mode] || INFO_content.general;
+    const info = INFO_CONTENT[mode] || INFO_CONTENT.general;
     const Icon = info.icon;
 
     return (
