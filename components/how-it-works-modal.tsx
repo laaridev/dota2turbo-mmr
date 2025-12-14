@@ -1,6 +1,6 @@
 'use client';
 
-import { X, Database, Zap, Trophy, BarChart3, TrendingUp, Calculator } from 'lucide-react';
+import { X, Database, Zap, Trophy, BarChart3, TrendingUp, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface HowItWorksModalProps {
@@ -33,10 +33,10 @@ export function HowItWorksModal({ isOpen, onClose }: HowItWorksModalProps) {
                             <Database className="h-6 w-6 text-primary" />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-lg mb-1">1. Coletamos seus dados</h3>
+                            <h3 className="font-semibold text-lg mb-1">1. Buscamos suas partidas</h3>
                             <p className="text-muted-foreground text-sm">
-                                Usamos a API pública do OpenDota para buscar <strong className="text-white">todas as suas partidas do modo Turbo</strong>.
-                                Não temos acesso à sua conta Steam, apenas dados públicos de partidas.
+                                Usamos dados públicos do OpenDota para ver <strong className="text-white">todas as suas partidas de Turbo</strong>.
+                                Não precisa de senha, só seu ID do Dota!
                             </p>
                         </div>
                     </div>
@@ -47,34 +47,25 @@ export function HowItWorksModal({ isOpen, onClose }: HowItWorksModalProps) {
                             <BarChart3 className="h-6 w-6 text-orange-500" />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-lg mb-1">2. Calculamos sua Winrate</h3>
+                            <h3 className="font-semibold text-lg mb-1">2. Sua Winrate é o que importa</h3>
                             <p className="text-muted-foreground text-sm">
-                                Analisamos todas as suas partidas Turbo para calcular sua
-                                <strong className="text-white"> taxa de vitória (winrate)</strong>.
-                                Este é o fator mais importante do seu ranking!
+                                O fator principal é sua <strong className="text-primary">taxa de vitória</strong>.
+                                Quem ganha mais, sobe mais! Simples assim.
                             </p>
                         </div>
                     </div>
 
-                    {/* Step 3 - Formula */}
+                    {/* Step 3 */}
                     <div className="flex gap-4">
                         <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center">
-                            <Calculator className="h-6 w-6 text-amber-500" />
+                            <Star className="h-6 w-6 text-amber-500" />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-lg mb-1">3. Fórmula do TMMR</h3>
-                            <p className="text-muted-foreground text-sm mb-2">
-                                Aplicamos uma fórmula que prioriza <strong className="text-primary">winrate sobre volume</strong>:
-                            </p>
-                            <div className="p-3 bg-white/5 rounded-lg text-xs font-mono text-white/80 space-y-1">
-                                <div>Confiança = √(min(partidas, 500) / 500)</div>
-                                <div>Ajuste WR = (winrate - 50%) × 5000</div>
-                                <div className="text-primary font-bold">TMMR = 3500 + (Ajuste WR × Confiança)</div>
-                            </div>
-                            <p className="text-muted-foreground text-xs mt-2">
-                                💡 O <strong className="text-white">cap de 500 partidas</strong> garante que
-                                quem joga muito não tenha vantagem infinita. Quem tem 57% de WR
-                                sempre fica acima de quem tem 53%, independente do volume!
+                            <h3 className="font-semibold text-lg mb-1">3. Qualidade &gt; Quantidade</h3>
+                            <p className="text-muted-foreground text-sm">
+                                Um jogador com <strong className="text-white">57% de winrate</strong> sempre fica acima de
+                                alguém com 53%, <strong className="text-primary">mesmo que tenha jogado menos partidas</strong>.
+                                Jogar muito não substitui jogar bem!
                             </p>
                         </div>
                     </div>
@@ -85,23 +76,27 @@ export function HowItWorksModal({ isOpen, onClose }: HowItWorksModalProps) {
                             <TrendingUp className="h-6 w-6 text-green-500" />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-lg mb-1">4. Exemplos práticos</h3>
-                            <div className="grid grid-cols-2 gap-2 text-xs">
+                            <h3 className="font-semibold text-lg mb-1">4. Quanto mais você ganha, mais sobe</h3>
+                            <div className="grid grid-cols-2 gap-2 text-xs mt-2">
                                 <div className="p-2 bg-white/5 rounded">
-                                    <div className="text-muted-foreground">50% WR (500 jogos)</div>
+                                    <div className="text-muted-foreground">50% winrate</div>
                                     <div className="text-white font-bold">~3500 TMMR</div>
+                                    <div className="text-[10px] text-muted-foreground">Archon</div>
                                 </div>
                                 <div className="p-2 bg-white/5 rounded">
-                                    <div className="text-muted-foreground">55% WR (300 jogos)</div>
-                                    <div className="text-white font-bold">~3700 TMMR</div>
+                                    <div className="text-muted-foreground">55% winrate</div>
+                                    <div className="text-white font-bold">~3750 TMMR</div>
+                                    <div className="text-[10px] text-muted-foreground">Legend</div>
                                 </div>
                                 <div className="p-2 bg-white/5 rounded">
-                                    <div className="text-muted-foreground">60% WR (200 jogos)</div>
-                                    <div className="text-white font-bold">~3800 TMMR</div>
+                                    <div className="text-muted-foreground">60% winrate</div>
+                                    <div className="text-white font-bold">~4000 TMMR</div>
+                                    <div className="text-[10px] text-muted-foreground">Ancient</div>
                                 </div>
                                 <div className="p-2 bg-primary/20 rounded border border-primary/30">
-                                    <div className="text-muted-foreground">66% WR (500 jogos)</div>
-                                    <div className="text-primary font-bold">~4300 TMMR 🔥</div>
+                                    <div className="text-muted-foreground">65%+ winrate</div>
+                                    <div className="text-primary font-bold">~4500+ TMMR 🔥</div>
+                                    <div className="text-[10px] text-primary/80">Divine / Immortal</div>
                                 </div>
                             </div>
                         </div>
@@ -113,10 +108,10 @@ export function HowItWorksModal({ isOpen, onClose }: HowItWorksModalProps) {
                             <Trophy className="h-6 w-6 text-yellow-500" />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-lg mb-1">5. Você entra no Ranking</h3>
+                            <h3 className="font-semibold text-lg mb-1">5. Receba sua patente</h3>
                             <p className="text-muted-foreground text-sm">
-                                Com base no seu TMMR, você recebe uma <strong className="text-white">patente</strong> (Herald → Immortal)
-                                e entra no ranking global. Os melhores jogadores aparecem no topo!
+                                Com base no seu TMMR, você ganha uma <strong className="text-white">patente</strong> igual
+                                ao Dota: de Herald até Immortal! E entra no ranking global.
                             </p>
                         </div>
                     </div>
@@ -127,10 +122,10 @@ export function HowItWorksModal({ isOpen, onClose }: HowItWorksModalProps) {
                             <Zap className="h-6 w-6 text-blue-500" />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-lg mb-1">6. Atualize semanalmente</h3>
+                            <h3 className="font-semibold text-lg mb-1">6. Atualize quando quiser</h3>
                             <p className="text-muted-foreground text-sm">
                                 Seu perfil pode ser atualizado a cada <strong className="text-white">7 dias</strong>.
-                                Continue jogando Turbo e suba no ranking!
+                                Jogue mais Turbo, melhore sua winrate e suba no ranking!
                             </p>
                         </div>
                     </div>
@@ -139,7 +134,7 @@ export function HowItWorksModal({ isOpen, onClose }: HowItWorksModalProps) {
                 {/* Footer note */}
                 <div className="mt-6 pt-4 border-t border-white/10">
                     <p className="text-xs text-muted-foreground text-center">
-                        💡 Lembre-se: seus dados de partidas precisam estar públicos nas configurações do Dota 2.
+                        💡 Seus dados de partidas precisam estar <strong className="text-white">públicos</strong> nas configurações do Dota 2.
                     </p>
                 </div>
 
