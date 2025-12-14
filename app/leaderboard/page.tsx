@@ -163,7 +163,7 @@ function TopCard({ player, position }: { player: any; position: number }) {
                     </div>
 
                     {/* Player name */}
-                    <span className={`font-bold truncate max-w-full mt-2 ${isFirst ? 'text-base' : 'text-sm'}`}>
+                    <span className={`font-bold truncate max-w-full mt-2 ${isFirst ? 'text-lg text-white drop-shadow-[0_0_10px_rgba(251,146,60,0.5)]' : 'text-sm text-white/90'}`}>
                         {player.name}
                     </span>
 
