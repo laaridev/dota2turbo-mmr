@@ -29,11 +29,11 @@ export interface TmmrCalculationResult {
 // ============================================
 
 // Constants
-const BASE_TMMR = 2000;
-const K_BASE_MIN = 5;            // Very stable post-calibration
-const K_BASE_MAX = 15;           // Post-calibration max (much lower)
-const K_CALIBRATION_MAX = 60;    // Calibration max - VERY volatile like Dota!
-const CALIBRATION_MATCHES = 100; // Extended calibration like Dota
+const BASE_TMMR = 3500;           // Divine players start around here
+const K_BASE_MIN = 15;            // Stable post-calibration
+const K_BASE_MAX = 35;            // Post-calibration max
+const K_CALIBRATION_MAX = 80;     // Calibration max - high impact like Dota!
+const CALIBRATION_MATCHES = 100;  // Extended calibration like Dota
 const CONFIDENCE_MAX_MATCHES = 300;
 const CONFIDENCE_MIN = 0.2;
 
@@ -192,14 +192,15 @@ export function calculateTMMR(matches: OpenDotaMatch[]): TmmrCalculationResult {
         const globalWR = wins / totalMatches;
 
         // WR-based expected MMR: 
-        // 50% WR = 2000 base
-        // 57% WR = 2000 + 7% * 10000 = 2700
-        // 67% WR = 2000 + 17% * 10000 = 3700
-        const wrBasedMMR = BASE_TMMR + ((globalWR - 0.50) * 10000);
+        // WR-based expected MMR (with new BASE_TMMR = 3500): 
+        // 50% WR = 3500 base
+        // 57% WR = 3500 + 7% * 5000 = 3850
+        // 66% WR = 3500 + 16% * 5000 = 4300
+        const wrBasedMMR = BASE_TMMR + ((globalWR - 0.50) * 5000);
 
-        // Blend: 70% WR-based, 30% simulation-based
-        // This ensures WR is the PRIMARY driver of ranking
-        currentTmmr = (wrBasedMMR * 0.7) + (currentTmmr * 0.3);
+        // Blend: 60% WR-based, 40% simulation-based
+        // Balance between WR importance and match history
+        currentTmmr = (wrBasedMMR * 0.6) + (currentTmmr * 0.4);
     }
 
     return {
