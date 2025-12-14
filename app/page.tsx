@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, HelpCircle, ChevronRight, Trophy, Zap, Users, Crown, Flame } from 'lucide-react';
+import { Search, Zap } from 'lucide-react';
 import { HowItWorksModal } from '@/components/how-it-works-modal';
 import { AnalysisModal } from '@/components/analysis-modal';
 import { motion } from 'framer-motion';
@@ -42,7 +42,6 @@ export default function Home() {
       const data = await response.json();
 
       if (response.status === 429 && data.player) {
-        // Locked - show existing data
         setPlayerData(data.player);
         setIsLocked(true);
         setRemainingDays(data.remainingDays);
@@ -78,7 +77,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-5rem)] p-4 relative overflow-hidden">
+    <div className="flex flex-col items-center justify-center h-screen p-4 relative overflow-hidden -mt-16">
 
       {/* Gradient Orbs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -177,56 +176,27 @@ export default function Home() {
           </Button>
         </motion.form>
 
-        {/* Quick Actions */}
+        {/* Links */}
         <motion.div
-          className="flex items-center justify-center gap-4"
+          className="flex items-center gap-6 text-sm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
         >
           <button
             onClick={() => setShowHowItWorks(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-muted-foreground hover:text-white hover:bg-white/10 hover:border-white/20 transition-all"
+            className="text-muted-foreground hover:text-white transition-colors underline-offset-4 hover:underline"
           >
-            <HelpCircle className="w-4 h-4" />
-            Como funciona
+            Como funciona?
           </button>
+          <span className="text-white/20">•</span>
           <Link
             href="/leaderboard"
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 border border-primary/20 text-sm text-primary hover:bg-primary/20 transition-all"
+            className="text-primary hover:text-primary/80 transition-colors underline-offset-4 hover:underline"
           >
-            <Trophy className="w-4 h-4" />
-            Ver ranking
-            <ChevronRight className="w-4 h-4" />
+            Ver ranking →
           </Link>
         </motion.div>
-      </motion.div>
-
-      {/* Bottom Features */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.7, duration: 0.6 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-6"
-      >
-        <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-card/50 backdrop-blur-sm border border-white/10">
-          <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-            <Crown className="w-4 h-4 text-primary" />
-          </div>
-          <div className="text-left">
-            <div className="text-xs font-semibold text-white">Ranking Global</div>
-            <div className="text-[10px] text-muted-foreground">Top jogadores Turbo</div>
-          </div>
-        </div>
-        <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-card/50 backdrop-blur-sm border border-white/10">
-          <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
-            <Flame className="w-4 h-4 text-orange-500" />
-          </div>
-          <div className="text-left">
-            <div className="text-xs font-semibold text-white">Atualização Semanal</div>
-            <div className="text-[10px] text-muted-foreground">Atualize a cada 7 dias</div>
-          </div>
-        </div>
       </motion.div>
 
       {/* Modals */}
