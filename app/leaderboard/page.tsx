@@ -19,16 +19,11 @@ export default function LeaderboardPage() {
 
 function LeaderboardSkeleton() {
     return (
-        <div className="h-[calc(100vh-76px)] overflow-hidden p-4">
-            <div className="container mx-auto max-w-5xl h-full">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full">
-                    <div className="space-y-1.5">
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => <Skeleton key={i} className="h-11 rounded-lg" />)}
-                    </div>
-                    <div className="space-y-1.5">
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => <Skeleton key={i} className="h-11 rounded-lg" />)}
-                    </div>
-                </div>
+        <div className="container mx-auto px-4 py-6 max-w-3xl">
+            <div className="space-y-2">
+                {[...Array(15)].map((_, i) => (
+                    <Skeleton key={i} className="h-16 rounded-xl" />
+                ))}
             </div>
         </div>
     );
@@ -58,126 +53,111 @@ function LeaderboardContent() {
         fetchLeaderboard();
     }, [currentPeriod]);
 
-    const topTen = players.slice(0, 10);
-    const restPlayers = players.slice(10);
-
     const filteredPlayers = useMemo(() => {
-        if (!searchQuery.trim()) return { top: topTen, rest: restPlayers };
+        if (!searchQuery.trim()) return players;
         const query = searchQuery.toLowerCase();
-        return {
-            top: topTen.filter(p => p.name.toLowerCase().includes(query)),
-            rest: restPlayers.filter(p => p.name.toLowerCase().includes(query))
-        };
-    }, [topTen, restPlayers, searchQuery]);
+        return players.filter(p => p.name.toLowerCase().includes(query));
+    }, [players, searchQuery]);
 
-    // Height: 100vh - navbar(48px) - footer(28px)
+    if (loading) {
+        return <LeaderboardSkeleton />;
+    }
+
     return (
-        <div className="h-[calc(100vh-76px)] overflow-hidden">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
+        <>
+            {/* Background glow */}
+            <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary/10 blur-[120px] rounded-full pointer-events-none z-0" />
 
-            <div className="container mx-auto px-4 py-2 max-w-5xl relative z-10 h-full">
-                {loading ? (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full">
-                        <div className="space-y-1.5">
-                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => <Skeleton key={i} className="h-11 rounded-lg" />)}
-                        </div>
-                        <div className="space-y-1.5">
-                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => <Skeleton key={i} className="h-11 rounded-lg" />)}
-                        </div>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full">
-                        {/* Left: Top 10 */}
-                        <div className="flex flex-col h-full">
-                            <div className="flex items-center gap-1.5 mb-2 flex-shrink-0">
-                                <Trophy className="h-3.5 w-3.5 text-primary" />
-                                <h2 className="font-semibold text-white text-xs">Top 10</h2>
-                            </div>
-                            <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 min-h-0">
-                                {(searchQuery ? filteredPlayers.top : topTen).map((player) => (
-                                    <PlayerRow key={player.steamId} player={player} position={players.indexOf(player) + 1} />
-                                ))}
-                                {topTen.length === 0 && (
-                                    <div className="text-center py-6 text-muted-foreground text-xs">
-                                        Nenhum jogador neste período
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+            {/* Main content */}
+            <div className="container mx-auto px-4 py-6 max-w-3xl relative z-10">
+                {/* Header */}
+                <div className="flex items-center gap-2 mb-4">
+                    <Trophy className="h-5 w-5 text-primary" />
+                    <h1 className="text-xl font-bold text-white">Ranking</h1>
+                    <span className="text-sm text-muted-foreground ml-auto">
+                        {filteredPlayers.length} jogadores
+                    </span>
+                </div>
 
-                        {/* Right: Rest of players - same height as left */}
-                        <div className="flex flex-col h-full">
-                            <div className="flex items-center justify-end mb-2 flex-shrink-0">
-                                <span className="text-[10px] text-muted-foreground">{restPlayers.length} jogadores</span>
-                            </div>
-                            <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 min-h-0">
-                                {(searchQuery ? filteredPlayers.rest : restPlayers).map((player) => (
-                                    <PlayerRow
-                                        key={player.steamId}
-                                        player={player}
-                                        position={players.indexOf(player) + 1}
-                                    />
-                                ))}
-                                {restPlayers.length === 0 && (
-                                    <div className="text-center py-6 text-muted-foreground text-xs">
-                                        Sem mais jogadores
-                                    </div>
-                                )}
-                            </div>
+                {/* Single unified list */}
+                <div className="space-y-2">
+                    {filteredPlayers.map((player, index) => (
+                        <PlayerRow
+                            key={player.steamId}
+                            player={player}
+                            position={index + 1}
+                            isTopThree={index < 3}
+                        />
+                    ))}
+                    {filteredPlayers.length === 0 && (
+                        <div className="text-center py-12 text-muted-foreground">
+                            Nenhum jogador encontrado
                         </div>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
-        </div>
+        </>
     );
 }
 
-function PlayerRow({ player, position }: { player: any; position: number }) {
+function PlayerRow({ player, position, isTopThree }: { player: any; position: number; isTopThree: boolean }) {
     const tier = getTier(player.tmmr);
     const category = getTierCategory(tier);
     const winRate = ((player.wins / (player.wins + player.losses)) * 100).toFixed(1);
 
-    const bgClass = position === 1 ? 'bg-gradient-to-r from-amber-500/15 to-transparent border-amber-500/30' :
-        position === 2 ? 'bg-gradient-to-r from-gray-400/10 to-transparent border-gray-400/20' :
-            position === 3 ? 'bg-gradient-to-r from-amber-700/10 to-transparent border-amber-700/20' :
+    const bgClass = position === 1 ? 'bg-gradient-to-r from-amber-500/20 to-transparent border-amber-500/40' :
+        position === 2 ? 'bg-gradient-to-r from-gray-400/15 to-transparent border-gray-400/30' :
+            position === 3 ? 'bg-gradient-to-r from-amber-700/15 to-transparent border-amber-700/30' :
                 'bg-card/40 border-white/5';
 
     return (
         <Link href={`/profile/${player.steamId}`}>
             <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: Math.min(position * 0.015, 0.15) }}
-                className={`flex items-center gap-2 p-2 rounded-lg border ${bgClass} hover:bg-white/5 transition-colors cursor-pointer`}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: Math.min(position * 0.02, 0.3) }}
+                className={`flex items-center gap-3 p-3 rounded-xl border ${bgClass} hover:bg-white/5 hover:border-primary/30 transition-all cursor-pointer group ${isTopThree ? 'shadow-lg' : ''}`}
             >
-                <div className={`w-6 h-6 rounded-md flex items-center justify-center font-bold text-[10px] ${position === 1 ? 'bg-amber-500/20 text-amber-400' :
-                        position === 2 ? 'bg-gray-400/20 text-gray-300' :
-                            position === 3 ? 'bg-amber-700/20 text-amber-600' :
+                {/* Position Badge */}
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0 ${position === 1 ? 'bg-gradient-to-br from-amber-500 to-amber-600 text-white shadow-lg shadow-amber-500/50' :
+                        position === 2 ? 'bg-gradient-to-br from-gray-400 to-gray-500 text-white shadow-lg shadow-gray-400/50' :
+                            position === 3 ? 'bg-gradient-to-br from-amber-700 to-amber-800 text-white shadow-lg shadow-amber-700/50' :
                                 'bg-white/5 text-muted-foreground'
                     }`}>
                     {position}
                 </div>
 
-                <img
-                    src={player.avatar}
-                    alt={player.name}
-                    className="w-8 h-8 rounded-md object-cover"
-                />
+                {/* Avatar */}
+                <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 ring-2 ring-white/10">
+                    <img
+                        src={player.avatar}
+                        alt={player.name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    />
+                </div>
 
+                {/* Player Info */}
                 <div className="flex-1 min-w-0">
-                    <div className="font-medium text-white text-xs truncate">{player.name}</div>
-                    <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                        <span>{winRate}% WR</span>
+                    <div className="font-semibold text-white text-base truncate group-hover:text-primary transition-colors">
+                        {player.name}
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                        <span className={Number(winRate) >= 50 ? 'text-green-400 font-medium' : 'text-red-400 font-medium'}>
+                            {winRate}% WR
+                        </span>
                         <span className="text-white/20">•</span>
                         <span>{player.wins + player.losses} jogos</span>
                     </div>
                 </div>
 
-                <div className="text-right flex items-center gap-1.5">
-                    <span className="font-bold text-white text-xs">{player.tmmr}</span>
-                    <Badge variant={category as any} className="text-[9px] px-1">
-                        {TIER_NAMES[tier]}
-                    </Badge>
+                {/* TMMR + Badge */}
+                <div className="text-right flex items-center gap-3 flex-shrink-0">
+                    <div className="text-right">
+                        <div className="font-bold text-white text-lg">{player.tmmr}</div>
+                        <Badge variant={category as any} className="text-[10px] px-2 h-5 mt-1">
+                            {TIER_NAMES[tier]}
+                        </Badge>
+                    </div>
                 </div>
             </motion.div>
         </Link>
