@@ -45,13 +45,14 @@ const INFO_CONTENT: Record<string, { title: string; icon: any; description: stri
     consistency: {
         title: 'Ranking de Consistência',
         icon: Activity,
-        description: 'Medida de estabilidade da performance através da variância.',
+        description: 'Mede estabilidade da performance, não o nível. Quanto menos você varia, melhor.',
         details: [
             'Calcula KDA de cada partida individualmente.',
-            'Mede variância estatística dos valores de KDA.',
-            'Menor variância = mais consistente.',
-            'Mínimo: 30 partidas para aparecer no ranking.',
-            'Ordenação: Crescente pela variância (menor primeiro).'
+            'Mede variância estatística: o quanto seus KDAs flutuam entre partidas.',
+            'Menor variância = mais consistente = melhor ranqueado.',
+            'Exemplo: KDA sempre entre 4-6 (consistente) vs KDA entre 1-15 (inconsistente).',
+            'Mínimo: 30 partidas para aparecer.',
+            'Ordenação: Crescente pela variância (menor = mais estável).'
         ]
     },
     pro: {
