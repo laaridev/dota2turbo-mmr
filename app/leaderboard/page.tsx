@@ -3,27 +3,14 @@
 import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { getTier, getTierCategory, TIER_NAMES } from '@/lib/tmmr';
-import { Trophy, Crown, Medal, TrendingUp, TrendingDown, Clock, Flame, Gamepad2 } from 'lucide-react';
+import { Trophy, Crown, Medal, TrendingDown, Flame, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
 
-function getWeekInfo() {
-    const now = new Date();
-    const startOfYear = new Date(now.getFullYear(), 0, 1);
-    const days = Math.floor((now.getTime() - startOfYear.getTime()) / (24 * 60 * 60 * 1000));
-    const weekNumber = Math.ceil((days + startOfYear.getDay() + 1) / 7);
-    const daysUntilSunday = (7 - now.getDay()) % 7 || 7;
-    const nextSunday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilSunday);
-    const hoursLeft = Math.floor((nextSunday.getTime() - now.getTime()) / (1000 * 60 * 60));
-    const daysLeft = Math.floor(hoursLeft / 24);
-    return { weekNumber, daysLeft, hoursLeft: hoursLeft % 24 };
-}
-
 export default function LeaderboardPage() {
     const [players, setPlayers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const weekInfo = getWeekInfo();
 
     useEffect(() => {
         fetch('/api/leaderboard')
@@ -39,15 +26,16 @@ export default function LeaderboardPage() {
     const restPlayers = players.slice(3);
 
     return (
-        <div className="min-h-screen">
-            <div className="container mx-auto px-4 py-6 max-w-3xl">
+        <div className="min-h-screen relative">
+            {/* Background glow */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
 
-
+            <div className="container mx-auto px-4 py-8 max-w-3xl relative z-10">
 
                 {loading ? (
                     <div className="space-y-4">
-                        <div className="grid grid-cols-3 gap-3">
-                            {[1, 2, 3].map(i => <Skeleton key={i} className="h-44 rounded-xl" />)}
+                        <div className="grid grid-cols-3 gap-4">
+                            {[1, 2, 3].map(i => <Skeleton key={i} className="h-52 rounded-2xl" />)}
                         </div>
                         <div className="space-y-2">
                             {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-14 rounded-lg" />)}
@@ -55,9 +43,9 @@ export default function LeaderboardPage() {
                     </div>
                 ) : (
                     <>
-                        {/* Top 3 Grid - same baseline */}
+                        {/* Top 3 Podium */}
                         {topThree.length >= 3 && (
-                            <div className="grid grid-cols-3 gap-3 mb-6 items-end">
+                            <div className="grid grid-cols-3 gap-4 mb-8 items-end">
                                 <TopCard player={topThree[1]} position={2} />
                                 <TopCard player={topThree[0]} position={1} />
                                 <TopCard player={topThree[2]} position={3} />
@@ -65,15 +53,15 @@ export default function LeaderboardPage() {
                         )}
 
                         {/* Table */}
-                        <div className="bg-card/50 border border-border rounded-xl overflow-hidden">
-                            <div className="grid grid-cols-12 gap-2 px-4 py-2.5 border-b border-border text-xs text-muted-foreground uppercase tracking-wide">
+                        <div className="bg-gradient-to-b from-card/80 to-card/50 backdrop-blur-sm border border-white/[0.08] rounded-2xl overflow-hidden shadow-xl">
+                            <div className="grid grid-cols-12 gap-2 px-5 py-3 border-b border-white/[0.06] text-xs text-muted-foreground uppercase tracking-wider font-medium">
                                 <div className="col-span-1">#</div>
                                 <div className="col-span-5">Jogador</div>
                                 <div className="col-span-2 text-center hidden sm:block">Jogos</div>
                                 <div className="col-span-2 text-center">Streak</div>
                                 <div className="col-span-2 text-right">TMMR</div>
                             </div>
-                            <div className="max-h-[360px] overflow-y-auto divide-y divide-border">
+                            <div className="max-h-[400px] overflow-y-auto divide-y divide-white/[0.04]">
                                 {restPlayers.map((player, i) => (
                                     <TableRow key={player.steamId} player={player} position={i + 4} />
                                 ))}
@@ -87,130 +75,184 @@ export default function LeaderboardPage() {
 }
 
 /* ─────────────────────────────────────────────────────────── */
-/* TopCard - consistent structure for all 3 positions         */
+/* Premium TopCard Component                                    */
 /* ─────────────────────────────────────────────────────────── */
 function TopCard({ player, position }: { player: any; position: number }) {
     const tier = getTier(player.tmmr);
     const tierCategory = getTierCategory(tier);
     const isFirst = position === 1;
+    const isSecond = position === 2;
 
-    // Subtle differences only
     const config = {
-        1: { minH: 'min-h-[180px]', avatar: 'w-16 h-16', border: 'border-primary/40', glow: 'shadow-primary/20 shadow-lg' },
-        2: { minH: 'min-h-[160px]', avatar: 'w-14 h-14', border: 'border-border', glow: '' },
-        3: { minH: 'min-h-[160px]', avatar: 'w-14 h-14', border: 'border-border', glow: '' },
+        1: {
+            height: 'h-56',
+            avatar: 'w-20 h-20',
+            gradient: 'from-amber-500/20 via-orange-500/10 to-transparent',
+            border: 'border-amber-500/40',
+            glow: 'shadow-[0_0_40px_rgba(251,146,60,0.3)]',
+            ring: 'ring-4 ring-amber-500/50 ring-offset-2 ring-offset-background',
+        },
+        2: {
+            height: 'h-48',
+            avatar: 'w-16 h-16',
+            gradient: 'from-zinc-400/10 via-zinc-500/5 to-transparent',
+            border: 'border-zinc-500/30',
+            glow: '',
+            ring: 'ring-2 ring-zinc-400/40',
+        },
+        3: {
+            height: 'h-48',
+            avatar: 'w-16 h-16',
+            gradient: 'from-orange-700/15 via-orange-600/5 to-transparent',
+            border: 'border-orange-700/30',
+            glow: '',
+            ring: 'ring-2 ring-orange-700/40',
+        },
     }[position]!;
 
-    const medalColor = position === 1 ? 'text-yellow-500' : position === 2 ? 'text-zinc-400' : 'text-orange-600';
+    const medalColor = position === 1 ? 'text-amber-400' : position === 2 ? 'text-zinc-300' : 'text-orange-600';
+    const winrate = ((player.wins / (player.wins + player.losses || 1)) * 100).toFixed(0);
 
     return (
         <Link href={`/profile/${player.steamId}`}>
             <motion.div
-                className={`relative ${config.minH} rounded-xl bg-card border ${config.border} ${config.glow} p-4 flex flex-col items-center justify-between hover:bg-secondary/50 transition-colors cursor-pointer`}
-                whileHover={{ y: -4 }}
+                className={`relative ${config.height} rounded-2xl overflow-hidden border ${config.border} ${config.glow} cursor-pointer group`}
+                whileHover={{ y: -8, scale: 1.02 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 25 }}
             >
-                {/* Position # top-left */}
-                <div className="absolute top-3 left-3 text-lg font-bold text-muted-foreground">
-                    #{position}
-                </div>
+                {/* Background gradient */}
+                <div className={`absolute inset-0 bg-gradient-to-b ${config.gradient}`} />
+                <div className="absolute inset-0 bg-card/80 backdrop-blur-sm" />
 
-                {/* Avatar container (relative anchor for crown) */}
-                <div className="relative mt-2">
-                    {/* Crown/Medal above avatar */}
-                    <div className="absolute -top-5 left-1/2 -translate-x-1/2">
+                {/* Animated shine for #1 */}
+                {isFirst && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                )}
+
+                {/* Content */}
+                <div className="relative h-full flex flex-col items-center justify-center p-4 gap-3">
+                    {/* Position badge */}
+                    <div className="absolute top-3 left-3">
+                        <span className={`text-lg font-black ${position === 1 ? 'text-amber-400' : 'text-muted-foreground'}`}>
+                            #{position}
+                        </span>
+                    </div>
+
+                    {/* Medal/Crown */}
+                    <div className={`${medalColor}`}>
                         {isFirst ? (
-                            <Crown className={`h-5 w-5 ${medalColor}`} />
+                            <motion.div
+                                animate={{ rotateZ: [-5, 5, -5] }}
+                                transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                            >
+                                <Crown className="h-7 w-7 drop-shadow-lg" />
+                            </motion.div>
                         ) : (
-                            <Medal className={`h-4 w-4 ${medalColor}`} />
+                            <Medal className="h-5 w-5" />
                         )}
                     </div>
 
-                    {/* Avatar */}
-                    <div className={`${config.avatar} rounded-full overflow-hidden border-2 ${isFirst ? 'border-primary' : 'border-border'}`}>
-                        <img src={player.avatar} alt={player.name} className="w-full h-full object-cover" />
+                    {/* Avatar with ring */}
+                    <div className={`${config.avatar} rounded-full overflow-hidden ${config.ring}`}>
+                        <img
+                            src={player.avatar}
+                            alt={player.name}
+                            className="w-full h-full object-cover"
+                        />
                     </div>
-                </div>
 
-                {/* Info - consistent gaps */}
-                <div className="flex flex-col items-center gap-1 mt-3 text-center w-full">
-                    <span className="font-semibold text-sm truncate max-w-full">{player.name}</span>
-                    <div className="flex items-center gap-1 text-primary font-bold">
-                        <Trophy className="h-4 w-4" />
-                        <span>{player.tmmr}</span>
+                    {/* Player info */}
+                    <div className="flex flex-col items-center gap-1.5 text-center">
+                        <span className={`font-bold truncate max-w-full ${isFirst ? 'text-lg' : 'text-sm'}`}>
+                            {player.name}
+                        </span>
+
+                        <div className="flex items-center gap-1.5">
+                            <Trophy className={`h-4 w-4 ${isFirst ? 'text-amber-400' : 'text-primary'}`} />
+                            <span className={`font-black ${isFirst ? 'text-xl text-amber-400' : 'text-lg text-primary'}`}>
+                                {player.tmmr}
+                            </span>
+                        </div>
+
+                        <Badge variant={tierCategory as any} className="text-[10px] shadow-sm">
+                            {TIER_NAMES[tier]}
+                        </Badge>
                     </div>
-                    <Badge variant={tierCategory as any} className="text-[10px]">
-                        {TIER_NAMES[tier]}
-                    </Badge>
-                </div>
 
-                {/* Stats row */}
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
-                    <span>{player.wins + player.losses} jogos</span>
-                    {player.streak !== 0 && (
-                        <>
-                            <span className="text-border">•</span>
-                            {player.streak > 0 ? (
-                                <span className="flex items-center gap-0.5 text-orange-500">
+                    {/* Stats */}
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        <span>{player.wins + player.losses} jogos</span>
+                        <span className="text-white/20">•</span>
+                        <span>{winrate}% WR</span>
+                        {player.streak > 0 && (
+                            <>
+                                <span className="text-white/20">•</span>
+                                <span className="flex items-center gap-0.5 text-orange-400">
                                     <Flame className="h-3 w-3" />{player.streak}
                                 </span>
-                            ) : (
-                                <span className="flex items-center gap-0.5 text-red-500">
-                                    <TrendingDown className="h-3 w-3" />{Math.abs(player.streak)}
-                                </span>
-                            )}
-                        </>
-                    )}
+                            </>
+                        )}
+                    </div>
                 </div>
+
+                {/* Sparkle effect for #1 */}
+                {isFirst && (
+                    <motion.div
+                        className="absolute top-4 right-4 text-amber-400/60"
+                        animate={{ opacity: [0.4, 1, 0.4], scale: [0.9, 1.1, 0.9] }}
+                        transition={{ repeat: Infinity, duration: 2 }}
+                    >
+                        <Sparkles className="h-4 w-4" />
+                    </motion.div>
+                )}
             </motion.div>
         </Link>
     );
 }
 
 /* ─────────────────────────────────────────────────────────── */
-/* TableRow - clean and consistent                            */
+/* TableRow Component                                           */
 /* ─────────────────────────────────────────────────────────── */
 function TableRow({ player, position }: { player: any; position: number }) {
     const tier = getTier(player.tmmr);
     const tierCategory = getTierCategory(tier);
 
     return (
-        <Link
-            href={`/profile/${player.steamId}`}
-            className="grid grid-cols-12 gap-2 px-4 py-2.5 items-center hover:bg-secondary/30 transition-colors"
-        >
-            <div className="col-span-1 font-medium text-muted-foreground text-sm">#{position}</div>
-
-            <div className="col-span-5 flex items-center gap-2 min-w-0">
-                <img src={player.avatar} alt="" className="w-8 h-8 rounded-full border border-border flex-shrink-0" />
-                <div className="min-w-0">
-                    <div className="text-sm font-medium truncate">{player.name}</div>
-                    <Badge variant={tierCategory as any} className="text-[9px]">{TIER_NAMES[tier]}</Badge>
+        <Link href={`/profile/${player.steamId}`}>
+            <motion.div
+                className="grid grid-cols-12 gap-2 px-5 py-3 items-center hover:bg-white/[0.03] transition-colors cursor-pointer group"
+                whileHover={{ x: 4 }}
+            >
+                <div className="col-span-1 text-muted-foreground font-medium">{position}</div>
+                <div className="col-span-5 flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full overflow-hidden ring-1 ring-white/10 group-hover:ring-primary/50 transition-all">
+                        <img src={player.avatar} alt={player.name} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                        <span className="font-medium text-sm truncate group-hover:text-primary transition-colors">{player.name}</span>
+                        <Badge variant={tierCategory as any} className="text-[9px] w-fit">{TIER_NAMES[tier]}</Badge>
+                    </div>
                 </div>
-            </div>
-
-            <div className="col-span-2 text-center text-sm text-muted-foreground hidden sm:flex items-center justify-center gap-1">
-                <Gamepad2 className="h-3 w-3" />
-                {player.wins + player.losses}
-            </div>
-
-            <div className="col-span-2 flex justify-center">
-                {player.streak > 0 ? (
-                    <span className="flex items-center gap-1 text-sm text-orange-500 font-medium">
-                        <Flame className="h-3 w-3" />+{player.streak}
-                    </span>
-                ) : player.streak < 0 ? (
-                    <span className="flex items-center gap-1 text-sm text-red-500 font-medium">
-                        <TrendingDown className="h-3 w-3" />{player.streak}
-                    </span>
-                ) : (
-                    <span className="text-muted-foreground text-sm">—</span>
-                )}
-            </div>
-
-            <div className="col-span-2 flex items-center justify-end gap-1 font-bold text-primary text-sm">
-                <Trophy className="h-3 w-3" />{player.tmmr}
-            </div>
+                <div className="col-span-2 text-center text-sm text-muted-foreground hidden sm:block">
+                    {player.wins + player.losses}
+                </div>
+                <div className="col-span-2 text-center">
+                    {player.streak !== 0 && (
+                        player.streak > 0 ? (
+                            <span className="flex items-center justify-center gap-0.5 text-orange-400 text-sm font-medium">
+                                <Flame className="h-3.5 w-3.5" />{player.streak}
+                            </span>
+                        ) : (
+                            <span className="flex items-center justify-center gap-0.5 text-rose-400 text-sm">
+                                <TrendingDown className="h-3.5 w-3.5" />{Math.abs(player.streak)}
+                            </span>
+                        )
+                    )}
+                </div>
+                <div className="col-span-2 text-right">
+                    <span className="font-bold text-primary">{player.tmmr}</span>
+                </div>
+            </motion.div>
         </Link>
     );
 }
