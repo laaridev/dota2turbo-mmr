@@ -86,7 +86,7 @@ function TopCard({ player, position }: { player: any; position: number }) {
 
     const config = {
         1: {
-            height: 'h-60',
+            height: 'h-72',  // Increased for name
             avatar: 'w-24 h-24',
             gradient: 'from-amber-500/20 via-orange-500/10 to-transparent',
             border: 'border-amber-500/40',
@@ -94,7 +94,7 @@ function TopCard({ player, position }: { player: any; position: number }) {
             avatarBorder: 'border-4 border-amber-500/60',
         },
         2: {
-            height: 'h-52',
+            height: 'h-64',  // Increased for name
             avatar: 'w-20 h-20',
             gradient: 'from-zinc-400/10 via-zinc-500/5 to-transparent',
             border: 'border-zinc-500/30',
@@ -102,7 +102,7 @@ function TopCard({ player, position }: { player: any; position: number }) {
             avatarBorder: 'border-2 border-zinc-400/50',
         },
         3: {
-            height: 'h-52',
+            height: 'h-64',  // Increased for name
             avatar: 'w-20 h-20',
             gradient: 'from-orange-700/15 via-orange-600/5 to-transparent',
             border: 'border-orange-700/30',
