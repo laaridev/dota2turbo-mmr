@@ -99,10 +99,10 @@ function LeaderboardContent() {
                                     key={mode.id}
                                     onClick={() => handleModeChange(mode.id)}
                                     className={`relative flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all ${isActive
-                                            ? mode.premium
-                                                ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 border-2 border-amber-500/50 text-amber-400'
-                                                : 'bg-primary/20 border-2 border-primary text-primary'
-                                            : 'bg-card/40 border border-white/10 text-muted-foreground hover:bg-white/5'
+                                        ? mode.premium
+                                            ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 border-2 border-amber-500/50 text-amber-400'
+                                            : 'bg-primary/20 border-2 border-primary text-primary'
+                                        : 'bg-card/40 border border-white/10 text-muted-foreground hover:bg-white/5'
                                         }`}
                                 >
                                     {mode.premium && isActive && (
@@ -161,7 +161,7 @@ function PlayerRow({ player, position, isTopThree, rankingMode }: {
 }) {
     const tier = getTier(player.tmmr);
     const category = getTierCategory(tier);
-    const totalGames = player.wins + player.losses;
+    const totalGames = (player.wins || 0) + (player.losses || 0);
 
     // Get the metric value based on ranking mode
     let metricValue = '';
@@ -169,23 +169,24 @@ function PlayerRow({ player, position, isTopThree, rankingMode }: {
 
     switch (rankingMode) {
         case 'winrate':
-            metricValue = `${player.winrate?.toFixed(1)}%`;
+            const wr = player.winrate ?? ((player.wins || 0) / Math.max(1, totalGames) * 100);
+            metricValue = `${wr.toFixed(1)}%`;
             metricLabel = 'WR';
             break;
         case 'performance':
-            metricValue = player.avgKDA?.toFixed(2) || '0';
+            metricValue = (player.avgKDA ?? 0).toFixed(2);
             metricLabel = 'KDA';
             break;
         case 'consistency':
-            metricValue = player.kdaVariance?.toFixed(2) || '0';
+            metricValue = (player.kdaVariance ?? 0).toFixed(2);
             metricLabel = 'Variância';
             break;
         case 'pro':
-            metricValue = `${player.proWinrate?.toFixed(1)}%`;
-            metricLabel = `${player.proGames} jogos PRO`;
+            metricValue = `${(player.proWinrate ?? 0).toFixed(1)}%`;
+            metricLabel = `${player.proGames || 0} jogos PRO`;
             break;
         default:
-            metricValue = player.tmmr?.toString() || '0';
+            metricValue = (player.tmmr || 0).toString();
             metricLabel = TIER_NAMES[tier];
             break;
     }
@@ -205,9 +206,9 @@ function PlayerRow({ player, position, isTopThree, rankingMode }: {
             >
                 {/* Position Badge */}
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0 ${position === 1 ? 'bg-gradient-to-br from-amber-500 to-amber-600 text-white shadow-lg shadow-amber-500/50' :
-                        position === 2 ? 'bg-gradient-to-br from-gray-400 to-gray-500 text-white shadow-lg shadow-gray-400/50' :
-                            position === 3 ? 'bg-gradient-to-br from-amber-700 to-amber-800 text-white shadow-lg shadow-amber-700/50' :
-                                'bg-white/5 text-muted-foreground'
+                    position === 2 ? 'bg-gradient-to-br from-gray-400 to-gray-500 text-white shadow-lg shadow-gray-400/50' :
+                        position === 3 ? 'bg-gradient-to-br from-amber-700 to-amber-800 text-white shadow-lg shadow-amber-700/50' :
+                            'bg-white/5 text-muted-foreground'
                     }`}>
                     {position}
                 </div>
