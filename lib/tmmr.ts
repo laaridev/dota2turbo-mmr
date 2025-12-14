@@ -28,10 +28,10 @@ export interface TmmrCalculationResult {
 
 // Constants
 const BASE_TMMR = 2000;
-const K_BASE_MIN = 10;
-const K_BASE_MAX = 30;
-const K_CALIBRATION_MAX = 40;
-const CALIBRATION_MATCHES = 50;
+const K_BASE_MIN = 5;            // Very stable post-calibration
+const K_BASE_MAX = 15;           // Post-calibration max (much lower)
+const K_CALIBRATION_MAX = 60;    // Calibration max - VERY volatile like Dota!
+const CALIBRATION_MATCHES = 100; // Extended calibration like Dota
 const CONFIDENCE_MAX_MATCHES = 300;
 const CONFIDENCE_MIN = 0.2;
 
@@ -53,18 +53,23 @@ function calculateConfidence(matchCount: number): number {
 
 /**
  * Calculates K factor for a given match
- * K = Kmax - (confidence × (Kmax - K_BASE_MIN))
- * During calibration (< 50 matches): Kmax = 40
- * After calibration: Kmax = 30
+ * During calibration: K starts very high and decays
+ * After calibration: stable lower K
  */
 function calculateKFactor(matchCount: number, confidence: number): number {
     const isCalibrating = matchCount < CALIBRATION_MATCHES;
-    const Kmax = isCalibrating ? K_CALIBRATION_MAX : K_BASE_MAX;
 
-    // K = Kmax - (confidence × (Kmax - K_BASE_MIN))
-    const K = Kmax - (confidence * (Kmax - K_BASE_MIN));
-
-    return K;
+    if (isCalibrating) {
+        // During calibration: K starts at 60 and decays to 30 over 100 matches
+        // This means early matches have HUGE impact
+        const calibrationProgress = matchCount / CALIBRATION_MATCHES;
+        const K = K_CALIBRATION_MAX - (calibrationProgress * (K_CALIBRATION_MAX - K_BASE_MAX));
+        return K;
+    } else {
+        // After calibration: K decays from 25 to 10 based on confidence
+        const K = K_BASE_MAX - (confidence * (K_BASE_MAX - K_BASE_MIN));
+        return K;
+    }
 }
 
 /**
@@ -119,10 +124,19 @@ export function calculateTMMR(matches: OpenDotaMatch[]): TmmrCalculationResult {
         const difficultyWeight = calculateDifficultyWeight(match.average_rank);
 
         // Calculate delta: (±K) × tierWeight
-        // K already decreases with more matches (via confidence)
-        // No need to multiply by confidence again
         let delta = playerWon ? K : -K;
         delta *= difficultyWeight;
+
+        // Calibration performance bonus: during calibration, use current WR as multiplier
+        // This heavily rewards players who maintain high WR during calibration
+        const isCalibrating = matchNumber < CALIBRATION_MATCHES;
+        if (isCalibrating && matchNumber >= 10) { // Need at least 10 games for WR
+            const currentWR = wins / matchNumber;
+            // Exponential reward for high WR
+            // At 57%: 1.3x, at 67%: 1.8x, at 75%: 2.5x
+            const wrMultiplier = Math.pow(currentWR * 2, 1.5);
+            delta *= clamp(wrMultiplier, 0.3, 2.5);
+        }
 
         // Round to integer
         const tmmrChange = Math.round(delta);
@@ -156,6 +170,22 @@ export function calculateTMMR(matches: OpenDotaMatch[]): TmmrCalculationResult {
     }
 
     const totalMatches = wins + losses;
+
+    // Final scoring: combine simulation MMR with WR-based ranking
+    // This ensures 57% WR ALWAYS beats 54% WR regardless of match count
+    if (totalMatches >= 50) {
+        const globalWR = wins / totalMatches;
+
+        // WR-based expected MMR: 
+        // 50% WR = 2000 base
+        // 57% WR = 2000 + 7% * 10000 = 2700
+        // 67% WR = 2000 + 17% * 10000 = 3700
+        const wrBasedMMR = BASE_TMMR + ((globalWR - 0.50) * 10000);
+
+        // Blend: 70% WR-based, 30% simulation-based
+        // This ensures WR is the PRIMARY driver of ranking
+        currentTmmr = (wrBasedMMR * 0.7) + (currentTmmr * 0.3);
+    }
 
     return {
         currentTmmr: Math.round(currentTmmr),
