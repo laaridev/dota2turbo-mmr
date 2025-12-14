@@ -41,7 +41,6 @@ export default function RootLayout({
               <nav className="flex items-center gap-6 text-sm">
                 <Link href="/" className="text-muted-foreground transition-colors hover:text-white">Início</Link>
                 <Link href="/leaderboard" className="text-muted-foreground transition-colors hover:text-white">Ranking</Link>
-                <Link href="/hall-of-fame" className="text-muted-foreground transition-colors hover:text-white">Hall da Fama</Link>
               </nav>
             </div>
           </header>
