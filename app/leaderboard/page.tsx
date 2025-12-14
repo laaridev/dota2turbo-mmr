@@ -76,19 +76,21 @@ export default function LeaderboardPage() {
                         )}
 
                         {/* Search Input */}
-                        <div className="relative mb-4">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <div className="relative mb-6">
+                            <svg className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                            </svg>
                             <input
                                 type="text"
                                 placeholder="Buscar jogador..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-11 pr-4 py-3 bg-card/50 backdrop-blur-sm border border-white/10 rounded-xl text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
+                                className="w-full pl-11 pr-4 py-3 bg-card border border-white/10 rounded-xl text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
                             />
                         </div>
 
                         {/* Player List */}
-                        <div className="space-y-2">
+                        <div className="flex flex-col gap-3">
                             {filteredPlayers.map((player, i) => (
                                 <PlayerListItem key={player.steamId} player={player} position={restPlayers.indexOf(player) + 4} />
                             ))}
