@@ -56,9 +56,10 @@ export default function LeaderboardPage() {
                         <div className="bg-gradient-to-b from-card/80 to-card/50 backdrop-blur-sm border border-white/[0.08] rounded-2xl overflow-hidden shadow-xl">
                             <div className="grid grid-cols-12 gap-2 px-5 py-3 border-b border-white/[0.06] text-xs text-muted-foreground uppercase tracking-wider font-medium">
                                 <div className="col-span-1">#</div>
-                                <div className="col-span-5">Jogador</div>
+                                <div className="col-span-4">Player</div>
+                                <div className="col-span-2 text-center">Rank</div>
                                 <div className="col-span-2 text-center hidden sm:block">Jogos</div>
-                                <div className="col-span-2 text-center">Streak</div>
+                                <div className="col-span-1 text-center">Streak</div>
                                 <div className="col-span-2 text-right">TMMR</div>
                             </div>
                             <div className="max-h-[400px] overflow-y-auto divide-y divide-white/[0.04]">
@@ -166,15 +167,12 @@ function TopCard({ player, position }: { player: any; position: number }) {
                         {player.name}
                     </span>
 
-                    {/* TMMR + Tier name inline */}
-                    <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1">
-                            <Trophy className={`h-4 w-4 ${isFirst ? 'text-amber-400' : 'text-primary'}`} />
-                            <span className={`font-black ${isFirst ? 'text-lg text-amber-400' : 'text-primary'}`}>
-                                {player.tmmr}
-                            </span>
-                        </div>
-                        <span className="text-xs text-muted-foreground">• {TIER_NAMES[tier]}</span>
+                    {/* TMMR only */}
+                    <div className="flex items-center gap-1">
+                        <Trophy className={`h-4 w-4 ${isFirst ? 'text-amber-400' : 'text-primary'}`} />
+                        <span className={`font-black ${isFirst ? 'text-lg text-amber-400' : 'text-primary'}`}>
+                            {player.tmmr}
+                        </span>
                     </div>
 
                     {/* Stats */}
@@ -222,19 +220,19 @@ function TableRow({ player, position }: { player: any; position: number }) {
                 whileHover={{ x: 4 }}
             >
                 <div className="col-span-1 text-muted-foreground font-medium">{position}</div>
-                <div className="col-span-5 flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full overflow-hidden ring-1 ring-white/10 group-hover:ring-primary/50 transition-all">
+                <div className="col-span-4 flex items-center gap-3 min-w-0">
+                    <div className="w-8 h-8 rounded-full overflow-hidden ring-1 ring-white/10 group-hover:ring-primary/50 transition-all flex-shrink-0">
                         <img src={player.avatar} alt={player.name} className="w-full h-full object-cover" />
                     </div>
-                    <div className="flex flex-col min-w-0">
-                        <span className="font-medium text-sm truncate group-hover:text-primary transition-colors">{player.name}</span>
-                        <Badge variant={tierCategory as any} className="text-[9px] w-fit">{TIER_NAMES[tier]}</Badge>
-                    </div>
+                    <span className="font-medium text-sm truncate group-hover:text-primary transition-colors">{player.name}</span>
+                </div>
+                <div className="col-span-2 flex justify-center">
+                    <Badge variant={tierCategory as any} className="text-[9px]">{TIER_NAMES[tier]}</Badge>
                 </div>
                 <div className="col-span-2 text-center text-sm text-muted-foreground hidden sm:block">
                     {player.wins + player.losses}
                 </div>
-                <div className="col-span-2 text-center">
+                <div className="col-span-1 text-center">
                     {player.streak !== 0 && (
                         player.streak > 0 ? (
                             <span className="flex items-center justify-center gap-0.5 text-orange-400 text-sm font-medium">
