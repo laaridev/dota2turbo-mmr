@@ -71,21 +71,21 @@ export function HowItWorksModal({ isOpen, onClose }: HowItWorksModalProps) {
                         <div className="flex-1">
                             <h3 className="font-semibold text-sm mb-2">4. Escala de Ranks</h3>
                             <div className="flex gap-1 text-[10px]">
-                                <div className="flex-1 p-1.5 bg-zinc-700/50 rounded text-center">
-                                    <div className="text-muted-foreground">50%</div>
-                                    <div className="text-white font-semibold">Archon</div>
-                                </div>
                                 <div className="flex-1 p-1.5 bg-emerald-900/40 rounded text-center">
-                                    <div className="text-muted-foreground">55%</div>
+                                    <div className="text-muted-foreground">~50%</div>
                                     <div className="text-emerald-400 font-semibold">Legend</div>
                                 </div>
                                 <div className="flex-1 p-1.5 bg-indigo-900/40 rounded text-center">
-                                    <div className="text-muted-foreground">60%</div>
+                                    <div className="text-muted-foreground">~57%</div>
                                     <div className="text-indigo-400 font-semibold">Ancient</div>
                                 </div>
+                                <div className="flex-1 p-1.5 bg-pink-900/40 rounded text-center">
+                                    <div className="text-muted-foreground">~65%</div>
+                                    <div className="text-pink-400 font-semibold">Divine</div>
+                                </div>
                                 <div className="flex-1 p-1.5 bg-primary/20 rounded text-center border border-primary/30">
-                                    <div className="text-muted-foreground">65%+</div>
-                                    <div className="text-primary font-semibold">Divine+</div>
+                                    <div className="text-muted-foreground">70%+</div>
+                                    <div className="text-primary font-semibold">Immortal</div>
                                 </div>
                             </div>
                         </div>
