@@ -77,7 +77,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen p-4 relative overflow-hidden -mt-16">
+    <div className="fixed inset-0 flex flex-col items-center justify-center p-4 overflow-hidden">
 
       {/* Gradient Orbs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
