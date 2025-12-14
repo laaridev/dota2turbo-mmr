@@ -86,7 +86,7 @@ export function BetaNoticeModal() {
 
                                 <div className="flex items-start gap-3">
                                     <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                                        <TrendingUp className new="h-3.5 w-3.5 text-blue-400" />
+                                        <TrendingUp className="h-3.5 w-3.5 text-blue-400" />
                                     </div>
                                     <div>
                                         <p className="text-xs text-muted-foreground">
