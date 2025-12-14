@@ -19,19 +19,23 @@ export default function LeaderboardPage() {
 
 function LeaderboardSkeleton() {
     return (
-        <div className="h-full p-4 overflow-hidden">
+        <div className="absolute inset-0 p-4 overflow-hidden">
             <div className="container mx-auto max-w-5xl h-full">
                 <div className="h-full grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <div className="h-full flex flex-col overflow-hidden">
                         <div className="h-6 mb-2 flex-shrink-0" />
-                        <div className="flex-1 min-h-0 overflow-y-auto space-y-1.5 pr-1">
-                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => <Skeleton key={i} className="h-11 rounded-lg flex-shrink-0" />)}
+                        <div className="flex-1 min-h-0 overflow-hidden relative">
+                            <div className="absolute inset-0 overflow-hidden space-y-1.5">
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => <Skeleton key={i} className="h-11 rounded-lg" />)}
+                            </div>
                         </div>
                     </div>
                     <div className="h-full flex flex-col overflow-hidden">
                         <div className="h-6 mb-2 flex-shrink-0" />
-                        <div className="flex-1 min-h-0 overflow-y-auto space-y-1.5 pr-1">
-                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => <Skeleton key={i} className="h-11 rounded-lg flex-shrink-0" />)}
+                        <div className="flex-1 min-h-0 overflow-hidden relative">
+                            <div className="absolute inset-0 overflow-hidden space-y-1.5">
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => <Skeleton key={i} className="h-11 rounded-lg" />)}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -81,64 +85,75 @@ function LeaderboardContent() {
     }
 
     return (
-        <>
-            {/* Background glow */}
-            <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary/10 blur-[120px] rounded-full pointer-events-none z-0" />
+        <div className="absolute inset-0 overflow-hidden">
+            {/* Background - absolute to not interfere */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary/10 blur-[120px] rounded-full pointer-events-none z-0" />
 
-            {/* Main container - h-full inherits from parent (main in layout) */}
-            <div className="h-full p-4 overflow-hidden relative z-10">
+            {/* Content Container - Absolute inset-0 with padding */}
+            <div className="absolute inset-0 p-4 z-10">
                 <div className="container mx-auto max-w-5xl h-full">
-                    {/* Grid - h-full */}
+
+                    {/* Grid takes full height */}
                     <div className="h-full grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-                        {/* Left Column - h-full + flex + overflow-hidden */}
-                        <div className="h-full flex flex-col overflow-hidden">
-                            {/* Header - fixed height, never shrinks */}
+                        {/* LEFT COLUMN */}
+                        <div className="h-full flex flex-col overflow-hidden relative">
+                            {/* Header - Fixed Height */}
                             <div className="h-6 mb-2 flex-shrink-0 flex items-center gap-1.5">
                                 <Trophy className="h-3.5 w-3.5 text-primary" />
                                 <h2 className="font-semibold text-white text-xs">Top 10</h2>
                             </div>
 
-                            {/* List - flex-1 fills remaining, min-h-0 allows shrink, overflow-y-auto scrolls */}
-                            <div className="flex-1 min-h-0 overflow-y-auto space-y-1.5 pr-1">
-                                {(searchQuery ? filteredPlayers.top : topTen).map((player) => (
-                                    <PlayerRow key={player.steamId} player={player} position={players.indexOf(player) + 1} />
-                                ))}
-                                {topTen.length === 0 && (
-                                    <div className="text-center py-6 text-muted-foreground text-xs">
-                                        Nenhum jogador neste período
+                            {/* List Container - Takes remaining space */}
+                            <div className="flex-1 min-h-0 relative">
+                                {/* Scrollable Area - Absolute inset to force fit */}
+                                <div className="absolute inset-0 overflow-y-auto pr-1 scrollbar-thin">
+                                    <div className="space-y-1.5 pb-2">
+                                        {(searchQuery ? filteredPlayers.top : topTen).map((player) => (
+                                            <PlayerRow key={player.steamId} player={player} position={players.indexOf(player) + 1} />
+                                        ))}
+                                        {topTen.length === 0 && (
+                                            <div className="text-center py-6 text-muted-foreground text-xs">
+                                                Nenhum jogador neste período
+                                            </div>
+                                        )}
                                     </div>
-                                )}
+                                </div>
                             </div>
                         </div>
 
-                        {/* Right Column - SAME structure as left */}
-                        <div className="h-full flex flex-col overflow-hidden">
-                            {/* Header - same fixed height as left */}
+                        {/* RIGHT COLUMN */}
+                        <div className="h-full flex flex-col overflow-hidden relative">
+                            {/* Header - Fixed Height */}
                             <div className="h-6 mb-2 flex-shrink-0 flex items-center justify-end">
                                 <span className="text-[10px] text-muted-foreground">{restPlayers.length} jogadores</span>
                             </div>
 
-                            {/* List - same structure as left */}
-                            <div className="flex-1 min-h-0 overflow-y-auto space-y-1.5 pr-1">
-                                {(searchQuery ? filteredPlayers.rest : restPlayers).map((player) => (
-                                    <PlayerRow
-                                        key={player.steamId}
-                                        player={player}
-                                        position={players.indexOf(player) + 1}
-                                    />
-                                ))}
-                                {restPlayers.length === 0 && (
-                                    <div className="text-center py-6 text-muted-foreground text-xs">
-                                        Sem mais jogadores
+                            {/* List Container */}
+                            <div className="flex-1 min-h-0 relative">
+                                {/* Scrollable Area */}
+                                <div className="absolute inset-0 overflow-y-auto pr-1 scrollbar-thin">
+                                    <div className="space-y-1.5 pb-2">
+                                        {(searchQuery ? filteredPlayers.rest : restPlayers).map((player) => (
+                                            <PlayerRow
+                                                key={player.steamId}
+                                                player={player}
+                                                position={players.indexOf(player) + 1}
+                                            />
+                                        ))}
+                                        {restPlayers.length === 0 && (
+                                            <div className="text-center py-6 text-muted-foreground text-xs">
+                                                Sem mais jogadores
+                                            </div>
+                                        )}
                                     </div>
-                                )}
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </>
+        </div>
     );
 }
 

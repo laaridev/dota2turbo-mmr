@@ -27,12 +27,20 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR" className="dark">
-      <body className={cn(inter.className, "h-screen overflow-hidden bg-background antialiased selection:bg-primary/30")}>
-        {/* CSS Grid layout with fixed rows */}
-        <div className="h-screen grid grid-rows-[auto_1fr_auto] overflow-hidden">
-          <Navbar />
-          <main className="overflow-hidden">{children}</main>
-          <footer className="border-t border-white/5 bg-background/50">
+      <body className={cn(inter.className, "h-screen w-screen overflow-hidden bg-background antialiased selection:bg-primary/30")}>
+        <div className="flex flex-col h-full w-full overflow-hidden">
+          {/* Navbar: Auto height */}
+          <div className="flex-none z-50">
+            <Navbar />
+          </div>
+
+          {/* Main: Fills remaining space, RELATIVE for absolute children */}
+          <main className="flex-1 relative w-full overflow-hidden z-0">
+            {children}
+          </main>
+
+          {/* Footer: Auto height */}
+          <footer className="flex-none border-t border-white/5 bg-background/50 z-50">
             <div className="container mx-auto px-4 py-1.5 flex items-center justify-between text-[10px] text-muted-foreground">
               <span>© 2025 TurboBuff</span>
               <div className="flex items-center gap-2">
