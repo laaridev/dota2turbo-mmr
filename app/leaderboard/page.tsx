@@ -26,7 +26,7 @@ export default function LeaderboardPage() {
     const restPlayers = players.slice(3);
 
     return (
-        <div className="min-h-screen relative">
+        <div className="min-h-screen relative overflow-x-hidden">
             {/* Background glow */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
 
