@@ -118,9 +118,10 @@ export function calculateTMMR(matches: OpenDotaMatch[]): TmmrCalculationResult {
         // Calculate difficulty weight
         const difficultyWeight = calculateDifficultyWeight(match.average_rank);
 
-        // Calculate delta: (±K) × confidence × tierWeight
+        // Calculate delta: (±K) × tierWeight
+        // K already decreases with more matches (via confidence)
+        // No need to multiply by confidence again
         let delta = playerWon ? K : -K;
-        delta *= confidence;
         delta *= difficultyWeight;
 
         // Round to integer
