@@ -19,24 +19,18 @@ export default function LeaderboardPage() {
 
 function LeaderboardSkeleton() {
     return (
-        <div className="absolute inset-0 p-4 overflow-hidden">
-            <div className="container mx-auto max-w-5xl h-full">
-                <div className="h-full grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    <div className="h-full flex flex-col overflow-hidden">
-                        <div className="h-6 mb-2 flex-shrink-0" />
-                        <div className="flex-1 min-h-0 overflow-hidden relative">
-                            <div className="absolute inset-0 overflow-hidden space-y-1.5">
-                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => <Skeleton key={i} className="h-11 rounded-lg" />)}
-                            </div>
-                        </div>
+        <div className="h-full flex flex-col px-4 py-3 container mx-auto max-w-5xl">
+            <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="flex flex-col h-full overflow-hidden space-y-2">
+                    <div className="h-6 w-24 bg-white/5 rounded animate-pulse shrink-0" />
+                    <div className="flex-1 min-h-0 overflow-hidden space-y-1.5">
+                        {[...Array(10)].map((_, i) => <Skeleton key={i} className="h-11 rounded-lg" />)}
                     </div>
-                    <div className="h-full flex flex-col overflow-hidden">
-                        <div className="h-6 mb-2 flex-shrink-0" />
-                        <div className="flex-1 min-h-0 overflow-hidden relative">
-                            <div className="absolute inset-0 overflow-hidden space-y-1.5">
-                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => <Skeleton key={i} className="h-11 rounded-lg" />)}
-                            </div>
-                        </div>
+                </div>
+                <div className="flex flex-col h-full overflow-hidden space-y-2">
+                    <div className="h-6 w-24 bg-white/5 rounded animate-pulse shrink-0 ml-auto" />
+                    <div className="flex-1 min-h-0 overflow-hidden space-y-1.5">
+                        {[...Array(10)].map((_, i) => <Skeleton key={i} className="h-11 rounded-lg" />)}
                     </div>
                 </div>
             </div>
@@ -85,72 +79,65 @@ function LeaderboardContent() {
     }
 
     return (
-        <div className="absolute inset-0 overflow-hidden">
-            {/* Background - absolute to not interfere */}
+        <div className="h-full w-full relative">
+            {/* Background Glow - Absoluto para não afetar o layout flex */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary/10 blur-[120px] rounded-full pointer-events-none z-0" />
 
-            {/* Content Container - Absolute inset-0 with padding */}
-            <div className="absolute inset-0 p-4 z-10">
-                <div className="container mx-auto max-w-5xl h-full">
+            {/* Container Layout - Flex Column para ocupar 100% da altura disponível */}
+            <div className="h-full flex flex-col relative z-10 px-4 py-3 container mx-auto max-w-5xl">
 
-                    {/* Grid takes full height */}
-                    <div className="h-full grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Grid Wrapper - flex-1 min-h-0 para garantir que o Grid caiba no pai e não cresça */}
+                <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-                        {/* LEFT COLUMN */}
-                        <div className="h-full flex flex-col overflow-hidden relative">
-                            {/* Header - Fixed Height */}
-                            <div className="h-6 mb-2 flex-shrink-0 flex items-center gap-1.5">
-                                <Trophy className="h-3.5 w-3.5 text-primary" />
-                                <h2 className="font-semibold text-white text-xs">Top 10</h2>
-                            </div>
-
-                            {/* List Container - Takes remaining space */}
-                            <div className="flex-1 min-h-0 relative">
-                                {/* Scrollable Area - Absolute inset to force fit */}
-                                <div className="absolute inset-0 overflow-y-auto pr-1 scrollbar-thin">
-                                    <div className="space-y-1.5 pb-2">
-                                        {(searchQuery ? filteredPlayers.top : topTen).map((player) => (
-                                            <PlayerRow key={player.steamId} player={player} position={players.indexOf(player) + 1} />
-                                        ))}
-                                        {topTen.length === 0 && (
-                                            <div className="text-center py-6 text-muted-foreground text-xs">
-                                                Nenhum jogador neste período
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
+                    {/* COLUNA ESQUERDA (Top 10) - Flex Column para header + lista */}
+                    <div className="flex flex-col h-full overflow-hidden">
+                        {/* Header - Shrink-0 para não amassar */}
+                        <div className="flex-shrink-0 flex items-center gap-1.5 mb-2 h-6">
+                            <Trophy className="h-3.5 w-3.5 text-primary" />
+                            <h2 className="font-semibold text-white text-xs">Top 10</h2>
                         </div>
 
-                        {/* RIGHT COLUMN */}
-                        <div className="h-full flex flex-col overflow-hidden relative">
-                            {/* Header - Fixed Height */}
-                            <div className="h-6 mb-2 flex-shrink-0 flex items-center justify-end">
-                                <span className="text-[10px] text-muted-foreground">{restPlayers.length} jogadores</span>
-                            </div>
-
-                            {/* List Container */}
-                            <div className="flex-1 min-h-0 relative">
-                                {/* Scrollable Area */}
-                                <div className="absolute inset-0 overflow-y-auto pr-1 scrollbar-thin">
-                                    <div className="space-y-1.5 pb-2">
-                                        {(searchQuery ? filteredPlayers.rest : restPlayers).map((player) => (
-                                            <PlayerRow
-                                                key={player.steamId}
-                                                player={player}
-                                                position={players.indexOf(player) + 1}
-                                            />
-                                        ))}
-                                        {restPlayers.length === 0 && (
-                                            <div className="text-center py-6 text-muted-foreground text-xs">
-                                                Sem mais jogadores
-                                            </div>
-                                        )}
+                        {/* Lista - Flex-1 min-h-0 para ativar o scroll quando conteúdo for maior que espaço */}
+                        <div className="flex-1 min-h-0 overflow-y-auto pr-1 scrollbar-thin pb-2">
+                            <div className="space-y-1.5">
+                                {(searchQuery ? filteredPlayers.top : topTen).map((player) => (
+                                    <PlayerRow key={player.steamId} player={player} position={players.indexOf(player) + 1} />
+                                ))}
+                                {topTen.length === 0 && (
+                                    <div className="text-center py-8 text-muted-foreground text-xs">
+                                        Nenhum jogador encontrado
                                     </div>
-                                </div>
+                                )}
                             </div>
                         </div>
                     </div>
+
+                    {/* COLUNA DIREITA (Resto) - Mesma estrutura exata */}
+                    <div className="flex flex-col h-full overflow-hidden">
+                        {/* Header */}
+                        <div className="flex-shrink-0 flex items-center justify-end mb-2 h-6">
+                            <span className="text-[10px] text-muted-foreground">{restPlayers.length} jogadores</span>
+                        </div>
+
+                        {/* Lista */}
+                        <div className="flex-1 min-h-0 overflow-y-auto pr-1 scrollbar-thin pb-2">
+                            <div className="space-y-1.5">
+                                {(searchQuery ? filteredPlayers.rest : restPlayers).map((player) => (
+                                    <PlayerRow
+                                        key={player.steamId}
+                                        player={player}
+                                        position={players.indexOf(player) + 1}
+                                    />
+                                ))}
+                                {restPlayers.length === 0 && (
+                                    <div className="text-center py-8 text-muted-foreground text-xs">
+                                        Sem mais jogadores
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -173,7 +160,7 @@ function PlayerRow({ player, position }: { player: any; position: number }) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: Math.min(position * 0.015, 0.15) }}
-                className={`flex items-center gap-2 p-2 rounded-lg border ${bgClass} hover:bg-white/5 transition-colors cursor-pointer`}
+                className={`flex items-center gap-2 p-2 rounded-lg border ${bgClass} hover:bg-white/5 transition-colors cursor-pointer group`}
             >
                 <div className={`w-6 h-6 rounded-md flex items-center justify-center font-bold text-[10px] flex-shrink-0 ${position === 1 ? 'bg-amber-500/20 text-amber-400' :
                         position === 2 ? 'bg-gray-400/20 text-gray-300' :
@@ -183,16 +170,18 @@ function PlayerRow({ player, position }: { player: any; position: number }) {
                     {position}
                 </div>
 
-                <img
-                    src={player.avatar}
-                    alt={player.name}
-                    className="w-8 h-8 rounded-md object-cover flex-shrink-0"
-                />
+                <div className="relative w-8 h-8 rounded-md overflow-hidden flex-shrink-0">
+                    <img
+                        src={player.avatar}
+                        alt={player.name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    />
+                </div>
 
                 <div className="flex-1 min-w-0">
-                    <div className="font-medium text-white text-xs truncate">{player.name}</div>
+                    <div className="font-medium text-white text-xs truncate group-hover:text-primary transition-colors">{player.name}</div>
                     <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                        <span>{winRate}% WR</span>
+                        <span className={Number(winRate) >= 50 ? 'text-green-400' : 'text-red-400'}>{winRate}% WR</span>
                         <span className="text-white/20">•</span>
                         <span>{player.wins + player.losses} jogos</span>
                     </div>
@@ -200,7 +189,7 @@ function PlayerRow({ player, position }: { player: any; position: number }) {
 
                 <div className="text-right flex items-center gap-1.5 flex-shrink-0">
                     <span className="font-bold text-white text-xs">{player.tmmr}</span>
-                    <Badge variant={category as any} className="text-[9px] px-1">
+                    <Badge variant={category as any} className="text-[9px] px-1 h-4">
                         {TIER_NAMES[tier]}
                     </Badge>
                 </div>
