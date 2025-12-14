@@ -196,26 +196,30 @@ export function calculateTMMR(matches: OpenDotaMatch[]): TmmrCalculationResult {
         avgDifficulty = totalDifficulty / matchesWithData.length;
     }
 
-    // Final scoring: 90% WR + 10% experience
-    // Fair for both new and veteran players
+    // Final scoring: 100% WR-based, but with CONFIDENCE factor
+    // Confidence = how much we trust the WR based on sample size
+    // More games = higher confidence = WR is more reliable
     if (totalMatches >= 30) { // Min 30 games to be ranked
         const globalWR = wins / totalMatches;
 
-        // WR Component (90% weight): Each 1% above 50% = +100 TMMR base
-        // At 55% WR = +500, at 60% WR = +1000, at 70% WR = +2000
-        const wrComponent = (globalWR - 0.50) * 10000;
+        // Maximum potential TMMR based purely on WR
+        // Each 1% above 50% = +100 TMMR
+        // At 55% = +500, 60% = +1000, 65% = +1500, 70% = +2000
+        const wrPotential = (globalWR - 0.50) * 10000;
 
-        // Experience Component (10% weight): Log scale for diminishing returns
-        // Caps at ~500 bonus for 1000+ games, small bonus for new accounts
-        // 30 games = ~85, 100 games = ~115, 500 games = ~155, 1000+ games = ~170
-        const expComponent = Math.log10(Math.max(totalMatches, 10)) * 50;
+        // Confidence factor: how much of the WR potential we unlock
+        // 30 games = 70% confidence (unlock 70% of potential)
+        // 100 games = 85% confidence
+        // 200 games = 92% confidence
+        // 500+ games = 100% confidence (full potential)
+        // This means: same WR, more games = higher TMMR, but not unfairly
+        const confidence = 0.70 + (0.30 * Math.min(totalMatches, 500) / 500);
 
-        // Blend: 90% WR + 10% experience
-        const blendedScore = (wrComponent * 0.90) + (expComponent * 0.10);
+        // Apply confidence to WR potential
+        const adjustedScore = wrPotential * confidence;
 
         // Apply difficulty multiplier
-        // Playing in higher skill brackets gives bonus, lower skill gives penalty
-        const difficultyAdjusted = blendedScore * avgDifficulty;
+        const difficultyAdjusted = adjustedScore * avgDifficulty;
 
         // Final TMMR
         currentTmmr = BASE_TMMR + difficultyAdjusted;

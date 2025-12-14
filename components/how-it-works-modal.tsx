@@ -1,6 +1,6 @@
 'use client';
 
-import { X, Database, Zap, Trophy, TrendingUp, Star, Target } from 'lucide-react';
+import { X, Database, Shield, RefreshCw, Trophy, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface HowItWorksModalProps {
@@ -30,24 +30,24 @@ export function HowItWorksModal({ isOpen, onClose }: HowItWorksModalProps) {
                             <Database className="h-4 w-4 text-primary" />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-sm mb-0.5">1. Analisamos suas partidas</h3>
+                            <h3 className="font-semibold text-sm mb-0.5">1. Buscamos suas partidas</h3>
                             <p className="text-muted-foreground text-xs">
-                                Buscamos <strong className="text-white">todas as suas partidas Turbo</strong> através do OpenDota.
-                                Precisamos apenas do seu ID do Dota 2.
+                                Usamos dados públicos do <strong className="text-white">OpenDota</strong> para
+                                acessar todas as suas partidas do modo Turbo.
                             </p>
                         </div>
                     </div>
 
                     {/* Step 2 */}
                     <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-orange-500/20 flex items-center justify-center">
-                            <Target className="h-4 w-4 text-orange-500" />
+                        <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                            <Shield className="h-4 w-4 text-blue-400" />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-sm mb-0.5">2. Calculamos sua Winrate</h3>
+                            <h3 className="font-semibold text-sm mb-0.5">2. Perfil público necessário</h3>
                             <p className="text-muted-foreground text-xs">
-                                A <strong className="text-primary">taxa de vitória</strong> é o fator principal do seu TMMR.
-                                Ela determina o quão alto você pode subir no ranking.
+                                Suas partidas precisam estar <strong className="text-white">públicas</strong> nas
+                                configurações do Dota 2 para que possamos acessá-las.
                             </p>
                         </div>
                     </div>
@@ -55,60 +55,47 @@ export function HowItWorksModal({ isOpen, onClose }: HowItWorksModalProps) {
                     {/* Step 3 */}
                     <div className="flex gap-3">
                         <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-amber-500/20 flex items-center justify-center">
-                            <TrendingUp className="h-4 w-4 text-amber-500" />
+                            <Trophy className="h-4 w-4 text-amber-400" />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-sm mb-0.5">3. Fator de Confiança</h3>
+                            <h3 className="font-semibold text-sm mb-0.5">3. Calculamos seu TMMR</h3>
                             <p className="text-muted-foreground text-xs">
-                                Quanto mais partidas você tem, mais <strong className="text-white">confiável</strong> é o seu ranking.
-                                Mas após <strong className="text-primary">~300 jogos</strong>, o ganho por partida diminui muito.
+                                Com base nas suas partidas, calculamos seu <strong className="text-primary">Turbo MMR</strong> e
+                                atribuímos uma patente (Herald até Immortal).
                             </p>
                         </div>
                     </div>
 
-                    {/* Step 4 - Formula simplified */}
+                    {/* Step 4 */}
                     <div className="flex gap-3">
                         <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-green-500/20 flex items-center justify-center">
-                            <Star className="h-4 w-4 text-green-500" />
+                            <Clock className="h-4 w-4 text-green-400" />
                         </div>
-                        <div className="flex-1">
-                            <h3 className="font-semibold text-sm mb-1">4. Resultado Final</h3>
-                            <p className="text-muted-foreground text-xs mb-2">
-                                Seu TMMR é calculado assim: partimos de <strong className="text-white">3500 pontos</strong> e
-                                ajustamos para cima ou para baixo baseado na sua WR.
+                        <div>
+                            <h3 className="font-semibold text-sm mb-0.5">4. Mínimo de 30 partidas</h3>
+                            <p className="text-muted-foreground text-xs">
+                                Você precisa ter pelo menos <strong className="text-white">30 partidas Turbo</strong> para
+                                aparecer no ranking.
                             </p>
-                            <div className="bg-white/5 rounded-lg p-2 text-[10px] space-y-1 font-mono">
-                                <div><span className="text-muted-foreground">50% WR →</span> <span className="text-emerald-400">~3500 TMMR</span> <span className="text-muted-foreground">(Legend)</span></div>
-                                <div><span className="text-muted-foreground">57% WR →</span> <span className="text-indigo-400">~3850 TMMR</span> <span className="text-muted-foreground">(Ancient)</span></div>
-                                <div><span className="text-muted-foreground">65% WR →</span> <span className="text-pink-400">~4250 TMMR</span> <span className="text-muted-foreground">(Divine)</span></div>
-                            </div>
                         </div>
                     </div>
 
                     {/* Step 5 */}
                     <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                            <Trophy className="h-4 w-4 text-blue-500" />
+                        <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                            <RefreshCw className="h-4 w-4 text-purple-400" />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-sm mb-0.5">5. Você entra no Ranking</h3>
+                            <h3 className="font-semibold text-sm mb-0.5">5. Atualize a cada 7 dias</h3>
                             <p className="text-muted-foreground text-xs">
-                                Receba sua <strong className="text-white">patente</strong> (Herald → Immortal) e compare
-                                com outros jogadores. Atualize a cada <strong className="text-primary">7 dias</strong>.
+                                Você pode atualizar seu perfil <strong className="text-white">uma vez por semana</strong> para
+                                refletir suas novas partidas.
                             </p>
                         </div>
                     </div>
                 </div>
 
-                {/* Key point */}
-                <div className="mt-4 p-3 bg-primary/10 border border-primary/20 rounded-lg">
-                    <p className="text-xs text-center">
-                        💡 <strong className="text-white">O segredo:</strong> 57% de WR sempre supera 53%,
-                        <span className="text-primary"> independente de quantas partidas jogou</span>.
-                    </p>
-                </div>
-
-                <div className="mt-4">
+                <div className="mt-5">
                     <Button onClick={onClose} className="w-full h-9 text-sm">
                         Entendi!
                     </Button>

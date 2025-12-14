@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sparkles, Trophy, TrendingUp, Zap } from 'lucide-react';
+import { X, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 
@@ -27,7 +27,7 @@ export function BetaNoticeModal() {
                     animate={{ scale: 1, opacity: 1, y: 0 }}
                     exit={{ scale: 0.9, opacity: 0, y: 20 }}
                     transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                    className="bg-gradient-to-b from-card to-card/95 border border-white/10 rounded-2xl max-w-md w-full p-6 relative overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto"
+                    className="bg-gradient-to-b from-card to-card/95 border border-white/10 rounded-2xl max-w-md w-full p-6 relative overflow-hidden shadow-2xl"
                 >
                     {/* Decorative gradient */}
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-orange-500/10 pointer-events-none" />
@@ -62,64 +62,23 @@ export function BetaNoticeModal() {
                             Bem-vindo ao TurboBuff!
                         </motion.h2>
 
-                        {/* How it works */}
+                        {/* Description */}
                         <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.4 }}
-                            className="bg-white/5 border border-white/10 rounded-xl p-4 mb-4 text-left"
+                            className="space-y-4 mb-6"
                         >
-                            <h3 className="font-semibold text-white text-sm mb-3 text-center">Como funciona o cálculo?</h3>
-
-                            <div className="space-y-3">
-                                <div className="flex items-start gap-3">
-                                    <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-primary/20 flex items-center justify-center">
-                                        <Trophy className="h-3.5 w-3.5 text-primary" />
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-muted-foreground">
-                                            <strong className="text-white">90% Winrate:</strong> Quem ganha mais, sobe mais.
-                                            A taxa de vitória é o fator principal.
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-start gap-3">
-                                    <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                                        <TrendingUp className="h-3.5 w-3.5 text-blue-400" />
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-muted-foreground">
-                                            <strong className="text-white">10% Experiência:</strong> Jogadores com mais
-                                            partidas ganham um pequeno bônus.
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-start gap-3">
-                                    <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-amber-500/20 flex items-center justify-center">
-                                        <Zap className="h-3.5 w-3.5 text-amber-400" />
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-muted-foreground">
-                                            <strong className="text-white">Dificuldade:</strong> Vencer em partidas de
-                                            skill alto dá mais pontos.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </motion.div>
-
-                        {/* Beta notice */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.5 }}
-                            className="mb-5"
-                        >
-                            <p className="text-muted-foreground text-xs">
-                                ⚠️ Os <strong className="text-white">valores do ranking</strong> podem variar
-                                enquanto refinamos a fórmula. Agradecemos sua paciência! 🧡
+                            <p className="text-muted-foreground text-sm">
+                                O sistema de cálculo do <strong className="text-primary">TMMR</strong> ainda está
+                                em <strong className="text-white">desenvolvimento</strong>.
+                            </p>
+                            <p className="text-muted-foreground text-sm">
+                                Os valores do ranking podem variar enquanto buscamos a
+                                <strong className="text-white"> fórmula ideal</strong>.
+                            </p>
+                            <p className="text-muted-foreground text-sm">
+                                Agradecemos sua paciência! 🧡
                             </p>
                         </motion.div>
 
@@ -127,10 +86,10 @@ export function BetaNoticeModal() {
                         <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.6 }}
+                            transition={{ delay: 0.5 }}
                         >
                             <Button onClick={handleClose} variant="premium" className="w-full h-11 text-base">
-                                Entendi, vamos lá! 🚀
+                                Entendi! 🚀
                             </Button>
                         </motion.div>
                     </div>
