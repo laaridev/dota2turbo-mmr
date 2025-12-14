@@ -34,6 +34,7 @@ export interface OpenDotaMatch {
     skill?: number;
     leaver_status: number;
     party_size: number;
+    average_rank?: number; // avg_rank_tier from OpenDota (0-80 scale)
 }
 
 export const opendota = {

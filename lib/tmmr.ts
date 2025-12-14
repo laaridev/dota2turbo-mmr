@@ -8,6 +8,7 @@ export interface CalculatedMatchResult {
     kda: string;
     timestamp: Date;
     tmmrChange: number;
+    tmmrAfter: number;
 }
 
 export interface TmmrCalculationResult {
@@ -16,23 +17,108 @@ export interface TmmrCalculationResult {
     losses: number;
     streak: number;
     processedMatches: CalculatedMatchResult[];
+    isCalibrating: boolean;
+    confidence: number;
 }
 
-const BASE_TMMR = 2000;
-const MIN_CHANGE = 25;
-const MAX_CHANGE = 30;
+// ============================================
+// TURBOMMR CALCULATION SYSTEM (Dota-like)
+// ============================================
 
-function getRandomChange() {
-    return Math.floor(Math.random() * (MAX_CHANGE - MIN_CHANGE + 1)) + MIN_CHANGE;
+// Constants
+const BASE_TMMR = 2000;
+const K_BASE_MIN = 10;
+const K_BASE_MAX = 30;
+const K_CALIBRATION_MAX = 40;
+const CALIBRATION_MATCHES = 50;
+const CONFIDENCE_MAX_MATCHES = 300;
+const CONFIDENCE_MIN = 0.2;
+const SOFT_CAP_THRESHOLD = 3500;
+const SOFT_CAP_REDUCTION = 0.5;
+const LOW_WINRATE_CAP = 2600;
+const LOW_WINRATE_THRESHOLD = 0.48;
+const TMMR_FLOOR = 1000;
+const TMMR_CEILING = 6000;
+
+/**
+ * Clamps a value between min and max
+ */
+function clamp(value: number, min: number, max: number): number {
+    return Math.max(min, Math.min(max, value));
 }
 
 /**
- * Calculates TMMR history from a list of matches.
- * Matches should be passed in descending order (newest first) or ascending (oldest first).
- * We will sort them ascending to calculate progression.
+ * Calculates confidence factor based on match count
+ * More matches = higher confidence = less volatility
+ */
+function calculateConfidence(matchCount: number): number {
+    return clamp(matchCount / CONFIDENCE_MAX_MATCHES, CONFIDENCE_MIN, 1);
+}
+
+/**
+ * Calculates K factor for a given match
+ * During calibration (< 50 matches): K ranges from 40 to 10
+ * After calibration: K ranges from 30 to 10
+ */
+function calculateKFactor(matchCount: number, confidence: number): number {
+    const isCalibrating = matchCount < CALIBRATION_MATCHES;
+    const Kmax = isCalibrating ? K_CALIBRATION_MAX : K_BASE_MAX;
+
+    // K = Kmax - (confidence × (Kmax - K_BASE_MIN))
+    // New accounts: high K (volatile), old accounts: low K (stable)
+    const K = Kmax - (confidence * (Kmax - K_BASE_MIN));
+
+    return K;
+}
+
+/**
+ * Calculates difficulty weight based on average match rank tier
+ * Normalized around 50, with soft scaling ±15%
+ */
+function calculateDifficultyWeight(averageRank: number | undefined): number {
+    // If no rank data, use neutral weight
+    if (!averageRank || averageRank <= 0 || averageRank > 80) {
+        return 1.0;
+    }
+
+    // Normalize around tier 50 (Legend 5 / Ancient 1 area)
+    // Weight = 1 + (avgRank - 50) × 0.01
+    // Results in range: 0.85 (rank 35) to 1.15 (rank 65) approximately
+    const weight = 1 + (averageRank - 50) * 0.01;
+
+    return clamp(weight, 0.85, 1.15);
+}
+
+/**
+ * Applies soft cap reduction for high MMR players
+ */
+function applySoftCap(tmmr: number, delta: number): number {
+    if (tmmr > SOFT_CAP_THRESHOLD && delta > 0) {
+        return delta * SOFT_CAP_REDUCTION;
+    }
+    return delta;
+}
+
+/**
+ * Applies winrate-based cap for players with < 48% winrate
+ */
+function applyWinrateCap(tmmr: number, wins: number, losses: number): number {
+    const totalGames = wins + losses;
+    if (totalGames < 20) return tmmr; // Not enough data
+
+    const winrate = wins / totalGames;
+    if (winrate < LOW_WINRATE_THRESHOLD && tmmr > LOW_WINRATE_CAP) {
+        return LOW_WINRATE_CAP;
+    }
+    return tmmr;
+}
+
+/**
+ * Main TurboMMR calculation function
+ * Processes matches chronologically and calculates MMR per-match
  */
 export function calculateTMMR(matches: OpenDotaMatch[]): TmmrCalculationResult {
-    // 1. Sort matches by start_time ascending (Oldest -> Newest)
+    // Sort matches by start_time ascending (oldest → newest)
     const sortedMatches = [...matches].sort((a, b) => a.start_time - b.start_time);
 
     let currentTmmr = BASE_TMMR;
@@ -42,18 +128,39 @@ export function calculateTMMR(matches: OpenDotaMatch[]): TmmrCalculationResult {
 
     const processedMatches: CalculatedMatchResult[] = [];
 
-    for (const match of sortedMatches) {
-        // Determine win
-        // Player slot 0-127 is Radiant, 128-255 is Dire
+    for (let i = 0; i < sortedMatches.length; i++) {
+        const match = sortedMatches[i];
+        const matchNumber = i + 1;
+
+        // Determine win/loss
         const isRadiant = match.player_slot < 128;
         const playerWon = (isRadiant && match.radiant_win) || (!isRadiant && !match.radiant_win);
 
-        // Calculate change
-        const delta = getRandomChange();
-        const tmmrChange = playerWon ? delta : -delta;
+        // Calculate confidence at this point in history
+        const confidence = calculateConfidence(matchNumber);
 
-        // Update stats
+        // Calculate dynamic K factor
+        const K = calculateKFactor(matchNumber, confidence);
+
+        // Calculate difficulty weight
+        const difficultyWeight = calculateDifficultyWeight(match.average_rank);
+
+        // Calculate base delta
+        let delta = playerWon ? K : -K;
+
+        // Apply difficulty weight
+        delta *= difficultyWeight;
+
+        // Apply soft cap for high MMR gains
+        delta = applySoftCap(currentTmmr, delta);
+
+        // Round to integer
+        const tmmrChange = Math.round(delta);
+
+        // Update TMMR
         currentTmmr += tmmrChange;
+
+        // Update win/loss counters
         if (playerWon) {
             wins++;
             currentStreak = currentStreak >= 0 ? currentStreak + 1 : 1;
@@ -62,6 +169,13 @@ export function calculateTMMR(matches: OpenDotaMatch[]): TmmrCalculationResult {
             currentStreak = currentStreak <= 0 ? currentStreak - 1 : -1;
         }
 
+        // Apply winrate cap after each match
+        currentTmmr = applyWinrateCap(currentTmmr, wins, losses);
+
+        // Apply global clamp
+        currentTmmr = clamp(currentTmmr, TMMR_FLOOR, TMMR_CEILING);
+
+        // Record processed match
         processedMatches.push({
             matchId: match.match_id,
             heroId: match.hero_id,
@@ -69,18 +183,31 @@ export function calculateTMMR(matches: OpenDotaMatch[]): TmmrCalculationResult {
             duration: match.duration,
             kda: `${match.kills}/${match.deaths}/${match.assists}`,
             timestamp: new Date(match.start_time * 1000),
-            tmmrChange
+            tmmrChange,
+            tmmrAfter: currentTmmr
         });
     }
 
+    // Final winrate cap check
+    currentTmmr = applyWinrateCap(currentTmmr, wins, losses);
+    currentTmmr = clamp(currentTmmr, TMMR_FLOOR, TMMR_CEILING);
+
+    const totalMatches = wins + losses;
+
     return {
-        currentTmmr,
+        currentTmmr: Math.round(currentTmmr),
         wins,
         losses,
         streak: currentStreak,
-        processedMatches
+        processedMatches,
+        isCalibrating: totalMatches < CALIBRATION_MATCHES,
+        confidence: calculateConfidence(totalMatches)
     };
 }
+
+// ============================================
+// TIER SYSTEM
+// ============================================
 
 export type TierKey =
     | 'herald1' | 'herald2' | 'herald3' | 'herald4' | 'herald5'
@@ -93,7 +220,7 @@ export type TierKey =
     | 'immortal';
 
 export function getTier(tmmr: number): TierKey {
-    // Herald: 1-769
+    // Herald: 0-769
     if (tmmr < 154) return 'herald1';
     if (tmmr < 308) return 'herald2';
     if (tmmr < 462) return 'herald3';
@@ -135,7 +262,7 @@ export function getTier(tmmr: number): TierKey {
     if (tmmr < 4466) return 'ancient4';
     if (tmmr < 4620) return 'ancient5';
 
-    // Divine: 4620-5620
+    // Divine: 4620-5619
     if (tmmr < 4820) return 'divine1';
     if (tmmr < 5020) return 'divine2';
     if (tmmr < 5220) return 'divine3';
