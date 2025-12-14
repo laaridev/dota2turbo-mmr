@@ -4,21 +4,21 @@ import Player from '@/lib/models/Player';
 import Match from '@/lib/models/Match';
 import { calculateTMMR } from '@/lib/tmmr';
 
-// Available periods
+// Available periods (descending order - current month first)
 const PERIODS = [
     { id: 'all', label: 'Todos os tempos' },
-    { id: '2025-01', label: 'Janeiro 2025' },
-    { id: '2025-02', label: 'Fevereiro 2025' },
-    { id: '2025-03', label: 'Março 2025' },
-    { id: '2025-04', label: 'Abril 2025' },
-    { id: '2025-05', label: 'Maio 2025' },
-    { id: '2025-06', label: 'Junho 2025' },
-    { id: '2025-07', label: 'Julho 2025' },
-    { id: '2025-08', label: 'Agosto 2025' },
-    { id: '2025-09', label: 'Setembro 2025' },
-    { id: '2025-10', label: 'Outubro 2025' },
-    { id: '2025-11', label: 'Novembro 2025' },
     { id: '2025-12', label: 'Dezembro 2025' },
+    { id: '2025-11', label: 'Novembro 2025' },
+    { id: '2025-10', label: 'Outubro 2025' },
+    { id: '2025-09', label: 'Setembro 2025' },
+    { id: '2025-08', label: 'Agosto 2025' },
+    { id: '2025-07', label: 'Julho 2025' },
+    { id: '2025-06', label: 'Junho 2025' },
+    { id: '2025-05', label: 'Maio 2025' },
+    { id: '2025-04', label: 'Abril 2025' },
+    { id: '2025-03', label: 'Março 2025' },
+    { id: '2025-02', label: 'Fevereiro 2025' },
+    { id: '2025-01', label: 'Janeiro 2025' },
 ];
 
 // Simple cache for period calculations (in-memory, refreshes on server restart)
