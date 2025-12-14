@@ -80,7 +80,7 @@ function LeaderboardContent() {
                 </div>
 
                 {/* Single unified list */}
-                <div className="space-y-2">
+                <div className="space-y-3">
                     {filteredPlayers.map((player, index) => (
                         <PlayerRow
                             key={player.steamId}
@@ -120,9 +120,9 @@ function PlayerRow({ player, position, isTopThree }: { player: any; position: nu
             >
                 {/* Position Badge */}
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0 ${position === 1 ? 'bg-gradient-to-br from-amber-500 to-amber-600 text-white shadow-lg shadow-amber-500/50' :
-                        position === 2 ? 'bg-gradient-to-br from-gray-400 to-gray-500 text-white shadow-lg shadow-gray-400/50' :
-                            position === 3 ? 'bg-gradient-to-br from-amber-700 to-amber-800 text-white shadow-lg shadow-amber-700/50' :
-                                'bg-white/5 text-muted-foreground'
+                    position === 2 ? 'bg-gradient-to-br from-gray-400 to-gray-500 text-white shadow-lg shadow-gray-400/50' :
+                        position === 3 ? 'bg-gradient-to-br from-amber-700 to-amber-800 text-white shadow-lg shadow-amber-700/50' :
+                            'bg-white/5 text-muted-foreground'
                     }`}>
                     {position}
                 </div>

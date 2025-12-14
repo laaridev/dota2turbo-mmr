@@ -77,19 +77,28 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'Invalid period' }, { status: 400 });
         }
 
-        // Get all players and their matches for the period
+        // Get all players and calculate TMMR based on ALL matches UP TO the end of the period
         const allPlayers = await Player.find({ isPrivate: false }).lean();
         const periodResults: any[] = [];
 
         for (const player of allPlayers) {
-            const matches = await Match.find({
+            // Get ALL matches up to the end of the selected period
+            const matchesUpToPeriod = await Match.find({
                 playerSteamId: player.steamId,
-                timestamp: { $gte: dates.start, $lte: dates.end }
+                timestamp: { $lte: dates.end }
             }).sort({ timestamp: 1 }).lean();
 
-            if (matches.length < 1) continue; // At least 1 game in period
+            if (matchesUpToPeriod.length < 1) continue;
 
-            const openDotaMatches = matches.map(m => ({
+            // Also check if player had at least 1 game WITHIN the period (for activity filter)
+            const matchesInPeriod = matchesUpToPeriod.filter(m =>
+                new Date(m.timestamp) >= dates.start && new Date(m.timestamp) <= dates.end
+            );
+
+            // Skip if no activity in this period
+            if (matchesInPeriod.length < 1) continue;
+
+            const openDotaMatches = matchesUpToPeriod.map(m => ({
                 match_id: m.matchId,
                 player_slot: 0,
                 radiant_win: m.win,
@@ -118,7 +127,8 @@ export async function GET(request: Request) {
                 wins: calc.wins,
                 losses: calc.losses,
                 streak: calc.streak,
-                periodGames: matches.length
+                periodGames: matchesInPeriod.length,
+                totalGames: matchesUpToPeriod.length
             });
         }
 
