@@ -21,9 +21,10 @@ const PERIODS = [
     { id: '2025-01', label: 'Janeiro 2025' },
 ];
 
-// Simple cache for period calculations (in-memory, refreshes on server restart)
+// Robust cache for period calculations
+// TTL: 1 hour - period rankings don't change frequently
 const periodCache: Map<string, { data: any; timestamp: number }> = new Map();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL = 60 * 60 * 1000; // 1 hour
 
 function getPeriodDates(periodId: string): { start: Date; end: Date } | null {
     if (periodId === 'all') return null;
