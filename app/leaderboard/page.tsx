@@ -130,7 +130,7 @@ function TopCard({ player, position }: { player: any; position: number }) {
                 )}
 
                 {/* Content */}
-                <div className="relative h-full flex flex-col items-center justify-center p-4 gap-3">
+                <div className="relative h-full flex flex-col items-center justify-center p-4 gap-2">
                     {/* Position badge */}
                     <div className="absolute top-3 left-3">
                         <span className={`text-lg font-black ${position === 1 ? 'text-amber-400' : 'text-muted-foreground'}`}>
@@ -138,22 +138,22 @@ function TopCard({ player, position }: { player: any; position: number }) {
                         </span>
                     </div>
 
-                    {/* Medal/Crown */}
-                    <div className={`${medalColor}`}>
+                    {/* Medal/Crown above avatar */}
+                    <div className={`${medalColor} mb-1`}>
                         {isFirst ? (
                             <motion.div
                                 animate={{ rotateZ: [-5, 5, -5] }}
                                 transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
                             >
-                                <Crown className="h-7 w-7 drop-shadow-lg" />
+                                <Crown className="h-6 w-6 drop-shadow-lg" />
                             </motion.div>
                         ) : (
                             <Medal className="h-5 w-5" />
                         )}
                     </div>
 
-                    {/* Avatar with border */}
-                    <div className={`${config.avatar} rounded-full overflow-hidden ${config.avatarBorder} shadow-lg`}>
+                    {/* Avatar - circular with fixed aspect ratio */}
+                    <div className={`${config.avatar} aspect-square rounded-full overflow-hidden ${config.avatarBorder} shadow-lg flex-shrink-0`}>
                         <img
                             src={player.avatar}
                             alt={player.name}
@@ -161,32 +161,30 @@ function TopCard({ player, position }: { player: any; position: number }) {
                         />
                     </div>
 
-                    {/* Player info */}
-                    <div className="flex flex-col items-center gap-1.5 text-center">
-                        <span className={`font-bold truncate max-w-full ${isFirst ? 'text-lg' : 'text-sm'}`}>
-                            {player.name}
-                        </span>
+                    {/* Player name */}
+                    <span className={`font-bold truncate max-w-full mt-2 ${isFirst ? 'text-base' : 'text-sm'}`}>
+                        {player.name}
+                    </span>
 
-                        <div className="flex items-center gap-1.5">
+                    {/* TMMR + Tier name inline */}
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
                             <Trophy className={`h-4 w-4 ${isFirst ? 'text-amber-400' : 'text-primary'}`} />
-                            <span className={`font-black ${isFirst ? 'text-xl text-amber-400' : 'text-lg text-primary'}`}>
+                            <span className={`font-black ${isFirst ? 'text-lg text-amber-400' : 'text-primary'}`}>
                                 {player.tmmr}
                             </span>
                         </div>
-
-                        <Badge variant={tierCategory as any} className="text-[10px] shadow-sm">
-                            {TIER_NAMES[tier]}
-                        </Badge>
+                        <span className="text-xs text-muted-foreground">• {TIER_NAMES[tier]}</span>
                     </div>
 
                     {/* Stats */}
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
                         <span>{player.wins + player.losses} jogos</span>
-                        <span className="text-white/20">•</span>
-                        <span>{winrate}% WR</span>
+                        <span>•</span>
+                        <span>{winrate}%</span>
                         {player.streak > 0 && (
                             <>
-                                <span className="text-white/20">•</span>
+                                <span>•</span>
                                 <span className="flex items-center gap-0.5 text-orange-400">
                                     <Flame className="h-3 w-3" />{player.streak}
                                 </span>
