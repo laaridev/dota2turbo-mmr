@@ -186,22 +186,22 @@ export function calculateTMMR(matches: OpenDotaMatch[]): TmmrCalculationResult {
 
     const totalMatches = wins + losses;
 
-    // Final scoring: WR-based with confidence factor
-    // Confidence uses sqrt to apply diminishing returns - caps at 500 matches
+    // Final scoring: WR is the dominant factor, matches matter very little
     if (totalMatches >= 50) {
         const globalWR = wins / totalMatches;
 
-        // Confidence factor: sqrt(matches/500), capped at 1.0
-        // 100 matches = 0.45, 250 matches = 0.71, 500+ matches = 1.0
-        const confidence = Math.sqrt(Math.min(totalMatches, 500) / 500);
+        // Confidence factor: minimum 70%, caps at 300 matches
+        // 50 matches = 0.82, 150 matches = 0.91, 300+ matches = 1.0
+        // This reduces the impact of match count significantly
+        const baseConfidence = 0.7;
+        const confidenceBonus = 0.3 * Math.sqrt(Math.min(totalMatches, 300) / 300);
+        const confidence = baseConfidence + confidenceBonus;
 
         // WR adjustment: how much above/below 50% WR
-        // Each 1% above 50% = +50 base MMR (before confidence)
         const wrAdjustment = (globalWR - 0.50) * 5000;
 
         // Final MMR = Base + (WR adjustment * confidence)
-        // Low matches = less confident = closer to base
-        // High WR with low matches can still rank high!
+        // WR is ~90% of the formula, match count is ~10%
         currentTmmr = BASE_TMMR + (wrAdjustment * confidence);
     }
 
