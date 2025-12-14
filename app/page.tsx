@@ -53,7 +53,7 @@ export default function Home() {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="text-center space-y-8 max-w-2xl relative z-10 -mt-16"
+        className="flex flex-col items-center text-center gap-6 max-w-2xl relative z-10"
       >
         {/* Badge */}
         <motion.div
@@ -63,7 +63,7 @@ export default function Home() {
           className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-sm text-primary"
         >
           <Zap className="w-3.5 h-3.5" />
-          O MMR das turbinhos no dota 2
+          Descubra seu MMR das turbinhos no Dota 2
         </motion.div>
 
         {/* Title - Premium Typography */}
@@ -82,19 +82,17 @@ export default function Home() {
 
           {/* Subtle underline accent */}
           <motion.div
-            className="h-1 bg-gradient-to-r from-transparent via-primary to-transparent rounded-full mt-2 mx-auto max-w-48"
+            className="h-1 bg-gradient-to-r from-transparent via-primary to-transparent rounded-full mt-3 mx-auto max-w-48"
             initial={{ scaleX: 0, opacity: 0 }}
             animate={{ scaleX: 1, opacity: 1 }}
             transition={{ delay: 0.5, duration: 0.6 }}
           />
         </div>
 
-
-
         {/* Search Form */}
         <motion.form
           onSubmit={handleAnalyze}
-          className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
+          className="flex flex-col sm:flex-row gap-3 w-full max-w-md"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
