@@ -6,19 +6,61 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, HelpCircle, ChevronRight, Trophy, Zap, Users } from 'lucide-react';
 import { HowItWorksModal } from '@/components/how-it-works-modal';
+import { AnalysisModal } from '@/components/analysis-modal';
 import { motion } from 'framer-motion';
 
 export default function Home() {
   const [inputId, setInputId] = useState('');
   const [loading, setLoading] = useState(false);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const [showAnalysisModal, setShowAnalysisModal] = useState(false);
+  const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [analysisError, setAnalysisError] = useState<string | undefined>();
+  const [playerData, setPlayerData] = useState<any>(undefined);
   const router = useRouter();
 
   const handleAnalyze = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputId.trim()) return;
-    setLoading(true);
-    router.push(`/profile/${inputId.trim()}`);
+
+    setShowAnalysisModal(true);
+    setAnalysisLoading(true);
+    setAnalysisError(undefined);
+    setPlayerData(undefined);
+
+    try {
+      const response = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: inputId.trim() })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setAnalysisError(data.message || data.error || 'Erro ao analisar perfil');
+        setAnalysisLoading(false);
+        return;
+      }
+
+      setPlayerData(data.player);
+      setAnalysisLoading(false);
+    } catch (error) {
+      setAnalysisError('Erro de conexão. Tente novamente.');
+      setAnalysisLoading(false);
+    }
+  };
+
+  const handleViewProfile = () => {
+    if (playerData?.steamId) {
+      router.push(`/profile/${playerData.steamId}`);
+    }
+  };
+
+  const handleCloseAnalysisModal = () => {
+    setShowAnalysisModal(false);
+    setAnalysisError(undefined);
+    setPlayerData(undefined);
   };
 
   return (
@@ -132,7 +174,7 @@ export default function Home() {
             size="lg"
             className="h-14 px-8 text-lg rounded-xl shadow-lg shadow-primary/20"
           >
-            {loading ? 'Analisando...' : 'Analisar'}
+            Analisar
           </Button>
         </motion.form>
 
@@ -177,8 +219,16 @@ export default function Home() {
         </div>
       </motion.div>
 
-      {/* Modal */}
+      {/* Modals */}
       <HowItWorksModal isOpen={showHowItWorks} onClose={() => setShowHowItWorks(false)} />
+      <AnalysisModal
+        isOpen={showAnalysisModal}
+        onClose={handleCloseAnalysisModal}
+        isLoading={analysisLoading}
+        player={playerData}
+        error={analysisError}
+        onViewProfile={handleViewProfile}
+      />
     </div>
   );
 }
