@@ -11,14 +11,16 @@ interface RankingInfoModalProps {
 
 const INFO_CONTENT: Record<string, { title: string; icon: any; description: string; details: string[] }> = {
     general: {
-        title: 'Rank Geral (TMMR)',
+        title: 'Rank Geral (TMMR v3.0)',
         icon: Trophy,
-        description: 'Sistema híbrido que combina múltiplos fatores para determinar a classificação.',
+        description: 'Sistema híbrido que equilibra taxa de vitória e qualidade dos oponentes enfrentados.',
         details: [
-            'Combina componente de Winrate com componente de Simulação.',
-            'Componente de Simulação: Análise bayesiana baseada em partidas históricas.',
-            'Peso de dificuldade: Multiplica ganhos/perdas baseado no Average Rank da partida.',
-            'K-factor: Determina volatilidade do rating (maior para jogadores novos, menor para veteranos).'
+            'Componente de Winrate (50%): Vitórias / Total de partidas.',
+            'Componente de Simulação (50%): Sistema ELO modificado que considera dificuldade.',
+            'Multiplicador de Dificuldade: Average Rank dos oponentes amplifica ganhos/perdas.',
+            'Bônus por tier: Divine/Immortal (+50% a +100%), Ancient (+25% a +50%), Legend (+15% a +25%).',
+            'K-factor dinâmico: Alta volatilidade para novos jogadores, estabiliza com volume.',
+            'Fórmula final: (WR_MMR × 0.5 + SIM_MMR × 0.5) × Difficulty_Multiplier'
         ]
     },
     winrate: {
