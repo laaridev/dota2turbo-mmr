@@ -17,6 +17,8 @@ const INFO_CONTENT: Record<string, { title: string; icon: any; description: stri
         details: [
             'Componente de Winrate (50%): Suas vitórias divididas pelo total de partidas.',
             'Componente de Simulação (50%): Rating que considera a força dos oponentes que você enfrentou.',
+            'ℹ️  Nível da partida: OpenDota fornece o "Average Rank" estimado de cada partida.',
+            '   Esse valor (0-80) representa o nível médio dos 10 jogadores na partida.',
             '🎯 Ganhar contra oponentes fortes = Recompensa MASSIVA:',
             '   • Divine/Immortal (avg rank 70-80): DOBRA seus pontos (+50% a +100%)',
             '   • Ancient (avg rank 60-69): +25% a +50% de pontos',
