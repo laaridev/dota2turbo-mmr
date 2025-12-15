@@ -22,9 +22,9 @@ const PERIODS = [
 ];
 
 // Robust cache for period calculations
-// TTL: 1 hour - period rankings don't change frequently
+// TTL: 5 minutes - allow new players to appear faster
 const periodCache: Map<string, { data: any; timestamp: number }> = new Map();
-const CACHE_TTL = 60 * 60 * 1000; // 1 hour
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 function getPeriodDates(periodId: string): { start: Date; end: Date } | null {
     if (periodId === 'all') return null;
