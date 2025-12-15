@@ -455,10 +455,35 @@ export function calculateTMMR(matches: OpenDotaMatch[]): TmmrCalculationResult {
     // Blend components
     let blendedMMR = (wrComponent.wrMMR * weights.wrWeight) + (simComponent.simMMR * weights.simWeight);
 
+    // Calculate PRO stats for difficulty adjustment
+    const PRO_THRESHOLD = 60; // Ancient+
+    const proMatches = validMatches.filter(m =>
+        m.average_rank !== undefined && m.average_rank >= PRO_THRESHOLD
+    );
+    const proGames = proMatches.length;
+    const proWins = proMatches.filter(m => inferWin(m)).length;
+    const proWinrate = proGames > 0 ? (proWins / proGames) : 0.5;
+
+    // Adjust difficulty multiplier based on PRO performance
+    // If you play many high-level games, your performance there matters a LOT
+    let adjustedDiffMultiplier = avgDiffMultiplier;
+    if (proGames >= 20) {
+        if (proWinrate >= 0.60) {
+            // Excellent PRO performance: +10% to difficulty multiplier
+            adjustedDiffMultiplier *= 1.10;
+        } else if (proWinrate >= 0.50) {
+            // Good PRO performance: +5% to difficulty multiplier
+            adjustedDiffMultiplier *= 1.05;
+        } else if (proWinrate < 0.45) {
+            // Poor PRO performance: -15% to difficulty multiplier
+            // You can't stomp low-level games and claim high skill
+            adjustedDiffMultiplier *= 0.85;
+        }
+    }
+
     // Apply difficulty multiplier to the deviation from base
-    // This ensures high-difficulty players get a bonus, low-difficulty get penalty
     const deviation = blendedMMR - BASE_TMMR;
-    const adjustedDeviation = deviation * avgDiffMultiplier;
+    const adjustedDeviation = deviation * adjustedDiffMultiplier;
     blendedMMR = BASE_TMMR + adjustedDeviation;
 
     // Volume Bonus: Reward players for accumulating wins (but not excessively)
