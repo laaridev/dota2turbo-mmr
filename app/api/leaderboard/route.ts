@@ -85,11 +85,52 @@ export async function GET(request: Request) {
                 query = { ...query, ...minGamesFilter };
             }
 
-            const players = await Player.find(query)
+            let players = await Player.find(query)
                 .sort(sortField)
                 .skip(skip)
                 .limit(limit)
                 .lean();
+
+            // Special handling for PRO ranking: calculate fair score
+            if (rankingMode === 'pro') {
+                // Get all PRO players (not just paginated)
+                const allProPlayers = await Player.find(query).lean();
+
+                // Calculate fair score using Bayesian average
+                const PRIOR_GAMES = 5; // Assume 5 games at 50% WR as baseline
+                const scoredPlayers = allProPlayers.map(p => {
+                    const proWins = (p.proWinrate / 100) * p.proGames;
+                    const proLosses = p.proGames - proWins;
+
+                    // Bayesian average: (wins + prior) / (games + prior*2)
+                    // This penalizes low sample sizes
+                    const fairScore = ((proWins + PRIOR_GAMES * 0.5) / (p.proGames + PRIOR_GAMES)) * 100;
+
+                    return {
+                        ...p,
+                        proFairScore: fairScore
+                    };
+                });
+
+                // Sort by fair score (higher is better)
+                scoredPlayers.sort((a, b) => b.proFairScore - a.proFairScore);
+
+                // Apply pagination
+                players = scoredPlayers.slice(skip, skip + limit) as any;
+
+                const total = scoredPlayers.length;
+
+                const response = {
+                    players,
+                    periods: PERIODS,
+                    currentPeriod: period,
+                    rankingMode,
+                    pagination: { total, page, pages: Math.ceil(total / limit) }
+                };
+
+                periodCache.set(cacheKey, { data: response, timestamp: Date.now() });
+                return NextResponse.json(response);
+            }
 
             const total = await Player.countDocuments(query);
 
