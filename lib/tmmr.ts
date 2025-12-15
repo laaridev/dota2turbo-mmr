@@ -41,6 +41,7 @@ export interface TMMRBreakdown {
     // Final weights and result
     wrWeight: number;
     simWeight: number;
+    volumeBonus: number;     // Bonus for accumulating wins
     finalTMMR: number;
 
     // Confidence
@@ -423,6 +424,7 @@ export function calculateTMMR(matches: OpenDotaMatch[]): TmmrCalculationResult {
                 simMMR: BASE_TMMR,
                 wrWeight: 0.5,
                 simWeight: 0.5,
+                volumeBonus: 0,
                 finalTMMR: BASE_TMMR,
                 confidence: 0.1,
                 isCalibrating: true
@@ -459,6 +461,11 @@ export function calculateTMMR(matches: OpenDotaMatch[]): TmmrCalculationResult {
     const adjustedDeviation = deviation * avgDiffMultiplier;
     blendedMMR = BASE_TMMR + adjustedDeviation;
 
+    // Volume Bonus: Reward players for accumulating wins (but not excessively)
+    // +1 TMMR per 10 wins, capped at +150 (1500 wins)
+    const volumeBonus = Math.min(Math.floor(wins / 10), 150);
+    blendedMMR += volumeBonus;
+
     // Final clamp
     const finalTMMR = Math.round(clamp(blendedMMR, TMMR_MIN, TMMR_MAX));
 
@@ -480,6 +487,7 @@ export function calculateTMMR(matches: OpenDotaMatch[]): TmmrCalculationResult {
         simMMR: simComponent.simMMR,
         wrWeight: weights.wrWeight,
         simWeight: weights.simWeight,
+        volumeBonus,
         finalTMMR,
         confidence,
         isCalibrating
