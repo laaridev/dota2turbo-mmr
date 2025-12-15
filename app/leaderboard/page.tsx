@@ -235,17 +235,27 @@ function PlayerRow({ player, position, isTopThree, rankingMode }: {
 
                 {/* Avatar or Hero Image */}
                 <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 ring-2 ring-white/10">
-                    {rankingMode === 'specialist' && player.bestHeroId ? (
-                        <img
-                            src={`https://api.opendota.com/api/heroes/${player.bestHeroId}/icon`}
-                            alt={`Hero ${player.bestHeroId}`}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                            onError={(e) => {
-                                // Fallback to player avatar if hero image fails
-                                console.log('Hero image failed for ID:', player.bestHeroId);
-                                (e.target as HTMLImageElement).src = player.avatar;
-                            }}
-                        />
+                    {rankingMode === 'specialist' ? (
+                        player.bestHeroId && player.bestHeroId > 0 ? (
+                            <img
+                                src={`https://api.opendota.com/api/heroes/${player.bestHeroId}/icon`}
+                                alt={`Hero ${player.bestHeroId}`}
+                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                onError={(e) => {
+                                    console.error('Hero icon failed for:', player.name, 'heroId:', player.bestHeroId);
+                                    (e.target as HTMLImageElement).src = player.avatar;
+                                }}
+                            />
+                        ) : (
+                            <>
+                                {console.log('No hero ID for', player.name, player.bestHeroId)}
+                                <img
+                                    src={player.avatar}
+                                    alt={player.name}
+                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                />
+                            </>
+                        )
                     ) : (
                         <img
                             src={player.avatar}

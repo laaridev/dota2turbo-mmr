@@ -11,63 +11,60 @@ interface RankingInfoModalProps {
 
 const INFO_CONTENT: Record<string, { title: string; icon: any; description: string; details: string[] }> = {
     general: {
-        title: 'Rank Geral (TMMR v3.0)',
+        title: 'Rank Geral',
         icon: Trophy,
-        description: 'Quanto mais forte o oponente, maior sua recompensa. Jogar bem contra os melhores vale MUITO mais!',
+        description: 'Combina sua taxa de vitórias com a qualidade dos oponentes que você enfrenta.',
         details: [
-            '📊 Combina sua taxa de vitórias (50%) com a qualidade dos seus oponentes (50%).',
-            '🎯 Vencer contra jogadores fortes = Recompensa MASSIVA:',
-            '   • Divine/Immortal: Até o DOBRO de pontos!',
-            '   • Ancient: +25% a +50% de pontos',
-            '   • Legend: +15% a +25% de pontos',
-            '⚠️ Atenção: Se você joga muito em nível alto mas perde (WR < 45%), seu bônus é reduzido.',
-            '🏆 Bônus de Volume: +1.5 pontos a cada 10 vitórias (máximo +200).',
-            '💡 Resumo: Vença consistentemente contra oponentes fortes para subir!'
+            'Leva em conta tanto suas vitórias quanto o nível dos jogadores contra quem você joga.',
+            'Vencer partidas contra jogadores fortes vale muito mais pontos.',
+            'Jogadores em níveis Divine e Immortal podem dobrar seus ganhos.',
+            'Se você joga muito em alto nível mas perde com frequência, seus ganhos são reduzidos.',
+            'Quanto mais você joga e vence, mais pontos acumula.'
         ]
     },
     winrate: {
         title: 'Ranking de Winrate',
         icon: TrendingUp,
-        description: 'Puro e simples: quantas partidas você ganhou?',
+        description: 'Simplesmente: quantas partidas você ganhou.',
         details: [
-            '🎮 Vitórias divididas pelo total de jogos.',
-            '📈 Quanto maior sua % de vitórias, melhor sua posição.',
-            '🎯 Mínimo: 50 partidas para aparecer no ranking.'
+            'Mede sua porcentagem de vitórias.',
+            'Quanto maior sua taxa de vitória, melhor sua colocação.',
+            'Requer no mínimo 50 partidas jogadas.'
         ]
     },
     performance: {
         title: 'Ranking de Performance',
         icon: Target,
-        description: 'Seu desempenho médio em combate (KDA).',
+        description: 'Seu desempenho médio em combate.',
         details: [
-            '⚔️ KDA = (Abates + Assistências × 0.7) / Mortes',
-            '💀 Assistências valem 70% de um abate.',
-            '📊 Mínimo: 20 partidas.',
-            '🏅 Quanto menos você morre e mais participa, melhor!'
+            'Avalia quantos abates e assistências você faz versus quantas mortes.',
+            'Assistências contam quase tanto quanto abates.',
+            'Morrer menos e participar mais dos abates aumenta sua posição.',
+            'Requer no mínimo 20 partidas.'
         ]
     },
     specialist: {
         title: 'Ranking de Especialistas',
         icon: Swords,
-        description: 'Os mestres de um herói específico. Dedicação + Habilidade = Topo!',
+        description: 'Os melhores jogadores com um herói específico.',
         details: [
-            '🗡️ Mostra seu MELHOR herói (maior winrate com 10+ jogos).',
-            '⚖️ Equilibra vitórias (70%) com dedicação (30%).',
-            '📈 5000 jogos com 60% WR > 30 jogos com 90% WR.',
-            '💪 Jogue MUITO com um herói e vença para dominar!',
-            '🖼️ Exibe: Foto do herói + Seu nome + Winrate + Total de jogos.'
+            'Identifica o herói que você mais domina.',
+            'Combina sua taxa de vitórias com quantas partidas você jogou com aquele herói.',
+            'Jogar muito com um herói e vencer consistentemente te coloca no topo.',
+            'Alguém com milhares de jogos e boa taxa de vitória ganha de quem tem poucos jogos perfeitos.',
+            'Mostra a foto do herói ao lado do seu nome.'
         ]
     },
     pro: {
         title: 'Ranking Alto Nível',
         icon: Star,
-        description: 'Apenas partidas contra jogadores Ancient ou superior. A elite!',
+        description: 'Apenas partidas contra jogadores Ancient ou superiores.',
         details: [
-            '👑 Filtro: Apenas jogos com Average Rank 60+ (Ancient ou superior).',
-            '⚖️ Equilibra seu winrate (70%) com quantos jogos PRO você jogou (30%).',
-            '🎯 1000 jogos PRO @ 55% > 30 jogos @ 90%.',
-            '💡 Jogue MUITO em alto nível e vença para liderar!',
-            '📊 Mínimo: Pelo menos 1 jogo Ancient+.'
+            'Filtra apenas seus jogos de mais alto nível.',
+            'Combina suas vitórias nessas partidas com quanto você joga nesse nível.',
+            'Jogadores dedicados que jogam muito em alto nível são recompensados.',
+            'Poucos jogos com sorte não são suficientes para liderar.',
+            'É necessário consistência em alto nível para dominar este ranking.'
         ]
     }
 };
