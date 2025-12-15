@@ -23,8 +23,11 @@ const INFO_CONTENT: Record<string, { title: string; icon: any; description: stri
             '   • Divine/Immortal (avg rank 70-80): DOBRA seus pontos (+50% a +100%)',
             '   • Ancient (avg rank 60-69): +25% a +50% de pontos',
             '   • Legend (avg rank 50-59): +15% a +25% de pontos',
-            'Perder contra oponentes fracos = Punição maior.',
-            'Fórmula: (Winrate × 0.5 + Simulação × 0.5) × Multiplicador_de_Dificuldade'
+            '⚠️  Ajuste PRO: Se você tem 20+ jogos PRO (Ancient+):',
+            '   • Winrate PRO < 45% → Penalização de -15% no multiplier',
+            '   • Winrate PRO ≥ 60% → Bônus de +10% no multiplier',
+            'Volume Bonus: +1 TMMR a cada 10 vitórias (máx +150).',
+            'Fórmula: (Winrate × 0.5 + Simulação × 0.5) × Difficulty_Ajustado + Volume_Bonus'
         ]
     },
     winrate: {
@@ -51,13 +54,15 @@ const INFO_CONTENT: Record<string, { title: string; icon: any; description: stri
     pro: {
         title: 'Ranking Alto Nível',
         icon: Star,
-        description: 'Considera exclusivamente partidas de alto nível competitivo.',
+        description: 'Combina habilidade e dedicação em partidas de alto nível.',
         details: [
             'Filtro: Average Rank >= 60 (Ancient+).',
-            'Apenas partidas que passam no filtro são contabilizadas.',
-            'Fórmula: (Vitórias PRO / Total Partidas PRO) × 100',
-            'Mínimo: Pelo menos 1 partida no nível Ancient ou superior.',
-            'Ordenação: Decrescente pelo Winrate PRO.'
+            'PRO Score = (Bayesian Winrate × 70%) + (√Jogos PRO × 30%)',
+            'Bayesian Winrate: Penaliza amostras pequenas (assume 10 jogos a 50% como base).',
+            'Volume conta MUITO: 400 jogos com 55% > 20 jogos com 65%.',
+            'Exemplo: 400 jogos a 55% = Score ~44 vs 20 jogos a 65% = Score ~46 (similar!)',
+            'Mínimo: Pelo menos 1 partida Ancient+.',
+            'Ordenação: Decrescente pelo PRO Score (skill + volume).'
         ]
     }
 };

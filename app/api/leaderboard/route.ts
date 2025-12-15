@@ -96,24 +96,31 @@ export async function GET(request: Request) {
                 // Get all PRO players (not just paginated)
                 const allProPlayers = await Player.find(query).lean();
 
-                // Calculate fair score using Bayesian average
-                const PRIOR_GAMES = 5; // Assume 5 games at 50% WR as baseline
+                // Calculate PRO score combining winrate + volume
+                // Philosophy: High-level grinding should be rewarded heavily
+                const PRIOR_GAMES = 10; // Assume 10 games at 50% WR as baseline
                 const scoredPlayers = allProPlayers.map(p => {
                     const proWins = (p.proWinrate / 100) * p.proGames;
-                    const proLosses = p.proGames - proWins;
 
-                    // Bayesian average: (wins + prior) / (games + prior*2)
-                    // This penalizes low sample sizes
-                    const fairScore = ((proWins + PRIOR_GAMES * 0.5) / (p.proGames + PRIOR_GAMES)) * 100;
+                    // Bayesian average winrate (penalizes low samples)
+                    const bayesianWR = ((proWins + PRIOR_GAMES * 0.5) / (p.proGames + PRIOR_GAMES)) * 100;
+
+                    // Volume factor: logarithmic scale to reward consistent grinding
+                    // sqrt(games) means 100 games = 10x, 400 games = 20x, 900 games = 30x
+                    const volumeFactor = Math.sqrt(p.proGames);
+
+                    // Final PRO Score: 70% skill (Bayesian WR) + 30% dedication (volume)
+                    // Normalized so a 55% WR with 400 games > 65% WR with 20 games
+                    const proScore = (bayesianWR * 0.7) + (volumeFactor * 0.3);
 
                     return {
                         ...p,
-                        proFairScore: fairScore
+                        proScore
                     };
                 });
 
-                // Sort by fair score (higher is better)
-                scoredPlayers.sort((a, b) => b.proFairScore - a.proFairScore);
+                // Sort by PRO score (higher is better)
+                scoredPlayers.sort((a, b) => b.proScore - a.proScore);
 
                 // Apply pagination
                 players = scoredPlayers.slice(skip, skip + limit) as any;
