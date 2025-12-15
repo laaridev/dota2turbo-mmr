@@ -136,7 +136,9 @@ export async function GET(request: Request) {
                 };
 
                 periodCache.set(cacheKey, { data: response, timestamp: Date.now() });
-                return NextResponse.json(response);
+                return NextResponse.json(response, {
+                    headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' }
+                });
             }
 
             const total = await Player.countDocuments(query);
@@ -150,7 +152,9 @@ export async function GET(request: Request) {
             };
 
             periodCache.set(cacheKey, { data: response, timestamp: Date.now() });
-            return NextResponse.json(response);
+            return NextResponse.json(response, {
+                headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' }
+            });
         }
 
         // Period filter - simple version using current TMMR
@@ -209,7 +213,14 @@ export async function GET(request: Request) {
         };
 
         periodCache.set(cacheKey, { data: response, timestamp: Date.now() });
-        return NextResponse.json(response);
+
+        return NextResponse.json(response, {
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            }
+        });
 
     } catch (error) {
         console.error('Leaderboard Error:', error);

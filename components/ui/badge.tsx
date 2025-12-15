@@ -16,8 +16,8 @@ const badgeVariants = cva(
                 outline: "text-foreground",
                 // Dota 2 Ranks - solid backgrounds with colored borders
                 herald: "bg-zinc-900 text-zinc-300 border-2 border-zinc-500",
-                guardian: "bg-teal-950 text-teal-300 border-2 border-teal-500",
-                crusader: "bg-lime-950 text-lime-300 border-2 border-lime-500",
+                guardian: "bg-amber-950/50 text-amber-700 border-2 border-amber-600/70",  // Bronze mais opaco
+                crusader: "bg-slate-900 text-slate-200 border-2 border-slate-400",  // Prata mais brilhante
                 archon: "bg-yellow-950 text-yellow-300 border-2 border-yellow-500",
                 legend: "bg-sky-950 text-sky-300 border-2 border-sky-500",
                 ancient: "bg-purple-950 text-purple-300 border-2 border-purple-500",
