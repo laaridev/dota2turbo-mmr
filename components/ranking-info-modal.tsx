@@ -16,7 +16,7 @@ const INFO_CONTENT: Record<string, { title: string; icon: any; description: stri
         description: 'Sistema híbrido que equilibra taxa de vitória e qualidade dos oponentes enfrentados.',
         details: [
             'Componente de Winrate (50%): Vitórias / Total de partidas.',
-            'Componente de Simulação (50%): Sistema ELO modificado que considera dificuldade.',
+            'Componente de Simulação (50%): Rating baseado em histórico de partidas que considera dificuldade.',
             'Multiplicador de Dificuldade: Average Rank dos oponentes amplifica ganhos/perdas.',
             'Bônus por tier: Divine/Immortal (+50% a +100%), Ancient (+25% a +50%), Legend (+15% a +25%).',
             'K-factor dinâmico: Alta volatilidade para novos jogadores, estabiliza com volume.',
