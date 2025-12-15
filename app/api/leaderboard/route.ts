@@ -114,6 +114,56 @@ export async function GET(request: Request) {
                 .limit(limit)
                 .lean();
 
+            // Special handling for Specialist ranking: calculate Hero Score
+            if (rankingMode === 'specialist') {
+                // Get all specialist players
+                const allSpecialists = await Player.find(query).lean();
+
+                // Calculate Hero Score combining winrate + volume
+                // Philosophy: Massive grinding on a hero should be rewarded heavily
+                const PRIOR_GAMES = 20; // Assume 20 games at 50% WR as baseline
+                const scoredPlayers = allSpecialists.map(p => {
+                    const heroWins = (p.bestHeroWinrate / 100) * p.bestHeroGames;
+
+                    // Bayesian average winrate (penalizes low samples)
+                    const bayesianWR = ((heroWins + PRIOR_GAMES * 0.5) / (p.bestHeroGames + PRIOR_GAMES)) * 100;
+
+                    // Volume factor: logarithmic scale
+                    // sqrt(games): 100 games = 10x, 1000 games = 31.6x, 5000 games = 70.7x
+                    const volumeFactor = Math.sqrt(p.bestHeroGames);
+
+                    // Final Hero Score: 70% skill + 30% dedication
+                    // 5000 games @ 60% > 30 games @ 90%
+                    const heroScore = (bayesianWR * 0.7) + (volumeFactor * 0.3);
+
+                    return {
+                        ...p,
+                        heroScore
+                    };
+                });
+
+                // Sort by Hero score (higher is better)
+                scoredPlayers.sort((a, b) => b.heroScore - a.heroScore);
+
+                // Apply pagination
+                players = scoredPlayers.slice(skip, skip + limit) as any;
+
+                const total = scoredPlayers.length;
+
+                const response = {
+                    players,
+                    periods: PERIODS,
+                    currentPeriod: period,
+                    rankingMode,
+                    pagination: { total, page, pages: Math.ceil(total / limit) }
+                };
+
+                periodCache.set(cacheKey, { data: response, timestamp: Date.now() });
+                return NextResponse.json(response, {
+                    headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' }
+                });
+            }
+
             // Special handling for PRO ranking: calculate fair score
             if (rankingMode === 'pro') {
                 // Get all PRO players (not just paginated)

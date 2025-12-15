@@ -54,14 +54,15 @@ const INFO_CONTENT: Record<string, { title: string; icon: any; description: stri
     specialist: {
         title: 'Ranking de Especialistas',
         icon: Swords,
-        description: 'Mostra os melhores "one-tricks" - jogadores mestres em um herói específico.',
+        description: 'Os melhores "one-tricks" - mestres em um herói específico. Volume conta MUITO!',
         details: [
-            'Para cada jogador, identifica o herói com MAIOR winrate.',
-            'Requisito: Mínimo 10 partidas com o herói para qualificar.',
-            'Exibe: Herói (foto), Winrate e Quantidade de jogos.',
-            'Ordenação: Decrescente pelo Winrate do melhor herói.',
-            'Em caso de empate, prioriza quem tem mais jogos com aquele herói.',
-            'Recompensa especialização ao invés de versatilidade.'
+            'Para cada jogador, identifica o herói com MAIOR winrate (mín 10 jogos).',
+            'Hero Score = (Bayesian Winrate × 70%) + (√Jogos × 30%)',
+            'Bayesian Winrate: Penaliza amostras pequenas (assume 20 jogos a 50%).',
+            'Volume é CRUCIAL: 5000 jogos @ 60% > 30 jogos @ 90%.',
+            'Exemplo: 5000 jogos @ 60% = Score ~63 vs 30 jogos @ 90% = Score ~65 (quase igual!).',
+            'Exibe: Foto do HERÓI + Jogador + Winrate + Jogos.',
+            'Ordenação: Decrescente pelo Hero Score (skill + volume).'
         ]
     },
     pro: {
