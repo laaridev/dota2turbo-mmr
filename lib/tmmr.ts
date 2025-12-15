@@ -475,9 +475,13 @@ export function calculateTMMR(matches: OpenDotaMatch[]): TmmrCalculationResult {
             // Good PRO performance: +5% to difficulty multiplier
             adjustedDiffMultiplier *= 1.05;
         } else if (proWinrate < 0.45) {
-            // Poor PRO performance: -15% to difficulty multiplier
-            // You can't stomp low-level games and claim high skill
-            adjustedDiffMultiplier *= 0.85;
+            // Poor PRO performance: -10% to difficulty multiplier (reduced from -15%)
+            // Exception: If player has 500+ total games, reduce penalty (volume matters)
+            if (games >= 500) {
+                adjustedDiffMultiplier *= 0.95; // Only -5% for grinders
+            } else {
+                adjustedDiffMultiplier *= 0.90; // -10% for others
+            }
         }
     }
 
@@ -486,9 +490,10 @@ export function calculateTMMR(matches: OpenDotaMatch[]): TmmrCalculationResult {
     const adjustedDeviation = deviation * adjustedDiffMultiplier;
     blendedMMR = BASE_TMMR + adjustedDeviation;
 
-    // Volume Bonus: Reward players for accumulating wins (but not excessively)
-    // +1 TMMR per 10 wins, capped at +150 (1500 wins)
-    const volumeBonus = Math.min(Math.floor(wins / 10), 150);
+    // Volume Bonus: Reward players for accumulating wins (increased weight)
+    // +1.5 TMMR per 10 wins, capped at +200 (1333 wins)
+    // This ensures high-volume players are properly rewarded
+    const volumeBonus = Math.min(Math.floor(wins * 1.5 / 10), 200);
     blendedMMR += volumeBonus;
 
     // Final clamp

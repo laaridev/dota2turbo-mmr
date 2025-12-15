@@ -19,6 +19,11 @@ export interface IPlayer extends Document {
     proGames: number; // Games with average_rank >= 65
     proWinrate: number; // Winrate in pro games
     proKDA: number; // Average KDA in pro games
+
+    // Hero Specialist Stats
+    bestHeroId: number; // Hero ID with highest winrate
+    bestHeroGames: number; // Games played with best hero
+    bestHeroWinrate: number; // Winrate with best hero
 }
 
 const PlayerSchema: Schema = new Schema({
@@ -40,6 +45,11 @@ const PlayerSchema: Schema = new Schema({
     proGames: { type: Number, default: 0, index: true },
     proWinrate: { type: Number, default: 0, index: true },
     proKDA: { type: Number, default: 0, index: true },
+
+    // Hero Specialist Stats (indexed for specialist leaderboard)
+    bestHeroId: { type: Number, default: 0 },
+    bestHeroGames: { type: Number, default: 0, index: true },
+    bestHeroWinrate: { type: Number, default: 0, index: true },
 }, { timestamps: true });
 
 // Prevent recompilation in development

@@ -4,6 +4,8 @@ import Player from '@/lib/models/Player';
 import Match from '@/lib/models/Match';
 import { opendota } from '@/lib/opendota';
 import { calculateTMMR } from '@/lib/tmmr';
+import { calculateRankingStats } from '@/lib/ranking-stats';
+import { calculateBestHero } from '@/lib/hero-stats';
 
 const UPDATE_LOCK_DAYS = 7;
 const UPDATE_LOCK_MS = UPDATE_LOCK_DAYS * 24 * 60 * 60 * 1000;
@@ -70,10 +72,6 @@ export async function POST(request: Request) {
         // Calculate TMMR
         const calculation = calculateTMMR(matchesData);
 
-        // Calculate Multi-Ranking Stats
-        const { calculateRankingStats } = await import('@/lib/ranking-stats');
-        const rankingStats = calculateRankingStats(matchesData);
-
         // Save Matches
         // We only save matches that are NOT already in DB or update them?
         // For simplicity and "snapshot" nature, and to avoid huge complexity, 
@@ -112,6 +110,11 @@ export async function POST(request: Request) {
             await Match.bulkWrite(bulkOps.slice(i, i + BATCH_SIZE));
         }
 
+        // Calculate Multi-Ranking Stats
+        const rankingStats = calculateRankingStats(matchesData);
+        // Calculate Best Hero
+        const bestHero = calculateBestHero(matchesData.map(m => ({ heroId: m.hero_id, win: m.radiant_win })));
+
         // Save Player
         const playerUpdate = {
             steamId: accountId,
@@ -131,7 +134,12 @@ export async function POST(request: Request) {
             kdaVariance: rankingStats.kdaVariance,
             proGames: rankingStats.proGames,
             proWinrate: rankingStats.proWinrate,
-            proKDA: rankingStats.proKDA
+            proKDA: rankingStats.proKDA,
+
+            // Hero Specialist Stats
+            bestHeroId: bestHero.bestHeroId,
+            bestHeroGames: bestHero.bestHeroGames,
+            bestHeroWinrate: bestHero.bestHeroWinrate
         };
 
         const player = await Player.findOneAndUpdate(
