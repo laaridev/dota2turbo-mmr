@@ -70,13 +70,9 @@ export async function GET(request: Request) {
                     sortField = { avgKDA: -1 };
                     minGamesFilter = { $expr: { $gte: [{ $add: ['$wins', '$losses'] }, 20] } };
                     break;
-                case 'consistency':
-                    sortField = { kdaVariance: 1 }; // Lower variance = more consistent
-                    minGamesFilter = { $expr: { $gte: [{ $add: ['$wins', '$losses'] }, 30] } };
-                    break;
                 case 'pro':
                     sortField = { proWinrate: -1, proKDA: -1 };
-                    minGamesFilter = { proGames: { $gte: 10 } };
+                    minGamesFilter = { proGames: { $gt: 0 } }; // At least 1 PRO game
                     break;
                 case 'general':
                 default:

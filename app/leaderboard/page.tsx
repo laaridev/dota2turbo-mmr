@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { getTier, getTierCategory, TIER_NAMES } from '@/lib/tmmr';
-import { Trophy, TrendingUp, Target, Activity, Star, Zap, Info } from 'lucide-react';
+import { Trophy, TrendingUp, Target, Star, Zap, Info } from 'lucide-react';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
@@ -14,8 +14,7 @@ const RANKING_MODES = [
     { id: 'general', label: 'Geral', icon: Trophy, description: 'TMMR Principal' },
     { id: 'winrate', label: 'Winrate', icon: TrendingUp, description: 'Taxa de Vitória' },
     { id: 'performance', label: 'Performance', icon: Target, description: 'KDA Médio' },
-    { id: 'consistency', label: 'Consistência', icon: Activity, description: 'Estabilidade' },
-    { id: 'pro', label: 'PRO', icon: Star, description: 'Alto Nível (Rank 65+)', premium: true },
+    { id: 'pro', label: 'Alto Nível', icon: Star, description: 'Rank 60+', premium: true },
 ];
 
 export default function LeaderboardPage() {
@@ -92,7 +91,7 @@ function LeaderboardContent() {
             <div className="container mx-auto px-4 py-6 max-w-4xl relative z-10">
                 {/* Ranking Mode Tabs */}
                 <div className="mb-6 overflow-x-auto">
-                    <div className="flex gap-2 min-w-max pb-2">
+                    <div className="flex gap-2 min-w-max pb-2 justify-center">
                         {RANKING_MODES.map((mode) => {
                             const Icon = mode.icon;
                             const isActive = rankingMode === mode.id;

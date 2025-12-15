@@ -48,28 +48,15 @@ const INFO_CONTENT: Record<string, { title: string; icon: any; description: stri
             'Ordenação: Decrescente pelo KDA médio.'
         ]
     },
-    consistency: {
-        title: 'Ranking de Consistência',
-        icon: Activity,
-        description: 'Mede estabilidade da performance, não o nível. Quanto menos você varia, melhor.',
-        details: [
-            'Calcula KDA de cada partida individualmente.',
-            'Mede variância estatística: o quanto seus KDAs flutuam entre partidas.',
-            'Menor variância = mais consistente = melhor ranqueado.',
-            'Exemplo: KDA sempre entre 4-6 (consistente) vs KDA entre 1-15 (inconsistente).',
-            'Mínimo: 30 partidas para aparecer.',
-            'Ordenação: Crescente pela variância (menor = mais estável).'
-        ]
-    },
     pro: {
-        title: 'Ranking PRO (High Skill)',
+        title: 'Ranking Alto Nível',
         icon: Star,
         description: 'Considera exclusivamente partidas de alto nível competitivo.',
         details: [
-            'Filtro: Average Rank >= 65 (Ancient IV+).',
+            'Filtro: Average Rank >= 60 (Ancient+).',
             'Apenas partidas que passam no filtro são contabilizadas.',
             'Fórmula: (Vitórias PRO / Total Partidas PRO) × 100',
-            'Mínimo: 10 partidas PRO para aparecer no ranking.',
+            'Mínimo: Pelo menos 1 partida no nível Ancient ou superior.',
             'Ordenação: Decrescente pelo Winrate PRO.'
         ]
     }

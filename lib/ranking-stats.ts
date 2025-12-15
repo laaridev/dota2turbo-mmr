@@ -21,7 +21,7 @@ export interface RankingStats {
     proKDA: number;
 }
 
-const PRO_RANK_THRESHOLD = 65;
+const PRO_RANK_THRESHOLD = 60; // Ancient tier and above
 
 /**
  * Calculate KDA for a single match
