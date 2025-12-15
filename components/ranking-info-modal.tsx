@@ -13,14 +13,16 @@ const INFO_CONTENT: Record<string, { title: string; icon: any; description: stri
     general: {
         title: 'Rank Geral (TMMR v3.0)',
         icon: Trophy,
-        description: 'Sistema híbrido que equilibra taxa de vitória e qualidade dos oponentes enfrentados.',
+        description: 'Quanto mais forte o oponente, maior sua recompensa ao vencer. Qualidade > Quantidade.',
         details: [
-            'Componente de Winrate (50%): Vitórias / Total de partidas.',
-            'Componente de Simulação (50%): Rating baseado em histórico de partidas que considera dificuldade.',
-            'Multiplicador de Dificuldade: Average Rank dos oponentes amplifica ganhos/perdas.',
-            'Bônus por tier: Divine/Immortal (+50% a +100%), Ancient (+25% a +50%), Legend (+15% a +25%).',
-            'K-factor dinâmico: Alta volatilidade para novos jogadores, estabiliza com volume.',
-            'Fórmula final: (WR_MMR × 0.5 + SIM_MMR × 0.5) × Difficulty_Multiplier'
+            'Componente de Winrate (50%): Suas vitórias divididas pelo total de partidas.',
+            'Componente de Simulação (50%): Rating que considera a força dos oponentes que você enfrentou.',
+            '🎯 Ganhar contra oponentes fortes = Recompensa MASSIVA:',
+            '   • Divine/Immortal (avg rank 70-80): DOBRA seus pontos (+50% a +100%)',
+            '   • Ancient (avg rank 60-69): +25% a +50% de pontos',
+            '   • Legend (avg rank 50-59): +15% a +25% de pontos',
+            'Perder contra oponentes fracos = Punição maior.',
+            'Fórmula: (Winrate × 0.5 + Simulação × 0.5) × Multiplicador_de_Dificuldade'
         ]
     },
     winrate: {
