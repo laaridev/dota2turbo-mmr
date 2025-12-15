@@ -237,11 +237,12 @@ function PlayerRow({ player, position, isTopThree, rankingMode }: {
                 <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 ring-2 ring-white/10">
                     {rankingMode === 'specialist' && player.bestHeroId ? (
                         <img
-                            src={`https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/hero_${player.bestHeroId}.png`}
+                            src={`https://api.opendota.com/api/heroes/${player.bestHeroId}/icon`}
                             alt={`Hero ${player.bestHeroId}`}
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                             onError={(e) => {
                                 // Fallback to player avatar if hero image fails
+                                console.log('Hero image failed for ID:', player.bestHeroId);
                                 (e.target as HTMLImageElement).src = player.avatar;
                             }}
                         />
