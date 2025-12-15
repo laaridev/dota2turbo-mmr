@@ -13,70 +13,61 @@ const INFO_CONTENT: Record<string, { title: string; icon: any; description: stri
     general: {
         title: 'Rank Geral (TMMR v3.0)',
         icon: Trophy,
-        description: 'Quanto mais forte o oponente, maior sua recompensa ao vencer. Qualidade > Quantidade.',
+        description: 'Quanto mais forte o oponente, maior sua recompensa. Jogar bem contra os melhores vale MUITO mais!',
         details: [
-            'Componente de Winrate (50%): Suas vitórias divididas pelo total de partidas.',
-            'Componente de Simulação (50%): Rating que considera a força dos oponentes que você enfrentou.',
-            'ℹ️  Nível da partida: OpenDota fornece o "Average Rank" estimado de cada partida.',
-            '   Esse valor (0-80) representa o nível médio dos 10 jogadores na partida.',
-            '🎯 Ganhar contra oponentes fortes = Recompensa MASSIVA:',
-            '   • Divine/Immortal (avg rank 70-80): DOBRA seus pontos (+50% a +100%)',
-            '   • Ancient (avg rank 60-69): +25% a +50% de pontos',
-            '   • Legend (avg rank 50-59): +15% a +25% de pontos',
-            '⚠️  Ajuste PRO: Se você tem 20+ jogos PRO (Ancient+):',
-            '   • Winrate PRO < 45% → Penalização de -15% no multiplier',
-            '   • Winrate PRO ≥ 60% → Bônus de +10% no multiplier',
-            'Volume Bonus: +1 TMMR a cada 10 vitórias (máx +150).',
-            'Fórmula: (Winrate × 0.5 + Simulação × 0.5) × Difficulty_Ajustado + Volume_Bonus'
+            '📊 Combina sua taxa de vitórias (50%) com a qualidade dos seus oponentes (50%).',
+            '🎯 Vencer contra jogadores fortes = Recompensa MASSIVA:',
+            '   • Divine/Immortal: Até o DOBRO de pontos!',
+            '   • Ancient: +25% a +50% de pontos',
+            '   • Legend: +15% a +25% de pontos',
+            '⚠️ Atenção: Se você joga muito em nível alto mas perde (WR < 45%), seu bônus é reduzido.',
+            '🏆 Bônus de Volume: +1.5 pontos a cada 10 vitórias (máximo +200).',
+            '💡 Resumo: Vença consistentemente contra oponentes fortes para subir!'
         ]
     },
     winrate: {
         title: 'Ranking de Winrate',
         icon: TrendingUp,
-        description: 'Classificação baseada puramente na taxa de vitória.',
+        description: 'Puro e simples: quantas partidas você ganhou?',
         details: [
-            'Fórmula: (Vitórias / Total de Partidas) × 100',
-            'Mínimo: 50 partidas para aparecer no ranking.',
-            'Ordenação: Decrescente pela porcentagem de vitórias.'
+            '🎮 Vitórias divididas pelo total de jogos.',
+            '📈 Quanto maior sua % de vitórias, melhor sua posição.',
+            '🎯 Mínimo: 50 partidas para aparecer no ranking.'
         ]
     },
     performance: {
         title: 'Ranking de Performance',
         icon: Target,
-        description: 'Média do KDA em todas as partidas.',
+        description: 'Seu desempenho médio em combate (KDA).',
         details: [
-            'Fórmula: (Kills + Assists × 0.7) / max(Deaths, 1)',
-            'Assists têm peso de 70% comparado com Kills.',
-            'Mínimo: 20 partidas para aparecer no ranking.',
-            'Ordenação: Decrescente pelo KDA médio.'
+            '⚔️ KDA = (Abates + Assistências × 0.7) / Mortes',
+            '💀 Assistências valem 70% de um abate.',
+            '📊 Mínimo: 20 partidas.',
+            '🏅 Quanto menos você morre e mais participa, melhor!'
         ]
     },
     specialist: {
         title: 'Ranking de Especialistas',
         icon: Swords,
-        description: 'Os melhores "one-tricks" - mestres em um herói específico. Volume conta MUITO!',
+        description: 'Os mestres de um herói específico. Dedicação + Habilidade = Topo!',
         details: [
-            'Para cada jogador, identifica o herói com MAIOR winrate (mín 10 jogos).',
-            'Hero Score = (Bayesian Winrate × 70%) + (√Jogos × 30%)',
-            'Bayesian Winrate: Penaliza amostras pequenas (assume 20 jogos a 50%).',
-            'Volume é CRUCIAL: 5000 jogos @ 60% > 30 jogos @ 90%.',
-            'Exemplo: 5000 jogos @ 60% = Score ~63 vs 30 jogos @ 90% = Score ~65 (quase igual!).',
-            'Exibe: Foto do HERÓI + Jogador + Winrate + Jogos.',
-            'Ordenação: Decrescente pelo Hero Score (skill + volume).'
+            '🗡️ Mostra seu MELHOR herói (maior winrate com 10+ jogos).',
+            '⚖️ Equilibra vitórias (70%) com dedicação (30%).',
+            '📈 5000 jogos com 60% WR > 30 jogos com 90% WR.',
+            '💪 Jogue MUITO com um herói e vença para dominar!',
+            '🖼️ Exibe: Foto do herói + Seu nome + Winrate + Total de jogos.'
         ]
     },
     pro: {
         title: 'Ranking Alto Nível',
         icon: Star,
-        description: 'Combina habilidade e dedicação em partidas de alto nível.',
+        description: 'Apenas partidas contra jogadores Ancient ou superior. A elite!',
         details: [
-            'Filtro: Average Rank >= 60 (Ancient+).',
-            'PRO Score = (Bayesian Winrate × 70%) + (√Jogos PRO × 30%)',
-            'Bayesian Winrate: Penaliza amostras pequenas (assume 10 jogos a 50% como base).',
-            'Volume conta MUITO: 400 jogos com 55% > 20 jogos com 65%.',
-            'Exemplo: 400 jogos a 55% = Score ~44 vs 20 jogos a 65% = Score ~46 (similar!)',
-            'Mínimo: Pelo menos 1 partida Ancient+.',
-            'Ordenação: Decrescente pelo PRO Score (skill + volume).'
+            '👑 Filtro: Apenas jogos com Average Rank 60+ (Ancient ou superior).',
+            '⚖️ Equilibra seu winrate (70%) com quantos jogos PRO você jogou (30%).',
+            '🎯 1000 jogos PRO @ 55% > 30 jogos @ 90%.',
+            '💡 Jogue MUITO em alto nível e vença para liderar!',
+            '📊 Mínimo: Pelo menos 1 jogo Ancient+.'
         ]
     }
 };

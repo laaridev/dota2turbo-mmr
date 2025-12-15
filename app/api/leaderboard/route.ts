@@ -171,7 +171,7 @@ export async function GET(request: Request) {
 
                 // Calculate PRO score combining winrate + volume
                 // Philosophy: High-level grinding should be rewarded heavily
-                const PRIOR_GAMES = 10; // Assume 10 games at 50% WR as baseline
+                const PRIOR_GAMES = 50; // Assume 50 games at 50% WR as baseline (increased from 10)
                 const scoredPlayers = allProPlayers.map(p => {
                     const proWins = (p.proWinrate / 100) * p.proGames;
 
