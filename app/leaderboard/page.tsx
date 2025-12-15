@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { getTier, getTierCategory, TIER_NAMES } from '@/lib/tmmr';
-import { Trophy, TrendingUp, Target, Star, Zap, Info } from 'lucide-react';
+import { Trophy, TrendingUp, Target, Star, Zap, Info, Swords } from 'lucide-react';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
@@ -14,6 +14,7 @@ const RANKING_MODES = [
     { id: 'general', label: 'Geral', icon: Trophy, description: 'TMMR Principal' },
     { id: 'winrate', label: 'Winrate', icon: TrendingUp, description: 'Taxa de Vitória' },
     { id: 'performance', label: 'Performance', icon: Target, description: 'KDA Médio' },
+    { id: 'specialist', label: 'Especialistas', icon: Swords, description: 'Heróis', premium: true },
     { id: 'pro', label: 'Alto Nível', icon: Star, description: 'Rank 60+', premium: true },
 ];
 
@@ -196,6 +197,10 @@ function PlayerRow({ player, position, isTopThree, rankingMode }: {
             metricValue = (player.kdaVariance ?? 0).toFixed(2);
             metricLabel = 'Variância';
             break;
+        case 'specialist':
+            metricValue = `${(player.bestHeroWinrate ?? 0).toFixed(1)}%`;
+            metricLabel = `${player.bestHeroGames || 0} jogos`;
+            break;
         case 'pro':
             metricValue = `${(player.proWinrate ?? 0).toFixed(1)}%`;
             metricLabel = `${player.proGames || 0} jogos PRO`;
@@ -228,13 +233,25 @@ function PlayerRow({ player, position, isTopThree, rankingMode }: {
                     {position}
                 </div>
 
-                {/* Avatar */}
+                {/* Avatar or Hero Image */}
                 <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 ring-2 ring-white/10">
-                    <img
-                        src={player.avatar}
-                        alt={player.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
+                    {rankingMode === 'specialist' && player.bestHeroId ? (
+                        <img
+                            src={`https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/hero_${player.bestHeroId}.png`}
+                            alt={`Hero ${player.bestHeroId}`}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                            onError={(e) => {
+                                // Fallback to player avatar if hero image fails
+                                (e.target as HTMLImageElement).src = player.avatar;
+                            }}
+                        />
+                    ) : (
+                        <img
+                            src={player.avatar}
+                            alt={player.name}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                    )}
                 </div>
 
                 {/* Player Info */}

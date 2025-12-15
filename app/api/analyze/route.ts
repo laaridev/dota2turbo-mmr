@@ -148,10 +148,27 @@ export async function POST(request: Request) {
             { new: true, upsert: true }
         );
 
-        return NextResponse.json({ player });
+        // Invalidate leaderboard cache (smart cache!)
+        try {
+            const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://dotaturbo.vercel.app';
+            await fetch(`${baseUrl}/api/leaderboard?revalidate=true`, { method: 'POST' });
+        } catch (e) {
+            console.log('[Cache] Failed to invalidate, will expire naturally');
+        }
+
+        return NextResponse.json({
+            success: true,
+            player,
+            calculation,
+            message: 'Profile analyzed successfully'
+        });
 
     } catch (error: any) {
-        console.error('Analyze Error:', error);
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+        console.error('Analysis Error:', error);
+        return NextResponse.json({
+            error: 'Analysis failed',
+            details: error instanceof Error ? error.message : 'Unknown error'
+        }, { status: 500 });
     }
 }
+```

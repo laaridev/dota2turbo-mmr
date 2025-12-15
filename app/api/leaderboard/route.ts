@@ -36,6 +36,25 @@ function getPeriodDates(periodId: string): { start: Date; end: Date } | null {
     return { start, end };
 }
 
+// POST handler for cache invalidation
+export async function POST(request: Request) {
+    try {
+        const { searchParams } = new URL(request.url);
+        const revalidate = searchParams.get('revalidate');
+
+        if (revalidate === 'true') {
+            // Clear cache
+            periodCache.clear();
+            console.log('[Cache] Leaderboard cache invalidated');
+            return NextResponse.json({ success: true, message: 'Cache cleared' });
+        }
+
+        return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+    } catch (error) {
+        return NextResponse.json({ error: 'Failed to invalidate cache' }, { status: 500 });
+    }
+}
+
 export async function GET(request: Request) {
     try {
         const searchParams = new URL(request.url).searchParams;
@@ -69,6 +88,10 @@ export async function GET(request: Request) {
                 case 'performance':
                     sortField = { avgKDA: -1 };
                     minGamesFilter = { $expr: { $gte: [{ $add: ['$wins', '$losses'] }, 20] } };
+                    break;
+                case 'specialist':
+                    sortField = { bestHeroWinrate: -1, bestHeroGames: -1 };
+                    minGamesFilter = { bestHeroGames: { $gte: 10 } }; // Min 10 games with hero
                     break;
                 case 'pro':
                     sortField = { proWinrate: -1, proKDA: -1 };

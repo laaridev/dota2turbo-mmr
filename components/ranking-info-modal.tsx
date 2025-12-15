@@ -1,6 +1,6 @@
 'use client';
 
-import { Trophy, TrendingUp, Target, Activity, Star, X } from 'lucide-react';
+import { Trophy, TrendingUp, Target, Activity, Star, Swords, X } from 'lucide-react';
 import { useEffect } from 'react';
 
 interface RankingInfoModalProps {
@@ -49,6 +49,19 @@ const INFO_CONTENT: Record<string, { title: string; icon: any; description: stri
             'Assists têm peso de 70% comparado com Kills.',
             'Mínimo: 20 partidas para aparecer no ranking.',
             'Ordenação: Decrescente pelo KDA médio.'
+        ]
+    },
+    specialist: {
+        title: 'Ranking de Especialistas',
+        icon: Swords,
+        description: 'Mostra os melhores "one-tricks" - jogadores mestres em um herói específico.',
+        details: [
+            'Para cada jogador, identifica o herói com MAIOR winrate.',
+            'Requisito: Mínimo 10 partidas com o herói para qualificar.',
+            'Exibe: Herói (foto), Winrate e Quantidade de jogos.',
+            'Ordenação: Decrescente pelo Winrate do melhor herói.',
+            'Em caso de empate, prioriza quem tem mais jogos com aquele herói.',
+            'Recompensa especialização ao invés de versatilidade.'
         ]
     },
     pro: {
