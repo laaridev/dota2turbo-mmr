@@ -6,13 +6,31 @@ import { calculateTMMR } from '@/lib/tmmr';
 
 export async function POST(request: Request) {
     try {
+        const { searchParams } = new URL(request.url);
+        const batchSize = parseInt(searchParams.get('batch') || '5');
+        const skip = parseInt(searchParams.get('skip') || '0');
+
         await connectDB();
 
-        console.log('[TMMR Migration] Starting recalculation with v3.0 formula...');
+        console.log(`[TMMR Migration] Processing batch ${skip}-${skip + batchSize}...`);
 
-        // Get all players
-        const allPlayers = await Player.find({ isPrivate: false }).lean();
-        console.log(`[TMMR Migration] Found ${allPlayers.length} players`);
+        // Get players in batch
+        const allPlayers = await Player.find({ isPrivate: false })
+            .skip(skip)
+            .limit(batchSize)
+            .lean();
+
+        const total = await Player.countDocuments({ isPrivate: false });
+        console.log(`[TMMR Migration] Batch: ${allPlayers.length} players (${skip}/${total})`);
+
+        if (allPlayers.length === 0) {
+            return NextResponse.json({
+                success: true,
+                message: 'Migration complete - no more players',
+                done: true,
+                stats: { processed: 0, total, skip }
+            });
+        }
 
         let processed = 0;
         let skipped = 0;
@@ -66,24 +84,14 @@ export async function POST(request: Request) {
                     }
                 );
 
-                // Store top 20 for display
-                if (processed < 20) {
-                    results.push({
-                        name: player.name,
-                        oldTMMR: player.tmmr,
-                        newTMMR: calculation.currentTmmr,
-                        change: calculation.currentTmmr - player.tmmr,
-                        winrate: ((calculation.wins / (calculation.wins + calculation.losses)) * 100).toFixed(1),
-                        games: calculation.wins + calculation.losses,
-                        avgDifficulty: calculation.breakdown?.avgDifficultyRank?.toFixed(1) || 'N/A'
-                    });
-                }
+                results.push({
+                    name: player.name,
+                    oldTMMR: player.tmmr,
+                    newTMMR: calculation.currentTmmr,
+                    change: calculation.currentTmmr - player.tmmr
+                });
 
                 processed++;
-
-                if (processed % 10 === 0) {
-                    console.log(`[TMMR Migration] Processed ${processed}/${allPlayers.length}`);
-                }
 
             } catch (err) {
                 console.error(`[TMMR Migration] Error processing ${player.steamId}:`, err);
@@ -91,18 +99,24 @@ export async function POST(request: Request) {
             }
         }
 
-        console.log('[TMMR Migration] Complete!');
-        console.log(`Processed: ${processed}, Skipped: ${skipped}`);
+        const nextSkip = skip + batchSize;
+        const hasMore = nextSkip < total;
+
+        console.log(`[TMMR Migration] Batch complete: ${processed} processed, ${skipped} skipped`);
 
         return NextResponse.json({
             success: true,
-            message: 'TMMR v3.0 migration completed',
+            message: `Batch ${skip}-${skip + batchSize} completed`,
+            done: !hasMore,
             stats: {
-                total: allPlayers.length,
                 processed,
-                skipped
+                skipped,
+                batchSize: allPlayers.length,
+                total,
+                skip: nextSkip
             },
-            topPlayers: results.sort((a, b) => b.newTMMR - a.newTMMR)
+            results: results.sort((a, b) => b.newTMMR - a.newTMMR),
+            nextUrl: hasMore ? `/api/migrate?batch=${batchSize}&skip=${nextSkip}` : null
         });
 
     } catch (error) {
