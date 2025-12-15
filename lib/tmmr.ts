@@ -99,9 +99,9 @@ const K_DECAY_RATE = 100;  // Games at which K starts decaying (faster decay)
 const TMMR_MIN = 500;
 const TMMR_MAX = 9500;
 
-// Component weights base - WR should dominate
-const WR_WEIGHT_BASE = 0.75;   // Base weight for WR component (dominates)
-const SIM_WEIGHT_BASE = 0.25;  // Base weight for simulation component
+// Component weights base - Balanced between WR and Difficulty
+const WR_WEIGHT_BASE = 0.50;   // Base weight for WR component
+const SIM_WEIGHT_BASE = 0.50;  // Base weight for simulation component (includes difficulty)
 
 // Wilson score Z value (1.0 = 84% confidence, 1.65 = 95%)
 const WILSON_Z = 1.0;
@@ -177,42 +177,41 @@ function calculateDifficultyWeight(avgRank: number | undefined, skill: number | 
     let skillWeight = 1.0;
 
     // Primary: average_rank (0-80 scale, 50 = Legend, 60 = Ancient, 70 = Divine)
-    // Progressive bonus for higher tiers - Ancient+ gets significant bonus
+    // AMPLIFIED bonuses for higher tiers - reward playing against strong opponents
     if (avgRank !== undefined && avgRank > 0 && avgRank <= 80) {
         if (avgRank >= 70) {
-            // Divine/Immortal: +25% to +50%
-            rankWeight = 1.25 + (avgRank - 70) * 0.025;
+            // Divine/Immortal: +50% to +100%
+            rankWeight = 1.50 + (avgRank - 70) * 0.05;
         } else if (avgRank >= 60) {
-            // Ancient: +12% to +25%
-            rankWeight = 1.12 + (avgRank - 60) * 0.013;
+            // Ancient: +25% to +50%
+            rankWeight = 1.25 + (avgRank - 60) * 0.025;
         } else if (avgRank >= 50) {
-            // Legend: +0% to +12%
-            rankWeight = 1.0 + (avgRank - 50) * 0.012;
+            // Legend: +15% to +25%
+            rankWeight = 1.15 + (avgRank - 50) * 0.01;
         } else if (avgRank >= 40) {
-            // Archon: -5% to 0%
-            rankWeight = 0.95 + (avgRank - 40) * 0.005;
+            // Archon: +0% to +15%
+            rankWeight = 1.0 + (avgRank - 40) * 0.015;
         } else {
-            // Crusader and below: -15% to -5%
-            rankWeight = 0.85 + (avgRank - 30) * 0.01;
+            // Crusader and below: -10% to 0%
+            rankWeight = 0.90 + (avgRank - 30) * 0.01;
         }
-        rankWeight = clamp(rankWeight, 0.70, 1.60);
+        rankWeight = clamp(rankWeight, 0.70, 2.00); // Allow up to 2x for highest difficulty
     }
 
     // Secondary: skill bracket (fallback when avg_rank is not available)
     if (skill !== undefined && skill >= 1 && skill <= 3) {
-        // 1=Normal (low), 2=High (mid), 3=Very High (high)
         const skillMap: Record<number, number> = {
             1: 0.85,  // Normal bracket = -15%
             2: 1.00,  // High bracket = neutral
-            3: 1.20   // Very High = +20%
+            3: 1.30   // Very High = +30%
         };
         skillWeight = skillMap[skill] || 1.0;
     }
 
     // Combine multiplicatively, then clamp
-    // Allow up to 80% bonus for high-tier games
+    // Allow up to 2x for highest-tier games
     const combined = rankWeight * skillWeight;
-    return clamp(combined, 0.60, 1.80);
+    return clamp(combined, 0.60, 2.00);
 }
 
 /**
@@ -362,22 +361,20 @@ function calculateSimComponent(matches: OpenDotaMatch[]): {
  * Simulation is just for consistency/smoothing, not for exploiting volume
  */
 function calculateWeights(games: number, wrObserved: number, wrReliable: number): { wrWeight: number; simWeight: number } {
-    // Base: WR dominates (75%)
+    // Base: Balanced (50/50)
     let wrWeight = WR_WEIGHT_BASE;
     let simWeight = SIM_WEIGHT_BASE;
 
-    // High WR players should have even MORE WR weight
-    // This prevents volume from overtaking skill
+    // For extreme WR, slightly increase WR weight (but not as much as before)
     const wrDistance = Math.abs(wrObserved - 0.5);
-    if (wrDistance > 0.10) { // More than 60% or less than 40% WR
-        wrWeight = 0.85;
-        simWeight = 0.15;
+    if (wrDistance > 0.15) { // More than 65% or less than 35% WR
+        wrWeight = 0.60;
+        simWeight = 0.40;
     }
 
-    // For very high volume (1000+), reduce simulation weight further
-    // to prevent volume exploitation
+    // For very high volume (1000+), slightly favor WR to prevent infinite grinding
     if (games >= 1000) {
-        wrWeight = Math.max(wrWeight, 0.80);
+        wrWeight = Math.min(wrWeight + 0.10, 0.65);
         simWeight = 1 - wrWeight;
     }
 
