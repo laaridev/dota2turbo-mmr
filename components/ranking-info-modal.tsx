@@ -11,15 +11,15 @@ interface RankingInfoModalProps {
 
 const INFO_CONTENT: Record<string, { title: string; icon: any; description: string; details: string[] }> = {
     general: {
-        title: 'Rank Geral',
+        title: 'Rank Geral (TMMR)',
         icon: Trophy,
-        description: 'Combina sua taxa de vitórias com a qualidade dos oponentes que você enfrenta.',
+        description: 'Seu nível real de habilidade, ajustado por confiança e dificuldade.',
         details: [
-            'Leva em conta tanto suas vitórias quanto o nível dos jogadores contra quem você joga.',
-            'Vencer partidas contra jogadores fortes vale muito mais pontos.',
-            'Jogadores em níveis Divine e Immortal podem dobrar seus ganhos.',
-            'Se você joga muito em alto nível mas perde com frequência, seus ganhos são reduzidos.',
-            'Quanto mais você joga e vence, mais pontos acumula.'
+            'Skill (Habilidade): Baseado principalmente em vitórias (60%), mas também KDA e Rank das partidas.',
+            'Confiança: Iniciantes ganham menos pontos até provarem consistência (aprox. 300-500 jogos).',
+            'Dificuldade: Jogar em lobbies de nível alto (Ancient+) dá um multiplicador bônus.',
+            'Não basta "spammar" jogos: se você joga muito mas não melhora, seu TMMR estabiliza.',
+            'Fórmula: Skill × Confiança × Dificuldade.'
         ]
     },
     winrate: {

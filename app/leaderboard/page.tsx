@@ -4,7 +4,8 @@ import { Suspense, useEffect, useState, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { getTier, getTierCategory, TIER_NAMES } from '@/lib/tmmr';
-import { Trophy, TrendingUp, Target, Star, Zap, Info, Swords, ShieldCheck } from 'lucide-react';
+import { Trophy, TrendingUp, Target, Star, Zap, Info, Swords, Shieldcheck, Crown, Flame, Medal } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
@@ -221,8 +222,8 @@ function PlayerRow({ player, position, isTopThree, rankingMode }: {
             <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: Math.min(position * 0.02, 0.3) }}
-                className={`flex items-center gap-3 p-3 rounded-xl border ${bgClass} hover:bg-white/5 hover:border-primary/30 transition-all cursor-pointer group ${isTopThree ? 'shadow-lg' : ''}`}
+                transition={{ delay: Math.min(position * 0.03, 0.4) }}
+                className={`flex items-center gap-4 p-4 rounded-2xl border ${bgClass} hover:bg-white/5 hover:border-primary/20 hover:scale-[1.01] transition-all cursor-pointer group backdrop-blur-sm mb-3 shadow-sm`}
             >
                 {/* Position Badge */}
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0 ${position === 1 ? 'bg-gradient-to-br from-amber-500 to-amber-600 text-white shadow-lg shadow-amber-500/50' :
@@ -265,38 +266,76 @@ function PlayerRow({ player, position, isTopThree, rankingMode }: {
                     )}
                 </div>
 
-                {/* Player Info */}
-                <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-white text-base truncate group-hover:text-primary transition-colors">
-                        {player.name}
+                <div className="flex-1 min-w-0 flex flex-col justify-center">
+                    <div className="flex items-center gap-2">
+                        <span className={`font-bold text-base truncate group-hover:text-primary transition-colors ${position <= 3 ? 'text-white' : 'text-gray-200'}`}>
+                            {player.name}
+                        </span>
+
+                        {/* Badges Row */}
+                        <div className="flex items-center gap-1">
+                            {/* Confidence Badge */}
+                            {player.confidenceScore !== undefined && (
+                                <TooltipProvider>
+                                    <Tooltip delayDuration={0}>
+                                        <TooltipTrigger>
+                                            <div className={`flex items-center justify-center w-5 h-5 rounded-md ${player.confidenceScore > 0.8 ? 'bg-blue-500/20 text-blue-400' : 'bg-gray-500/20 text-gray-400'}`}>
+                                                <Shieldcheck className="w-3 h-3" />
+                                            </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="top">
+                                            <p>Confiança: {(player.confidenceScore * 100).toFixed(0)}%</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            )}
+
+                            {/* Difficulty Badge - Only for high difficulty exposure */}
+                            {player.difficultyExposure !== undefined && player.difficultyExposure > 1.1 && (
+                                <TooltipProvider>
+                                    <Tooltip delayDuration={0}>
+                                        <TooltipTrigger>
+                                            <div className="flex items-center justify-center w-5 h-5 rounded-md bg-purple-500/20 text-purple-400">
+                                                <Swords className="w-3 h-3" />
+                                            </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="top">
+                                            <p>Alta Dificuldade: +{((player.difficultyExposure - 1) * 100).toFixed(0)}% bônus</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            )}
+                        </div>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                        <span>{totalGames} jogos</span>
-                        {/* Confidence Badge */}
-                        {player.confidenceScore !== undefined && (
-                            <span className="flex items-center gap-0.5" title={`Confiança: ${(player.confidenceScore * 100).toFixed(0)}%`}>
-                                <ShieldCheck className="h-3 w-3 text-blue-400" />
-                                <span className="text-blue-400">{(player.confidenceScore * 100).toFixed(0)}%</span>
-                            </span>
-                        )}
-                        {/* Difficulty Badge */}
-                        {player.difficultyExposure !== undefined && player.difficultyExposure > 1.1 && (
-                            <span className="flex items-center gap-0.5 text-purple-400" title={`Dificuldade: ${(player.difficultyExposure * 100).toFixed(0)}%`}>
-                                <Swords className="h-3 w-3" />
-                            </span>
-                        )}
+
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                        <span className="flex items-center gap-1">
+                            <Swords className="w-3 h-3" /> {totalGames} jogos
+                        </span>
                     </div>
                 </div>
 
                 {/* Metric Value */}
-                <div className="text-right flex flex-col items-end gap-1 flex-shrink-0">
-                    <div className="font-bold text-white text-lg">{metricValue}</div>
+                <div className="text-right flex flex-col items-end gap-0.5 justify-center">
+                    <TooltipProvider>
+                        <Tooltip delayDuration={0}>
+                            <TooltipTrigger asChild>
+                                <div className={`font-black text-lg tabular-nums tracking-tight cursor-help ${position === 1 ? 'text-amber-400' : 'text-white'}`}>
+                                    {metricValue}
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="left">
+                                <p>{rankingMode === 'winrate' ? 'Taxa de Vitória exata' : 'Pontuação atual'}</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+
                     {rankingMode === 'general' ? (
-                        <Badge variant={category as any} className="text-[10px] px-2 h-5">
+                        <Badge variant={category as any} className="text-[10px] px-2 h-5 font-medium shadow-sm">
                             {metricLabel}
                         </Badge>
                     ) : (
-                        <span className="text-[10px] text-muted-foreground">{metricLabel}</span>
+                        <span className="text-[10px] text-muted-foreground font-medium">{metricLabel}</span>
                     )}
                 </div>
             </motion.div>
