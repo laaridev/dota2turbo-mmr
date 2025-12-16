@@ -117,7 +117,7 @@ export default function FAQPage() {
                             Explore o sistema ou retorne à página inicial para começar
                         </p>
                         <p className="text-sm text-gray-400 mb-4">
-                            Envie sua dúvida ou sugestão para: <a href="mailto:dota2turbobuff@gmail.com" className="text-primary hover:text-primary/80 transition-colors font-medium">dota2turbobuff@gmail.com</a>
+                            Envie sua dúvida ou sugestão para: <a href="mailto:lariideveloper@gmail.com" className="text-primary hover:text-primary/80 transition-colors font-medium">lariideveloper@gmail.com</a>
                         </p>
                         <div className="flex gap-3 justify-center flex-wrap">
                             <Link
