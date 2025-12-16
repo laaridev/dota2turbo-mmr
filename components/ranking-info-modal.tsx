@@ -2,6 +2,7 @@
 
 import { Trophy, TrendingUp, Target, Activity, Star, Swords, X } from 'lucide-react';
 import { useEffect } from 'react';
+import { Portal } from '@/components/portal';
 
 interface RankingInfoModalProps {
     isOpen: boolean;
@@ -88,84 +89,86 @@ export function RankingInfoModal({ isOpen, onClose, mode }: RankingInfoModalProp
     if (!isOpen) return null;
 
     return (
-        <div
-            className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
-            onClick={onClose}
-        >
-            {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-
-            {/* Modal Content */}
+        <Portal>
             <div
-                className="relative z-10 bg-card border border-white/10 rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto"
-                onClick={(e) => e.stopPropagation()}
+                className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+                onClick={onClose}
             >
-                {/* Header */}
-                <div className="sticky top-0 bg-card border-b border-white/10 p-6 pb-4">
-                    <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                            <div className={`p-2 rounded-lg ${mode === 'pro' ? 'bg-amber-500/20' : 'bg-primary/20'}`}>
-                                <Icon className={`w-6 h-6 ${mode === 'pro' ? 'text-amber-400' : 'text-primary'}`} />
+                {/* Backdrop */}
+                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+
+                {/* Modal Content */}
+                <div
+                    className="relative z-10 bg-card border border-white/10 rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    {/* Header */}
+                    <div className="sticky top-0 bg-card border-b border-white/10 p-6 pb-4">
+                        <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                                <div className={`p-2 rounded-lg ${mode === 'pro' ? 'bg-amber-500/20' : 'bg-primary/20'}`}>
+                                    <Icon className={`w-6 h-6 ${mode === 'pro' ? 'text-amber-400' : 'text-primary'}`} />
+                                </div>
+                                <h2 className="text-xl font-bold text-white">{info.title}</h2>
                             </div>
-                            <h2 className="text-xl font-bold text-white">{info.title}</h2>
+                            <button
+                                onClick={onClose}
+                                className="p-2 rounded-lg hover:bg-white/10 transition-colors text-muted-foreground"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
                         </div>
-                        <button
-                            onClick={onClose}
-                            className="p-2 rounded-lg hover:bg-white/10 transition-colors text-muted-foreground"
-                        >
-                            <X className="w-5 h-5" />
-                        </button>
-                    </div>
-                    <p className="text-muted-foreground text-sm leading-relaxed">
-                        {info.description}
-                    </p>
-                </div>
-
-                {/* Body */}
-                <div className="p-6 space-y-4">
-                    {/* Context sections as introduction (only for general mode) */}
-                    {mode === 'general' && (
-                        <>
-                            <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4 space-y-2">
-                                <h4 className="text-sm font-semibold text-amber-400">O Desafio do Turbo</h4>
-                                <p className="text-xs text-gray-300 leading-relaxed">
-                                    Ao contrário do Dota competitivo, o modo Turbo não possui um sistema oficial de MMR.
-                                    Isso torna extremamente difícil medir com precisão o nível de habilidade dos jogadores.
-                                    Não há dados públicos de ranking real, matchmaking oculto ou histórico de partidas ranqueadas.
-                                    Trabalhamos apenas com estatísticas de performance individual e algumas inferências sobre o nível das partidas.
-                                </p>
-                            </div>
-
-                            <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 space-y-2">
-                                <h4 className="text-sm font-semibold text-primary">Nossa Filosofia</h4>
-                                <p className="text-xs text-gray-300 leading-relaxed">
-                                    Tentamos encontrar uma fórmula ideal e justa que equilibre volume de jogos, consistência e qualidade.
-                                    O sistema foi projetado para recompensar jogadores dedicados que evoluem constantemente,
-                                    sem permitir que apenas "spammar" partidas garanta o topo.
-                                    Estamos sempre refinando o algoritmo com base em feedback da comunidade para torná-lo mais preciso e representativo.
-                                </p>
-                            </div>
-                        </>
-                    )}
-
-                    {/* Technical details */}
-                    <div className="bg-white/5 rounded-lg p-4 space-y-3 border border-white/5">
-                        <h4 className="text-sm font-semibold text-white">Como funciona:</h4>
-                        <ul className="space-y-2">
-                            {info.details.map((detail, i) => (
-                                <li key={i} className="text-sm text-gray-300 flex items-start gap-2">
-                                    <span className="text-primary mt-1.5">•</span>
-                                    <span>{detail}</span>
-                                </li>
-                            ))}
-                        </ul>
+                        <p className="text-muted-foreground text-sm leading-relaxed">
+                            {info.description}
+                        </p>
                     </div>
 
-                    <div className="text-xs text-center text-muted-foreground pt-2">
-                        Todas as métricas são atualizadas automaticamente a cada nova partida analisada.
+                    {/* Body */}
+                    <div className="p-6 space-y-4">
+                        {/* Context sections as introduction (only for general mode) */}
+                        {mode === 'general' && (
+                            <>
+                                <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4 space-y-2">
+                                    <h4 className="text-sm font-semibold text-amber-400">O Desafio do Turbo</h4>
+                                    <p className="text-xs text-gray-300 leading-relaxed">
+                                        Ao contrário do Dota competitivo, o modo Turbo não possui um sistema oficial de MMR.
+                                        Isso torna extremamente difícil medir com precisão o nível de habilidade dos jogadores.
+                                        Não há dados públicos de ranking real, matchmaking oculto ou histórico de partidas ranqueadas.
+                                        Trabalhamos apenas com estatísticas de performance individual e algumas inferências sobre o nível das partidas.
+                                    </p>
+                                </div>
+
+                                <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 space-y-2">
+                                    <h4 className="text-sm font-semibold text-primary">Nossa Filosofia</h4>
+                                    <p className="text-xs text-gray-300 leading-relaxed">
+                                        Tentamos encontrar uma fórmula ideal e justa que equilibre volume de jogos, consistência e qualidade.
+                                        O sistema foi projetado para recompensar jogadores dedicados que evoluem constantemente,
+                                        sem permitir que apenas "spammar" partidas garanta o topo.
+                                        Estamos sempre refinando o algoritmo com base em feedback da comunidade para torná-lo mais preciso e representativo.
+                                    </p>
+                                </div>
+                            </>
+                        )}
+
+                        {/* Technical details */}
+                        <div className="bg-white/5 rounded-lg p-4 space-y-3 border border-white/5">
+                            <h4 className="text-sm font-semibold text-white">Como funciona:</h4>
+                            <ul className="space-y-2">
+                                {info.details.map((detail, i) => (
+                                    <li key={i} className="text-sm text-gray-300 flex items-start gap-2">
+                                        <span className="text-primary mt-1.5">•</span>
+                                        <span>{detail}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        <div className="text-xs text-center text-muted-foreground pt-2">
+                            Todas as métricas são atualizadas automaticamente a cada nova partida analisada.
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </Portal>
     );
 }
