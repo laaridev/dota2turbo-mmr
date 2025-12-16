@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { PrivateProfileModal } from '@/components/private-profile-modal';
 import { getTier, getTierCategory, TIER_NAMES } from '@/lib/tmmr';
 import { HERO_NAMES, getHeroImageUrl } from '@/lib/heroes';
-import { RefreshCw, Shield, Swords, Timer, Trophy, Flame, Clock, Target, TrendingUp, TrendingDown, Gamepad2, BarChart3, Zap } from 'lucide-react';
+import { RefreshCw, Shield, Swords, Timer, Trophy, Flame, Clock, Target, TrendingUp, TrendingDown, Gamepad2, BarChart3, Zap, ShieldCheck, Activity, Info } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { motion } from 'framer-motion';
@@ -22,6 +22,15 @@ type Player = {
     losses: number;
     streak: number;
     lastUpdate: string;
+    // TMMR v3.0 Transparency Fields
+    skillScore?: number;
+    confidenceScore?: number;
+    difficultyExposure?: number;
+    avgKDA?: number;
+    avgRankPlayed?: number;
+    highRankGames?: number;
+    highRankWinrate?: number;
+    winrate?: number;
 };
 
 type HeroStat = { heroId: number; games: number; wins: number; winrate: number; avgKDA: string };
@@ -137,6 +146,126 @@ export default function ProfilePage() {
                     <StatCard icon={<TrendingUp />} value={player.wins} label="Vitórias" subValue={`${player.losses} derrotas`} color="green" />
                     <StatCard icon={player.streak > 0 ? <Flame /> : <TrendingDown />} value={player.streak > 0 ? `+${player.streak}` : player.streak} label="Streak" color={player.streak > 0 ? 'orange' : 'red'} />
                 </div>
+
+                {/* TMMR Breakdown - Transparency Section */}
+                {player.skillScore !== undefined && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.05 }}
+                    >
+                        <PremiumCard>
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="font-semibold flex items-center gap-2">
+                                    <Activity className="h-4 w-4 text-primary" />
+                                    Composição do TMMR
+                                </h3>
+                                <div className="group relative">
+                                    <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                                    <div className="absolute right-0 top-6 w-64 p-3 bg-card border border-white/10 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 text-xs">
+                                        <p className="font-medium mb-2">Como o TMMR é calculado:</p>
+                                        <p className="text-muted-foreground">
+                                            TMMR = Skill × Confiança × Dificuldade
+                                        </p>
+                                        <p className="text-muted-foreground mt-2">
+                                            Volume de jogos não aumenta o rank, apenas a confiança.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                {/* Skill Score */}
+                                <div className="relative p-3 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Target className="h-4 w-4 text-primary" />
+                                        <span className="text-xs text-muted-foreground">Skill</span>
+                                    </div>
+                                    <div className="text-xl font-bold">
+                                        {player.skillScore > 0 ? '+' : ''}{(player.skillScore * 100).toFixed(0)}%
+                                    </div>
+                                    <div className="text-[10px] text-muted-foreground mt-1">
+                                        WR, KDA, Rank
+                                    </div>
+                                    {/* Progress bar */}
+                                    <div className="mt-2 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                        <motion.div
+                                            className="h-full bg-gradient-to-r from-primary to-orange-400 rounded-full"
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${((player.skillScore + 1) / 2) * 100}%` }}
+                                            transition={{ delay: 0.3, duration: 0.5 }}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Confidence */}
+                                <div className="relative p-3 rounded-xl bg-gradient-to-br from-blue-500/10 to-blue-500/5 border border-blue-500/20">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <ShieldCheck className="h-4 w-4 text-blue-400" />
+                                        <span className="text-xs text-muted-foreground">Confiança</span>
+                                    </div>
+                                    <div className="text-xl font-bold text-blue-400">
+                                        {((player.confidenceScore || 0.3) * 100).toFixed(0)}%
+                                    </div>
+                                    <div className="text-[10px] text-muted-foreground mt-1">
+                                        {player.wins + player.losses} partidas
+                                    </div>
+                                    <div className="mt-2 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                        <motion.div
+                                            className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full"
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${(player.confidenceScore || 0.3) * 100}%` }}
+                                            transition={{ delay: 0.4, duration: 0.5 }}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Difficulty Exposure */}
+                                <div className="relative p-3 rounded-xl bg-gradient-to-br from-purple-500/10 to-purple-500/5 border border-purple-500/20">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Swords className="h-4 w-4 text-purple-400" />
+                                        <span className="text-xs text-muted-foreground">Dificuldade</span>
+                                    </div>
+                                    <div className="text-xl font-bold text-purple-400">
+                                        {((player.difficultyExposure || 1) * 100).toFixed(0)}%
+                                    </div>
+                                    <div className="text-[10px] text-muted-foreground mt-1">
+                                        {player.highRankGames || 0} jogos Ancient+
+                                    </div>
+                                    <div className="mt-2 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                        <motion.div
+                                            className="h-full bg-gradient-to-r from-purple-500 to-purple-400 rounded-full"
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${Math.min(((player.difficultyExposure || 1) / 1.5) * 100, 100)}%` }}
+                                            transition={{ delay: 0.5, duration: 0.5 }}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* WR Adjusted */}
+                                <div className="relative p-3 rounded-xl bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 border border-emerald-500/20">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <TrendingUp className="h-4 w-4 text-emerald-400" />
+                                        <span className="text-xs text-muted-foreground">WR Ajustado</span>
+                                    </div>
+                                    <div className="text-xl font-bold text-emerald-400">
+                                        {(player.winrate || 50).toFixed(1)}%
+                                    </div>
+                                    <div className="text-[10px] text-muted-foreground mt-1">
+                                        Wilson Score
+                                    </div>
+                                    <div className="mt-2 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                        <motion.div
+                                            className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full"
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${player.winrate || 50}%` }}
+                                            transition={{ delay: 0.6, duration: 0.5 }}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </PremiumCard>
+                    </motion.div>
+                )}
 
                 {/* Chart */}
                 {matchData && (

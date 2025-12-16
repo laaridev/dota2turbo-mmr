@@ -71,7 +71,7 @@ export async function POST(request: Request) {
                 // Calculate new TMMR with v3.0
                 const calculation = calculateTMMR(openDotaMatches);
 
-                // Update player
+                // Update player with ALL v3.0 fields
                 await Player.updateOne(
                     { steamId: player.steamId },
                     {
@@ -79,7 +79,17 @@ export async function POST(request: Request) {
                             tmmr: calculation.currentTmmr,
                             wins: calculation.wins,
                             losses: calculation.losses,
-                            streak: calculation.streak
+                            streak: calculation.streak,
+
+                            // TMMR v3.0 Transparency Fields
+                            skillScore: calculation.breakdown.skillScore,
+                            confidenceScore: calculation.confidence,
+                            difficultyExposure: calculation.breakdown.difficultyExposure,
+                            avgKDA: calculation.breakdown.skillComponents.avgKDA,
+                            avgRankPlayed: calculation.breakdown.skillComponents.avgRank,
+                            highRankGames: calculation.breakdown.difficultyComponents.highRankGames,
+                            highRankWinrate: calculation.breakdown.difficultyComponents.highRankWinrate,
+                            winrate: calculation.breakdown.winrate
                         }
                     }
                 );
@@ -88,7 +98,10 @@ export async function POST(request: Request) {
                     name: player.name,
                     oldTMMR: player.tmmr,
                     newTMMR: calculation.currentTmmr,
-                    change: calculation.currentTmmr - player.tmmr
+                    change: calculation.currentTmmr - player.tmmr,
+                    skillScore: calculation.breakdown.skillScore,
+                    confidence: calculation.confidence,
+                    difficulty: calculation.breakdown.difficultyExposure
                 });
 
                 processed++;

@@ -1,16 +1,23 @@
 /**
- * TurboMMR (TMMR) Calculation System v2.0
+ * TurboMMR (TMMR) Calculation System v3.0
  * 
- * A fair, robust rating system for Dota 2 Turbo mode that balances:
- * - Winrate reliability (statistical correction for small samples)
- * - Match simulation (natural MMR progression)
- * - Difficulty weighting (avg_rank, skill bracket)
+ * A transparent, fair rating system for Dota 2 Turbo mode based on 3 layers:
  * 
- * Key principles:
- * - Consistency > Peak: 55% WR over thousands of games is valuable
- * - Small samples are volatile: 80% WR in 50 games gets low confidence
- * - Difficulty matters: winning hard games = more points
- * - No volume exploitation: 5000 games at 52% WR shouldn't explode rating
+ * 1. SKILL SCORE (SS) - Pure skill measurement independent of volume
+ *    - Winrate Confiável (Wilson Score) - 60%
+ *    - KDA Normalizado - 25%
+ *    - Rank Médio das Partidas - 15%
+ * 
+ * 2. CONFIDENCE SCORE (CS) - Statistical reliability
+ *    - Volume-based, exponential saturation
+ *    - More games = more confidence
+ * 
+ * 3. DIFFICULTY EXPOSURE (DE) - Level of competition faced
+ *    - Proportion of high-rank games
+ *    - Performance in those games
+ * 
+ * Final Formula:
+ * TMMR = 3500 + (SkillScore × SCALE × Confidence × DifficultyExposure)
  */
 
 import { OpenDotaMatch } from './opendota';
@@ -19,34 +26,57 @@ import { OpenDotaMatch } from './opendota';
 // TYPE DEFINITIONS
 // ============================================
 
-export interface TMMRBreakdown {
+export interface SkillComponents {
+    wrReliable: number;         // Wilson Lower Bound (0-1)
+    wrContribution: number;     // Contribution to skill score
+    avgKDA: number;             // Average KDA
+    kdaNormalized: number;      // KDA normalized (center=1)
+    kdaContribution: number;    // Contribution to skill score
+    avgRank: number;            // Average rank of matches
+    avgRankNormalized: number;  // Rank normalized (center=1, Legend=50)
+    rankContribution: number;   // Contribution to skill score
+    skillScore: number;         // Final skill score (-1 to 1)
+}
+
+export interface DifficultyComponents {
+    highRankGames: number;      // Games with avg_rank >= threshold
+    highRankWinrate: number;    // Winrate in those games
+    exposureRatio: number;      // % of games in high lobbies
+    difficultyExposure: number; // Final multiplier (0.7-1.5)
+}
+
+export interface TMMRBreakdownV3 {
+    // Skill Score Components
+    skillScore: number;
+    skillComponents: SkillComponents;
+
+    // Confidence Score
+    confidence: number;
+    games: number;
+
+    // Difficulty Exposure
+    difficultyExposure: number;
+    difficultyComponents: DifficultyComponents;
+
     // Basic stats
     wins: number;
     losses: number;
-    games: number;
+    winrate: number;
 
-    // Winrate components
-    wrObserved: number;      // Raw winrate
-    wrReliable: number;      // Wilson lower bound adjusted
-
-    // Difficulty stats
-    avgDifficultyRank: number;
-    avgDifficultySkill: number;
-    difficultyMultiplier: number;
-
-    // Component scores
-    wrMMR: number;           // Winrate-based MMR
-    simMMR: number;          // Simulation-based MMR
-
-    // Final weights and result
-    wrWeight: number;
-    simWeight: number;
-    volumeBonus: number;     // Bonus for accumulating wins
+    // Final
     finalTMMR: number;
-
-    // Confidence
-    confidence: number;      // 0-1, how reliable is this rating
     isCalibrating: boolean;
+}
+
+export interface TmmrCalculationResult {
+    currentTmmr: number;
+    wins: number;
+    losses: number;
+    streak: number; // Deprecated, kept for compatibility
+    processedMatches: CalculatedMatchResult[];
+    isCalibrating: boolean;
+    confidence: number;
+    breakdown: TMMRBreakdownV3;
 }
 
 export interface CalculatedMatchResult {
@@ -63,17 +93,6 @@ export interface CalculatedMatchResult {
     difficultyWeight: number;
 }
 
-export interface TmmrCalculationResult {
-    currentTmmr: number;
-    wins: number;
-    losses: number;
-    streak: number;
-    processedMatches: CalculatedMatchResult[];
-    isCalibrating: boolean;
-    confidence: number;
-    breakdown: TMMRBreakdown;
-}
-
 // ============================================
 // CONFIGURABLE CONSTANTS
 // ============================================
@@ -87,25 +106,31 @@ const MIN_GAMES = 30;
 // Calibration period
 const CALIBRATION_GAMES = 50;
 
-// WR to MMR scale (each 1% above 50% = SCALE/100 MMR)
-const WR_SCALE = 10000;  // 1% = 100 MMR
-
-// K-factor for simulation
-const K_CALIBRATION = 40;  // High K during calibration
-const K_BASE = 20;         // Normal K
-const K_MIN = 2;           // Minimum K (for very high volume) - prevents volume explosion
-const K_DECAY_RATE = 100;  // Games at which K starts decaying (faster decay)
+// Scale for skill score to TMMR conversion
+// ±1 skill score = ±3000 TMMR at full confidence
+const SKILL_SCALE = 3000;
 
 // Clamps
 const TMMR_MIN = 500;
 const TMMR_MAX = 9500;
 
-// Component weights base - Balanced between WR and Difficulty
-const WR_WEIGHT_BASE = 0.50;   // Base weight for WR component
-const SIM_WEIGHT_BASE = 0.50;  // Base weight for simulation component (includes difficulty)
+// Wilson score Z value (1.2 = 88% confidence)
+const WILSON_Z = 1.2;
 
-// Wilson score Z value (1.0 = 84% confidence, 1.65 = 95%)
-const WILSON_Z = 1.0;
+// Skill Score weights
+const WEIGHT_WR = 0.60;      // Winrate weight
+const WEIGHT_KDA = 0.25;     // KDA weight
+const WEIGHT_RANK = 0.15;    // Average rank weight
+
+// KDA normalization center (expected average KDA)
+const KDA_CENTER = 2.5;
+
+// Confidence saturation constant
+const CONFIDENCE_K = 150;
+const CONFIDENCE_MIN = 0.30;
+
+// High rank threshold for difficulty exposure
+const HIGH_RANK_THRESHOLD = 55; // Ancient-
 
 // ============================================
 // UTILITY FUNCTIONS
@@ -135,87 +160,6 @@ function wilsonLowerBound(wins: number, total: number, z: number = WILSON_Z): nu
 }
 
 /**
- * Calculate confidence based on sample size and WR stability
- * Returns 0-1 where 1 is fully confident
- */
-function calculateConfidence(games: number, wrObserved: number): number {
-    // Volume confidence: more games = more confident
-    // Logarithmic scale with diminishing returns
-    const volumeConf = Math.min(1, Math.log10(games + 1) / Math.log10(500));
-
-    // WR stability: closer to 50% = potentially more stable (less extreme)
-    // But very high WR with many games is also stable
-    const wrDistance = Math.abs(wrObserved - 0.5);
-    const wrStability = games >= 200 ? 1 : 0.7 + 0.3 * (games / 200);
-
-    // Combined confidence
-    return clamp(volumeConf * wrStability, 0, 1);
-}
-
-/**
- * Calculate K-factor based on games played
- * High K during calibration, then decays with volume
- */
-function calculateK(gamesSoFar: number): number {
-    if (gamesSoFar < CALIBRATION_GAMES) {
-        // Calibration: high and stable K
-        return K_CALIBRATION;
-    }
-
-    // Post-calibration: K decays slowly with volume
-    // This prevents 5000-game accounts from exploding
-    const decayFactor = Math.sqrt(K_DECAY_RATE / (gamesSoFar - CALIBRATION_GAMES + K_DECAY_RATE));
-    return clamp(K_BASE * decayFactor, K_MIN, K_BASE);
-}
-
-/**
- * Calculate difficulty weight based on match data
- * Uses both average_rank and skill bracket, with fallbacks
- * IMPORTANT: This is the main differentiator in Turbo - playing hard games should be rewarded!
- */
-function calculateDifficultyWeight(avgRank: number | undefined, skill: number | undefined): number {
-    let rankWeight = 1.0;
-    let skillWeight = 1.0;
-
-    // Primary: average_rank (0-80 scale, 50 = Legend, 60 = Ancient, 70 = Divine)
-    // AMPLIFIED bonuses for higher tiers - reward playing against strong opponents
-    if (avgRank !== undefined && avgRank > 0 && avgRank <= 80) {
-        if (avgRank >= 70) {
-            // Divine/Immortal: +50% to +100%
-            rankWeight = 1.50 + (avgRank - 70) * 0.05;
-        } else if (avgRank >= 60) {
-            // Ancient: +25% to +50%
-            rankWeight = 1.25 + (avgRank - 60) * 0.025;
-        } else if (avgRank >= 50) {
-            // Legend: +15% to +25%
-            rankWeight = 1.15 + (avgRank - 50) * 0.01;
-        } else if (avgRank >= 40) {
-            // Archon: +0% to +15%
-            rankWeight = 1.0 + (avgRank - 40) * 0.015;
-        } else {
-            // Crusader and below: -10% to 0%
-            rankWeight = 0.90 + (avgRank - 30) * 0.01;
-        }
-        rankWeight = clamp(rankWeight, 0.70, 2.00); // Allow up to 2x for highest difficulty
-    }
-
-    // Secondary: skill bracket (fallback when avg_rank is not available)
-    if (skill !== undefined && skill >= 1 && skill <= 3) {
-        const skillMap: Record<number, number> = {
-            1: 0.85,  // Normal bracket = -15%
-            2: 1.00,  // High bracket = neutral
-            3: 1.30   // Very High = +30%
-        };
-        skillWeight = skillMap[skill] || 1.0;
-    }
-
-    // Combine multiplicatively, then clamp
-    // Allow up to 2x for highest-tier games
-    const combined = rankWeight * skillWeight;
-    return clamp(combined, 0.60, 2.00);
-}
-
-/**
  * Infer if player won from match data
  */
 function inferWin(match: OpenDotaMatch): boolean {
@@ -238,301 +182,301 @@ function isValidMatch(match: OpenDotaMatch): boolean {
     return true;
 }
 
+/**
+ * Calculate KDA for a match
+ */
+function calculateMatchKDA(match: OpenDotaMatch): number {
+    const k = match.kills || 0;
+    const d = Math.max(1, match.deaths || 0);
+    const a = match.assists || 0;
+    return (k + a * 0.7) / d;
+}
+
 // ============================================
-// MAIN CALCULATION FUNCTIONS
+// LAYER 1: SKILL SCORE
 // ============================================
 
 /**
- * Component 1: WR-based MMR with Wilson score correction
- * This gives a conservative (reliable) winrate estimate
+ * Calculate Skill Score - Pure skill measurement independent of volume
+ * 
+ * Components:
+ * - Winrate (Wilson Score) - 60%
+ * - KDA Normalized - 25%
+ * - Average Rank - 15%
  */
-function calculateWRComponent(wins: number, games: number): { wrObserved: number; wrReliable: number; wrMMR: number } {
-    if (games === 0) {
-        return { wrObserved: 0.5, wrReliable: 0.5, wrMMR: BASE_TMMR };
-    }
-
-    const wrObserved = wins / games;
+function calculateSkillScore(matches: OpenDotaMatch[], wins: number, games: number): SkillComponents {
+    // 1. Winrate Confiável (Wilson Score)
     const wrReliable = wilsonLowerBound(wins, games, WILSON_Z);
+    const wrContribution = (wrReliable - 0.50) * 2; // Normalize to -1 to 1 range
 
-    // Convert reliable WR to MMR
-    // Each 1% above 50% = WR_SCALE/100 MMR
-    const wrMMR = BASE_TMMR + (wrReliable - 0.50) * WR_SCALE;
+    // 2. KDA Normalizado
+    const kdas = matches.map(m => calculateMatchKDA(m));
+    const avgKDA = kdas.length > 0
+        ? kdas.reduce((a, b) => a + b, 0) / kdas.length
+        : KDA_CENTER;
+    const kdaNormalized = avgKDA / KDA_CENTER; // Center = 1
+    const kdaContribution = clamp((kdaNormalized - 1.0) * 0.5, -0.5, 0.5); // Smaller range
+
+    // 3. Rank Médio das Partidas
+    const rankedMatches = matches.filter(m => m.average_rank && m.average_rank > 0);
+    const avgRank = rankedMatches.length > 0
+        ? rankedMatches.reduce((a, m) => a + m.average_rank!, 0) / rankedMatches.length
+        : 50; // Default = Legend
+    const avgRankNormalized = avgRank / 50; // 50 = Legend = center
+    const rankContribution = clamp((avgRankNormalized - 1.0) * 0.3, -0.3, 0.3); // Smaller range
+
+    // 4. Skill Score Final (weighted)
+    const skillScore = clamp(
+        wrContribution * WEIGHT_WR +
+        kdaContribution * WEIGHT_KDA +
+        rankContribution * WEIGHT_RANK,
+        -1.0,
+        1.0
+    );
 
     return {
-        wrObserved,
         wrReliable,
-        wrMMR: clamp(wrMMR, TMMR_MIN, TMMR_MAX)
+        wrContribution,
+        avgKDA,
+        kdaNormalized,
+        kdaContribution,
+        avgRank,
+        avgRankNormalized,
+        rankContribution,
+        skillScore
     };
 }
 
+// ============================================
+// LAYER 2: CONFIDENCE SCORE
+// ============================================
+
 /**
- * Component 2: Simulation-based MMR
- * Processes matches chronologically like Dota's ELO system
- * But with decaying K to prevent volume exploitation
+ * Calculate Confidence Score - How reliable is the skill measurement
+ * 
+ * Based on number of games with exponential saturation
+ * More games = more confidence (but diminishing returns)
  */
-function calculateSimComponent(matches: OpenDotaMatch[]): {
-    simMMR: number;
-    processedMatches: CalculatedMatchResult[];
-    streak: number;
-    difficultyStats: { avgRank: number; avgSkill: number };
-} {
-    let currentMMR = BASE_TMMR;
-    let streak = 0;
-    const processedMatches: CalculatedMatchResult[] = [];
+function calculateConfidence(games: number): number {
+    // Exponential saturation: 1 - e^(-games / K)
+    // K = 150 means:
+    // 30 games  = 18% → clamped to 30%
+    // 50 games  = 28% → clamped to 30%
+    // 100 games = 49%
+    // 200 games = 74%
+    // 500 games = 96%
+    // 1000 games = 99.9%
 
-    // For difficulty stats
-    let totalRank = 0;
-    let rankCount = 0;
-    let totalSkill = 0;
-    let skillCount = 0;
+    const raw = 1 - Math.exp(-games / CONFIDENCE_K);
 
-    // Sort by timestamp
-    const sortedMatches = [...matches].sort((a, b) => a.start_time - b.start_time);
+    // Never less than 30% to avoid completely destroying ratings
+    return clamp(raw, CONFIDENCE_MIN, 1.0);
+}
 
-    for (let i = 0; i < sortedMatches.length; i++) {
-        const match = sortedMatches[i];
+// ============================================
+// LAYER 3: DIFFICULTY EXPOSURE
+// ============================================
 
-        // Skip invalid matches
-        if (!isValidMatch(match)) continue;
+/**
+ * Calculate Difficulty Exposure - At what level was skill demonstrated
+ * 
+ * Based on:
+ * - Proportion of games in high-rank lobbies
+ * - Performance (winrate) in those lobbies
+ */
+function calculateDifficultyExposure(matches: OpenDotaMatch[]): DifficultyComponents {
+    const rankedMatches = matches.filter(m => m.average_rank && m.average_rank > 0);
+    const highRankMatches = rankedMatches.filter(m => m.average_rank! >= HIGH_RANK_THRESHOLD);
 
-        const win = inferWin(match);
-        const diffWeight = calculateDifficultyWeight(match.average_rank, match.skill);
-        const K = calculateK(i);
+    const highRankGames = highRankMatches.length;
+    const highRankWins = highRankMatches.filter(m => inferWin(m)).length;
+    const highRankWinrate = highRankGames > 0 ? highRankWins / highRankGames : 0.5;
 
-        // Track difficulty stats
-        if (match.average_rank && match.average_rank > 0) {
-            totalRank += match.average_rank;
-            rankCount++;
-        }
-        if (match.skill && match.skill >= 1) {
-            totalSkill += match.skill;
-            skillCount++;
-        }
+    // Proportion of games in high lobbies
+    const exposureRatio = rankedMatches.length > 0
+        ? highRankGames / rankedMatches.length
+        : 0;
 
-        // Calculate MMR change
-        let delta = win ? K : -K;
-        delta *= diffWeight;
+    // Calculate difficulty exposure multiplier
+    let difficultyExposure = 1.0; // Neutral default
 
-        // Streak bonus/penalty (small, max 20% modifier)
-        if (win) {
-            streak = streak > 0 ? streak + 1 : 1;
-            if (streak >= 3) {
-                delta *= 1 + Math.min(streak - 2, 5) * 0.02; // Max +10%
-            }
-        } else {
-            streak = streak < 0 ? streak - 1 : -1;
-            if (streak <= -3) {
-                delta *= 1 + Math.min(Math.abs(streak) - 2, 5) * 0.02; // Max +10% penalty
-            }
-        }
+    if (highRankGames >= 10) {
+        // Volume factor: logarithmic scale (saturates around 100 games)
+        const volumeFactor = Math.log10(1 + highRankGames) / Math.log10(100);
 
-        const change = Math.round(delta);
-        currentMMR += change;
-        currentMMR = clamp(currentMMR, TMMR_MIN, TMMR_MAX);
+        // Performance factor: WR in hard games (45%-70% → 0-1)
+        const performanceFactor = clamp((highRankWinrate - 0.45) / 0.25, 0, 1);
 
-        processedMatches.push({
-            matchId: match.match_id,
-            heroId: match.hero_id,
-            win,
-            duration: match.duration,
-            kda: `${match.kills}/${match.deaths}/${match.assists}`,
-            timestamp: new Date(match.start_time * 1000),
-            tmmrChange: change,
-            tmmrAfter: currentMMR,
-            skill: match.skill,
-            averageRank: match.average_rank,
-            difficultyWeight: diffWeight
-        });
+        // Combine: 50% volume, 50% performance
+        // Max bonus: +50%, max penalty: -30%
+        const rawExposure = 1.0 + (volumeFactor * 0.5 + performanceFactor * 0.5) * 0.5;
+
+        difficultyExposure = clamp(rawExposure, 0.7, 1.5);
+    } else if (rankedMatches.length > 20 && exposureRatio < 0.1) {
+        // Has many games but rarely plays in hard lobbies: slight penalty
+        difficultyExposure = 0.85;
     }
 
     return {
-        simMMR: currentMMR,
-        processedMatches,
-        streak,
-        difficultyStats: {
-            avgRank: rankCount > 0 ? totalRank / rankCount : 50,
-            avgSkill: skillCount > 0 ? totalSkill / skillCount : 2
-        }
+        highRankGames,
+        highRankWinrate,
+        exposureRatio,
+        difficultyExposure
     };
 }
 
+// ============================================
+// MAIN CALCULATION FUNCTION
+// ============================================
+
 /**
- * Calculate component weights based on data quality
- * WR component should ALWAYS dominate to ensure WR is the primary factor
- * Simulation is just for consistency/smoothing, not for exploiting volume
+ * Calculate TMMR using the 3-layer system
+ * 
+ * TMMR = 3500 + (SkillScore × SCALE × Confidence × DifficultyExposure)
  */
-function calculateWeights(games: number, wrObserved: number, wrReliable: number): { wrWeight: number; simWeight: number } {
-    // Base: Balanced (50/50)
-    let wrWeight = WR_WEIGHT_BASE;
-    let simWeight = SIM_WEIGHT_BASE;
-
-    // For extreme WR, slightly increase WR weight (but not as much as before)
-    const wrDistance = Math.abs(wrObserved - 0.5);
-    if (wrDistance > 0.15) { // More than 65% or less than 35% WR
-        wrWeight = 0.60;
-        simWeight = 0.40;
-    }
-
-    // For very high volume (1000+), slightly favor WR to prevent infinite grinding
-    if (games >= 1000) {
-        wrWeight = Math.min(wrWeight + 0.10, 0.65);
-        simWeight = 1 - wrWeight;
-    }
-
-    // Few games: WR component dominates even more (Wilson already penalizes)
-    if (games < 100) {
-        wrWeight = 0.85;
-        simWeight = 0.15;
-    }
-
-    // Normalize
-    const total = wrWeight + simWeight;
-    wrWeight /= total;
-    simWeight /= total;
-
-    return { wrWeight, simWeight };
-}
-
-// ============================================
-// MAIN EXPORT FUNCTION
-// ============================================
-
 export function calculateTMMR(matches: OpenDotaMatch[]): TmmrCalculationResult {
     // Filter to valid matches
     const validMatches = matches.filter(isValidMatch);
-
-    // If not enough games, return minimal result
-    if (validMatches.length < MIN_GAMES) {
-        return {
-            currentTmmr: BASE_TMMR,
-            wins: validMatches.filter(m => inferWin(m)).length,
-            losses: validMatches.filter(m => !inferWin(m)).length,
-            streak: 0,
-            processedMatches: [],
-            isCalibrating: true,
-            confidence: 0.1,
-            breakdown: {
-                wins: validMatches.filter(m => inferWin(m)).length,
-                losses: validMatches.filter(m => !inferWin(m)).length,
-                games: validMatches.length,
-                wrObserved: 0.5,
-                wrReliable: 0.5,
-                avgDifficultyRank: 50,
-                avgDifficultySkill: 2,
-                difficultyMultiplier: 1,
-                wrMMR: BASE_TMMR,
-                simMMR: BASE_TMMR,
-                wrWeight: 0.5,
-                simWeight: 0.5,
-                volumeBonus: 0,
-                finalTMMR: BASE_TMMR,
-                confidence: 0.1,
-                isCalibrating: true
-            }
-        };
-    }
 
     // Count wins/losses
     const wins = validMatches.filter(m => inferWin(m)).length;
     const losses = validMatches.length - wins;
     const games = validMatches.length;
+    const winrate = games > 0 ? (wins / games) * 100 : 50;
 
-    // Component 1: WR-based
-    const wrComponent = calculateWRComponent(wins, games);
-
-    // Component 2: Simulation-based
-    const simComponent = calculateSimComponent(validMatches);
-
-    // Calculate overall difficulty multiplier
-    const avgDiffMultiplier = calculateDifficultyWeight(
-        simComponent.difficultyStats.avgRank,
-        Math.round(simComponent.difficultyStats.avgSkill)
-    );
-
-    // Get weights
-    const weights = calculateWeights(games, wrComponent.wrObserved, wrComponent.wrReliable);
-
-    // Blend components
-    let blendedMMR = (wrComponent.wrMMR * weights.wrWeight) + (simComponent.simMMR * weights.simWeight);
-
-    // Calculate PRO stats for difficulty adjustment
-    const PRO_THRESHOLD = 60; // Ancient+
-    const proMatches = validMatches.filter(m =>
-        m.average_rank !== undefined && m.average_rank >= PRO_THRESHOLD
-    );
-    const proGames = proMatches.length;
-    const proWins = proMatches.filter(m => inferWin(m)).length;
-    const proWinrate = proGames > 0 ? (proWins / proGames) : 0.5;
-
-    // Adjust difficulty multiplier based on PRO performance
-    // If you play many high-level games, your performance there matters a LOT
-    let adjustedDiffMultiplier = avgDiffMultiplier;
-    if (proGames >= 20) {
-        if (proWinrate >= 0.60) {
-            // Excellent PRO performance: +10% to difficulty multiplier
-            adjustedDiffMultiplier *= 1.10;
-        } else if (proWinrate >= 0.50) {
-            // Good PRO performance: +5% to difficulty multiplier
-            adjustedDiffMultiplier *= 1.05;
-        } else if (proWinrate < 0.45) {
-            // Poor PRO performance: -10% to difficulty multiplier (reduced from -15%)
-            // Exception: If player has 500+ total games, reduce penalty (volume matters)
-            if (games >= 500) {
-                adjustedDiffMultiplier *= 0.95; // Only -5% for grinders
-            } else {
-                adjustedDiffMultiplier *= 0.90; // -10% for others
-            }
-        }
+    // If not enough games, return calibrating result
+    if (games < MIN_GAMES) {
+        return createCalibratingResult(validMatches, wins, losses, games, winrate);
     }
 
-    // Apply difficulty multiplier to the deviation from base
-    const deviation = blendedMMR - BASE_TMMR;
-    const adjustedDeviation = deviation * adjustedDiffMultiplier;
-    blendedMMR = BASE_TMMR + adjustedDeviation;
+    // LAYER 1: Skill Score
+    const skillComponents = calculateSkillScore(validMatches, wins, games);
 
-    // Volume Bonus: Reward players for accumulating wins (increased weight)
-    // +1.5 TMMR per 10 wins, capped at +200 (1333 wins)
-    // This ensures high-volume players are properly rewarded
-    const volumeBonus = Math.min(Math.floor(wins * 1.5 / 10), 200);
-    blendedMMR += volumeBonus;
+    // LAYER 2: Confidence
+    const confidence = calculateConfidence(games);
 
-    // Final clamp
-    const finalTMMR = Math.round(clamp(blendedMMR, TMMR_MIN, TMMR_MAX));
+    // LAYER 3: Difficulty Exposure
+    const difficultyComponents = calculateDifficultyExposure(validMatches);
 
-    // Calculate confidence
-    const confidence = calculateConfidence(games, wrComponent.wrObserved);
+    // FINAL COMPOSITION
+    // TMMR = BASE + (SkillScore × SCALE × Confidence × DifficultyExposure)
+    const rawTMMR = BASE_TMMR + (
+        skillComponents.skillScore *
+        SKILL_SCALE *
+        confidence *
+        difficultyComponents.difficultyExposure
+    );
+
+    const finalTMMR = Math.round(clamp(rawTMMR, TMMR_MIN, TMMR_MAX));
+
     const isCalibrating = games < CALIBRATION_GAMES;
 
     // Build breakdown
-    const breakdown: TMMRBreakdown = {
+    const breakdown: TMMRBreakdownV3 = {
+        skillScore: skillComponents.skillScore,
+        skillComponents,
+        confidence,
+        games,
+        difficultyExposure: difficultyComponents.difficultyExposure,
+        difficultyComponents,
         wins,
         losses,
-        games,
-        wrObserved: wrComponent.wrObserved,
-        wrReliable: wrComponent.wrReliable,
-        avgDifficultyRank: simComponent.difficultyStats.avgRank,
-        avgDifficultySkill: simComponent.difficultyStats.avgSkill,
-        difficultyMultiplier: avgDiffMultiplier,
-        wrMMR: wrComponent.wrMMR,
-        simMMR: simComponent.simMMR,
-        wrWeight: weights.wrWeight,
-        simWeight: weights.simWeight,
-        volumeBonus,
+        winrate,
         finalTMMR,
-        confidence,
         isCalibrating
     };
+
+    // Process matches for history (simplified - just basic info)
+    const processedMatches = createProcessedMatches(validMatches);
 
     return {
         currentTmmr: finalTMMR,
         wins,
         losses,
-        streak: simComponent.streak,
-        processedMatches: simComponent.processedMatches,
+        streak: 0, // Deprecated
+        processedMatches,
         isCalibrating,
         confidence,
         breakdown
     };
+}
+
+/**
+ * Create result for players still calibrating
+ */
+function createCalibratingResult(
+    validMatches: OpenDotaMatch[],
+    wins: number,
+    losses: number,
+    games: number,
+    winrate: number
+): TmmrCalculationResult {
+    const skillComponents: SkillComponents = {
+        wrReliable: 0.5,
+        wrContribution: 0,
+        avgKDA: KDA_CENTER,
+        kdaNormalized: 1,
+        kdaContribution: 0,
+        avgRank: 50,
+        avgRankNormalized: 1,
+        rankContribution: 0,
+        skillScore: 0
+    };
+
+    const difficultyComponents: DifficultyComponents = {
+        highRankGames: 0,
+        highRankWinrate: 0.5,
+        exposureRatio: 0,
+        difficultyExposure: 1.0
+    };
+
+    const breakdown: TMMRBreakdownV3 = {
+        skillScore: 0,
+        skillComponents,
+        confidence: CONFIDENCE_MIN,
+        games,
+        difficultyExposure: 1.0,
+        difficultyComponents,
+        wins,
+        losses,
+        winrate,
+        finalTMMR: BASE_TMMR,
+        isCalibrating: true
+    };
+
+    return {
+        currentTmmr: BASE_TMMR,
+        wins,
+        losses,
+        streak: 0,
+        processedMatches: [],
+        isCalibrating: true,
+        confidence: CONFIDENCE_MIN,
+        breakdown
+    };
+}
+
+/**
+ * Create simplified processed matches for history display
+ */
+function createProcessedMatches(matches: OpenDotaMatch[]): CalculatedMatchResult[] {
+    // Sort by timestamp (newest first for display)
+    const sortedMatches = [...matches].sort((a, b) => b.start_time - a.start_time);
+
+    // Only keep last 50 for display
+    return sortedMatches.slice(0, 50).map(match => ({
+        matchId: match.match_id,
+        heroId: match.hero_id,
+        win: inferWin(match),
+        duration: match.duration,
+        kda: `${match.kills}/${match.deaths}/${match.assists}`,
+        timestamp: new Date(match.start_time * 1000),
+        tmmrChange: 0, // No longer tracking per-match changes
+        tmmrAfter: 0,
+        skill: match.skill,
+        averageRank: match.average_rank,
+        difficultyWeight: 1.0
+    }));
 }
 
 // ============================================

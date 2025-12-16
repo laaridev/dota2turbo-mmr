@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { getTier, getTierCategory, TIER_NAMES } from '@/lib/tmmr';
-import { Trophy, TrendingUp, Target, Star, Zap, Info, Swords } from 'lucide-react';
+import { Trophy, TrendingUp, Target, Star, Zap, Info, Swords, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
@@ -272,6 +272,19 @@ function PlayerRow({ player, position, isTopThree, rankingMode }: {
                     </div>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
                         <span>{totalGames} jogos</span>
+                        {/* Confidence Badge */}
+                        {player.confidenceScore !== undefined && (
+                            <span className="flex items-center gap-0.5" title={`Confiança: ${(player.confidenceScore * 100).toFixed(0)}%`}>
+                                <ShieldCheck className="h-3 w-3 text-blue-400" />
+                                <span className="text-blue-400">{(player.confidenceScore * 100).toFixed(0)}%</span>
+                            </span>
+                        )}
+                        {/* Difficulty Badge */}
+                        {player.difficultyExposure !== undefined && player.difficultyExposure > 1.1 && (
+                            <span className="flex items-center gap-0.5 text-purple-400" title={`Dificuldade: ${(player.difficultyExposure * 100).toFixed(0)}%`}>
+                                <Swords className="h-3 w-3" />
+                            </span>
+                        )}
                     </div>
                 </div>
 

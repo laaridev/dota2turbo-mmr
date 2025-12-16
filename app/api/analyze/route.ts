@@ -128,9 +128,17 @@ export async function POST(request: Request) {
             matches: calculation.processedMatches.map(m => m.matchId),
             isPrivate: false, // assumed public if we got this far
 
-            // Multi-Ranking Stats
-            winrate: rankingStats.winrate,
-            avgKDA: rankingStats.avgKDA,
+            // TMMR v3.0 Transparency Fields
+            skillScore: calculation.breakdown.skillScore,
+            confidenceScore: calculation.confidence,
+            difficultyExposure: calculation.breakdown.difficultyExposure,
+            avgKDA: calculation.breakdown.skillComponents.avgKDA,
+            avgRankPlayed: calculation.breakdown.skillComponents.avgRank,
+            highRankGames: calculation.breakdown.difficultyComponents.highRankGames,
+            highRankWinrate: calculation.breakdown.difficultyComponents.highRankWinrate,
+
+            // Multi-Ranking Stats (legacy)
+            winrate: calculation.breakdown.winrate,
             kdaVariance: rankingStats.kdaVariance,
             proGames: rankingStats.proGames,
             proWinrate: rankingStats.proWinrate,

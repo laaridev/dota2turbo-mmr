@@ -12,9 +12,17 @@ export interface IPlayer extends Document {
     matches: number[]; // Array of Match IDs
     isPrivate: boolean;
 
-    // Multi-Ranking Stats
+    // TMMR v3.0 Transparency Fields
+    skillScore: number;         // -1 to 1 (pure skill)
+    confidenceScore: number;    // 0.3 to 1 (reliability)
+    difficultyExposure: number; // 0.7 to 1.5 (competition level)
+    avgKDA: number;             // Average KDA
+    avgRankPlayed: number;      // Average rank of matches
+    highRankGames: number;      // Games in Ancient+ lobbies
+    highRankWinrate: number;    // Winrate in those games
+
+    // Multi-Ranking Stats (legacy)
     winrate: number; // Percentage (0-100)
-    avgKDA: number; // Average KDA across all matches
     kdaVariance: number; // Variance for consistency ranking
     proGames: number; // Games with average_rank >= 65
     proWinrate: number; // Winrate in pro games
@@ -38,9 +46,17 @@ const PlayerSchema: Schema = new Schema({
     matches: [{ type: Number }],
     isPrivate: { type: Boolean, default: false },
 
-    // Multi-Ranking Stats (indexed for leaderboards)
+    // TMMR v3.0 Transparency Fields
+    skillScore: { type: Number, default: 0, index: true },
+    confidenceScore: { type: Number, default: 0.3 },
+    difficultyExposure: { type: Number, default: 1.0 },
+    avgKDA: { type: Number, default: 0 },
+    avgRankPlayed: { type: Number, default: 50 },
+    highRankGames: { type: Number, default: 0 },
+    highRankWinrate: { type: Number, default: 0 },
+
+    // Multi-Ranking Stats (legacy, indexed for leaderboards)
     winrate: { type: Number, default: 0, index: true },
-    avgKDA: { type: Number, default: 0, index: true },
     kdaVariance: { type: Number, default: 0, index: true },
     proGames: { type: Number, default: 0, index: true },
     proWinrate: { type: Number, default: 0, index: true },
