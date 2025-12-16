@@ -97,7 +97,7 @@ export function RankingInfoModal({ isOpen, onClose, mode }: RankingInfoModalProp
 
             {/* Modal Content */}
             <div
-                className="relative bg-card border border-white/10 rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+                className="relative z-10 bg-card border border-white/10 rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
