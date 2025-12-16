@@ -113,8 +113,11 @@ export default function FAQPage() {
                 >
                     <div className="bg-gradient-to-r from-primary/10 to-orange-500/10 border border-primary/20 rounded-xl p-6">
                         <h3 className="text-xl font-bold text-white mb-2">Ainda tem dúvidas?</h3>
-                        <p className="text-muted-foreground mb-4">
+                        <p className="text-muted-foreground mb-1">
                             Explore o sistema ou retorne à página inicial para começar
+                        </p>
+                        <p className="text-sm text-gray-400 mb-4">
+                            Envie sua dúvida ou sugestão para: <a href="mailto:dota2turbobuff@gmail.com" className="text-primary hover:text-primary/80 transition-colors font-medium">dota2turbobuff@gmail.com</a>
                         </p>
                         <div className="flex gap-3 justify-center flex-wrap">
                             <Link
