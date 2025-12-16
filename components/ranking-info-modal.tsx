@@ -13,13 +13,13 @@ const INFO_CONTENT: Record<string, { title: string; icon: any; description: stri
     general: {
         title: 'Rank Geral (TMMR)',
         icon: Trophy,
-        description: 'Sua pontuação é calculada multiplicando três fatores: Habilidade × Confiança × Dificuldade.',
+        description: 'Sistema de classificação baseado em três pilares multiplicativos: Skill Score × Confidence × Difficulty Exposure.',
         details: [
-            'Habilidade: Quanto você vence, seu desempenho (KDA) e o nível das partidas que joga.',
-            'Confiança: Cresce conforme você joga mais (estabiliza em ~300-500 jogos).',
-            'Dificuldade: Bônus por jogar contra adversários de alto nível (Ancient+).',
-            'Não basta só jogar muito: você precisa evoluir e vencer para subir.',
-            'Sistema equilibrado: volume + qualidade + consistência.'
+            'Skill Score (Habilidade): Winrate confiável via Wilson Score (60%), KDA normalizado (25%) e rank médio das partidas (15%).',
+            'Confidence Score (Confiança): Usa curva exponencial (1 - e^(-jogos/150)) que satura em ~300-500 partidas, mínimo 30%.',
+            'Difficulty Exposure (Dificuldade): Multiplicador 0.7-1.5x baseado em % de jogos Ancient+ (rank 55+) e taxa de vitória nesse nível.',
+            'Fórmula final: TMMR = 3500 + (SkillScore × 3000 × Confidence × Difficulty), limitado entre 500-9500.',
+            'Evita volume puro: sem consistência e evolução, o TMMR estabiliza naturalmente.'
         ]
     },
     winrate: {
