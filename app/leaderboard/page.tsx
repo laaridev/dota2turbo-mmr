@@ -131,9 +131,10 @@ function LeaderboardContent() {
                     <h1 className="text-xl font-bold text-white">Ranking {currentMode.label}</h1>
                     <button
                         onClick={() => setIsInfoModalOpen(true)}
-                        className="ml-1 p-1 rounded-full hover:bg-white/10 text-muted-foreground transition-colors"
+                        className="ml-2 px-2.5 py-1 rounded-lg hover:bg-white/10 text-muted-foreground hover:text-white transition-colors flex items-center gap-1.5 text-sm"
                         title="Como funciona este ranking?"
                     >
+                        <span className="font-medium">Como funciona</span>
                         <Info className="h-4 w-4" />
                     </button>
                     <span className="text-sm text-muted-foreground ml-auto">

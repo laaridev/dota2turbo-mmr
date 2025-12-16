@@ -135,6 +135,35 @@ export function RankingInfoModal({ isOpen, onClose, mode }: RankingInfoModalProp
                         </ul>
                     </div>
 
+                    {/* Context about Turbo ranking difficulty (only for general mode) */}
+                    {mode === 'general' && (
+                        <>
+                            <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4 space-y-2">
+                                <h4 className="text-sm font-semibold text-amber-400 flex items-center gap-2">
+                                    <span>⚠️</span> O Desafio do Turbo
+                                </h4>
+                                <p className="text-xs text-gray-300 leading-relaxed">
+                                    Ao contrário do Dota competitivo, o modo Turbo não possui um sistema oficial de MMR.
+                                    Isso torna extremamente difícil medir com precisão o nível de habilidade dos jogadores.
+                                    Não há dados públicos de ranking real, matchmaking oculto ou histórico de partidas ranqueadas.
+                                    Trabalhamos apenas com estatísticas de performance individual e algumas inferências sobre o nível das partidas.
+                                </p>
+                            </div>
+
+                            <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 space-y-2">
+                                <h4 className="text-sm font-semibold text-primary flex items-center gap-2">
+                                    <span>💡</span> Nossa Filosofia
+                                </h4>
+                                <p className="text-xs text-gray-300 leading-relaxed">
+                                    Tentamos encontrar uma fórmula ideal e justa que equilibre volume de jogos, consistência e qualidade.
+                                    O sistema foi projetado para recompensar jogadores dedicados que evoluem constantemente,
+                                    sem permitir que apenas "spammar" partidas garanta o topo.
+                                    Estamos sempre refinando o algoritmo com base em feedback da comunidade para torná-lo mais preciso e representativo.
+                                </p>
+                            </div>
+                        </>
+                    )}
+
                     <div className="text-xs text-center text-muted-foreground pt-2">
                         Todas as métricas são atualizadas automaticamente a cada nova partida analisada.
                     </div>
