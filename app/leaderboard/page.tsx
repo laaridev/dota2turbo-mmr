@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { getTier, getTierCategory, TIER_NAMES } from '@/lib/tmmr';
-import { Trophy, TrendingUp, Target, Star, Zap, Info, Swords, Shieldcheck, Crown, Flame, Medal } from 'lucide-react';
+import { Trophy, TrendingUp, Target, Star, Zap, Info, Swords, ShieldCheck } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -280,7 +280,7 @@ function PlayerRow({ player, position, isTopThree, rankingMode }: {
                                     <Tooltip delayDuration={0}>
                                         <TooltipTrigger>
                                             <div className={`flex items-center justify-center w-5 h-5 rounded-md ${player.confidenceScore > 0.8 ? 'bg-blue-500/20 text-blue-400' : 'bg-gray-500/20 text-gray-400'}`}>
-                                                <Shieldcheck className="w-3 h-3" />
+                                                <ShieldCheck className="w-3 h-3" />
                                             </div>
                                         </TooltipTrigger>
                                         <TooltipContent side="top">
