@@ -13,13 +13,13 @@ const INFO_CONTENT: Record<string, { title: string; icon: any; description: stri
     general: {
         title: 'Rank Geral (TMMR)',
         icon: Trophy,
-        description: 'Seu nível real de habilidade, ajustado por confiança e dificuldade.',
+        description: 'Sua pontuação é calculada multiplicando três fatores: Habilidade × Confiança × Dificuldade.',
         details: [
-            'Skill (Habilidade): Baseado principalmente em vitórias (60%), mas também KDA e Rank das partidas.',
-            'Confiança: Iniciantes ganham menos pontos até provarem consistência (aprox. 300-500 jogos).',
-            'Dificuldade: Jogar em lobbies de nível alto (Ancient+) dá um multiplicador bônus.',
-            'Não basta "spammar" jogos: se você joga muito mas não melhora, seu TMMR estabiliza.',
-            'Fórmula: Skill × Confiança × Dificuldade.'
+            'Habilidade: Quanto você vence, seu desempenho (KDA) e o nível das partidas que joga.',
+            'Confiança: Cresce conforme você joga mais (estabiliza em ~300-500 jogos).',
+            'Dificuldade: Bônus por jogar contra adversários de alto nível (Ancient+).',
+            'Não basta só jogar muito: você precisa evoluir e vencer para subir.',
+            'Sistema equilibrado: volume + qualidade + consistência.'
         ]
     },
     winrate: {

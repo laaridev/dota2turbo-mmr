@@ -273,18 +273,20 @@ function PlayerRow({ player, position, isTopThree, rankingMode }: {
                         </span>
 
                         {/* Badges Row */}
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1.5">
                             {/* Confidence Badge */}
                             {player.confidenceScore !== undefined && (
                                 <TooltipProvider>
                                     <Tooltip delayDuration={0}>
                                         <TooltipTrigger>
-                                            <div className={`flex items-center justify-center w-5 h-5 rounded-md ${player.confidenceScore > 0.8 ? 'bg-blue-500/20 text-blue-400' : 'bg-gray-500/20 text-gray-400'}`}>
-                                                <ShieldCheck className="w-3 h-3" />
+                                            <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md ${player.confidenceScore > 0.8 ? 'bg-blue-500/15 text-blue-400 border border-blue-500/30' : 'bg-gray-500/15 text-gray-400 border border-gray-500/30'}`}>
+                                                <ShieldCheck className="w-3 h-3 flex-shrink-0" />
+                                                <span className="text-[10px] font-semibold tabular-nums">{(player.confidenceScore * 100).toFixed(0)}%</span>
                                             </div>
                                         </TooltipTrigger>
                                         <TooltipContent side="top">
                                             <p>Confiança: {(player.confidenceScore * 100).toFixed(0)}%</p>
+                                            <p className="text-xs text-gray-400">Baseado em {totalGames} jogos</p>
                                         </TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>
@@ -295,12 +297,14 @@ function PlayerRow({ player, position, isTopThree, rankingMode }: {
                                 <TooltipProvider>
                                     <Tooltip delayDuration={0}>
                                         <TooltipTrigger>
-                                            <div className="flex items-center justify-center w-5 h-5 rounded-md bg-purple-500/20 text-purple-400">
-                                                <Swords className="w-3 h-3" />
+                                            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-purple-500/15 text-purple-400 border border-purple-500/30">
+                                                <Swords className="w-3 h-3 flex-shrink-0" />
+                                                <span className="text-[10px] font-semibold tabular-nums">+{((player.difficultyExposure - 1) * 100).toFixed(0)}%</span>
                                             </div>
                                         </TooltipTrigger>
                                         <TooltipContent side="top">
-                                            <p>Alta Dificuldade: +{((player.difficultyExposure - 1) * 100).toFixed(0)}% bônus</p>
+                                            <p>Bônus de Dificuldade</p>
+                                            <p className="text-xs text-gray-400">Joga contra adversários de alto nível</p>
                                         </TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>
