@@ -1,0 +1,140 @@
+'use client';
+
+import { motion } from 'framer-motion';
+import { HelpCircle, Search, Calculator, Clock, Shield, TrendingUp, Users, Zap } from 'lucide-react';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import Link from 'next/link';
+
+const faqs = [
+    {
+        icon: Search,
+        question: "Como sei que estão sendo contados apenas jogos Turbo?",
+        answer: "Buscamos os dados diretamente da API do OpenDota usando um filtro específico para o modo Turbo (game_mode = 23). Isso garante que apenas partidas do modo Turbo sejam contabilizadas no cálculo do seu TMMR. Partidas ranked, unranked normais ou outros modos não são incluídas."
+    },
+    {
+        icon: Calculator,
+        question: "Como o sistema calcula meu TMMR?",
+        answer: "O TMMR v3.0 usa uma fórmula em 3 camadas: Skill Score (baseado em winrate confiável via Wilson Score, KDA e rank das partidas) × Confidence Score (baseado na quantidade de jogos) × Difficulty Exposure (bônus por jogar contra oponentes de alto nível). A fórmula final é: TMMR = 3500 + (SkillScore × 3000 × Confidence × Difficulty), limitado entre 500-9500."
+    },
+    {
+        icon: TrendingUp,
+        question: "Por que meu TMMR é diferente do meu MMR normal?",
+        answer: "O Dota 2 Turbo não possui um sistema oficial de MMR. Criamos o TMMR especificamente para o modo Turbo, que tem dinâmicas muito diferentes do ranked tradicional. O TMMR leva em conta fatores específicos do Turbo e não tem relação com seu MMR de partidas ranqueadas normais."
+    },
+    {
+        icon: Clock,
+        question: "Com que frequência posso atualizar meu perfil?",
+        answer: "Atualmente, você pode atualizar seu perfil uma vez a cada 7 dias. Isso é necessário para evitar sobrecarga nos servidores e garantir que todos tenham acesso justo ao sistema. No futuro, planejamos implementar atualizações automáticas em tempo real."
+    },
+    {
+        icon: Users,
+        question: "Por que preciso ter no mínimo 30 partidas?",
+        answer: "Com menos de 30 partidas, não temos dados estatísticos suficientes para calcular um TMMR confiável. O sistema usa modelos estatísticos que precisam de uma amostra mínima para determinar com precisão seu nível de habilidade e evitar flutuações excessivas causadas por sorte/azar."
+    },
+    {
+        icon: Shield,
+        question: "Meu perfil não foi encontrado, o que fazer?",
+        answer: "Verifique se: 1) Seu perfil do Dota 2 está configurado como público nas configurações de privacidade do Steam; 2) Você digitou o ID correto (Steam ID, Friend ID ou link do perfil); 3) Você tem pelo menos 30 partidas no modo Turbo; 4) Suas partidas estão visíveis publicamente (opção 'Expor Dados Públicos de Partidas' habilitada no Dota 2)."
+    },
+    {
+        icon: Zap,
+        question: "Por que alguns valores podem mudar?",
+        answer: "O sistema está em BETA e em desenvolvimento contínuo. Estamos constantemente refinando a fórmula com base em feedback da comunidade e análise de dados reais. Pequenos ajustes podem ser feitos para tornar o ranking mais justo e representativo. Mudanças significativas serão sempre comunicadas."
+    },
+    {
+        icon: Calculator,
+        question: "O que são Skill Score, Confidence e Difficulty?",
+        answer: "São os 3 pilares do TMMR: Skill Score mede sua habilidade bruta (60% winrate, 25% KDA, 15% rank médio das partidas). Confidence Score reflete a confiabilidade dos dados (cresce com mais jogos, satura em ~300-500 partidas). Difficulty Exposure é um multiplicador (0.7-1.5x) baseado em quão frequentemente você enfrenta jogadores de alto nível (Ancient+)."
+    },
+    {
+        icon: TrendingUp,
+        question: "Como posso subir no ranking?",
+        answer: "Para subir no TMMR: 1) Vença mais partidas (fator mais importante); 2) Mantenha um KDA consistente; 3) Jogue contra oponentes de nível mais alto quando possível; 4) Acumule mais partidas para aumentar sua Confidence. Lembre-se: não basta apenas 'spammar' jogos - você precisa evoluir e vencer para subir."
+    },
+    {
+        icon: HelpCircle,
+        question: "O sistema leva em conta partidas ranqueadas?",
+        answer: "Não. O TMMR é calculado EXCLUSIVAMENTE com base em partidas do modo Turbo. Seu MMR ranked, medalhas ou partidas unranked normais não afetam o cálculo do TMMR de forma alguma. São sistemas completamente independentes."
+    }
+];
+
+export default function FAQPage() {
+    return (
+        <div className="min-h-screen bg-background">
+            <div className="container mx-auto px-4 py-12 max-w-4xl">
+                {/* Header */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="text-center mb-12"
+                >
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/20 mb-4">
+                        <HelpCircle className="w-8 h-8 text-primary" />
+                    </div>
+                    <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-primary to-orange-400 bg-clip-text text-transparent">
+                        Dúvidas Frequentes
+                    </h1>
+                    <p className="text-muted-foreground text-lg">
+                        Tudo que você precisa saber sobre o TurboBuff
+                    </p>
+                </motion.div>
+
+                {/* FAQ Accordion */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                    className="bg-card/50 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-sm shadow-xl"
+                >
+                    <Accordion type="single" collapsible className="w-full">
+                        {faqs.map((faq, index) => (
+                            <AccordionItem key={index} value={`item-${index}`}>
+                                <AccordionTrigger className="text-white hover:text-primary">
+                                    <div className="flex items-center gap-3 text-left">
+                                        <faq.icon className="w-5 h-5 text-primary flex-shrink-0" />
+                                        <span className="font-semibold">{faq.question}</span>
+                                    </div>
+                                </AccordionTrigger>
+                                <AccordionContent>
+                                    <p className="text-gray-300 leading-relaxed">{faq.answer}</p>
+                                </AccordionContent>
+                            </AccordionItem>
+                        ))}
+                    </Accordion>
+                </motion.div>
+
+                {/* Still have questions CTA */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.4 }}
+                    className="mt-12 text-center"
+                >
+                    <div className="bg-gradient-to-r from-primary/10 to-orange-500/10 border border-primary/20 rounded-xl p-6">
+                        <h3 className="text-xl font-bold text-white mb-2">Ainda tem dúvidas?</h3>
+                        <p className="text-muted-foreground mb-4">
+                            Explore o sistema ou retorne à página inicial para começar
+                        </p>
+                        <div className="flex gap-3 justify-center flex-wrap">
+                            <Link
+                                href="/"
+                                className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors font-medium"
+                            >
+                                <Search className="w-4 h-4" />
+                                Analisar Perfil
+                            </Link>
+                            <Link
+                                href="/leaderboard"
+                                className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors font-medium"
+                            >
+                                <TrendingUp className="w-4 h-4" />
+                                Ver Ranking
+                            </Link>
+                        </div>
+                    </div>
+                </motion.div>
+            </div>
+        </div>
+    );
+}
