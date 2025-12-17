@@ -143,37 +143,8 @@ export default function AboutPage() {
                 </div>
             </section>
 
-            {/* Values Section */}
-            <section className="py-16 px-4">
-                <div className="container mx-auto max-w-4xl">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        className="bg-gradient-to-r from-primary/5 via-orange-500/5 to-red-500/5 border border-white/10 rounded-3xl p-8"
-                    >
-                        <h2 className="text-2xl font-bold mb-8 text-center">Nossos Valores</h2>
 
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            {values.map((value, index) => (
-                                <motion.div
-                                    key={value.text}
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    whileInView={{ opacity: 1, scale: 1 }}
-                                    viewport={{ once: true }}
-                                    transition={{ delay: index * 0.1 }}
-                                    className="flex flex-col items-center text-center p-4"
-                                >
-                                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                                        <value.icon className="w-6 h-6 text-primary" />
-                                    </div>
-                                    <p className="text-sm text-muted-foreground">{value.text}</p>
-                                </motion.div>
-                            ))}
-                        </div>
-                    </motion.div>
-                </div>
-            </section>
+
 
             {/* Disclaimer Section */}
             <section className="py-16 px-4">
