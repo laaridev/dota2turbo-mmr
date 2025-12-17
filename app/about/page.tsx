@@ -22,6 +22,30 @@ const features = [
         title: 'Dados em Tempo Real',
         description: 'Integração com OpenDota API para trazer estatísticas atualizadas de todas as suas partidas Turbo.',
         gradient: 'from-blue-500 to-cyan-500'
+    },
+    {
+        icon: Trophy,
+        title: 'Ranking de Winrate',
+        description: 'Classificação baseada na sua taxa de vitória. Quanto mais você vence, mais sobe no ranking!',
+        gradient: 'from-green-500 to-emerald-500'
+    },
+    {
+        icon: Trophy,
+        title: 'Ranking de Performance',
+        description: 'Avaliação focada no seu KDA médio. Premia jogadores que consistemente performam bem nas partidas.',
+        gradient: 'from-purple-500 to-violet-500'
+    },
+    {
+        icon: Trophy,
+        title: 'Ranking de Especialistas',
+        description: 'Destaque para jogadores que dominam heróis específicos. Mostra sua maestria em personagens favoritos.',
+        gradient: 'from-pink-500 to-rose-500'
+    },
+    {
+        icon: Trophy,
+        title: 'Ranking Alto Nível',
+        description: 'Competição exclusiva para jogadores com TMMR 60+. O olimpo do Turbo brasileiro!',
+        gradient: 'from-amber-500 to-yellow-500'
     }
 ];
 
