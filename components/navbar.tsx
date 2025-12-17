@@ -54,6 +54,9 @@ export function Navbar() {
                     <Link href="/faq" className={`transition-colors hover:text-white ${pathname === '/faq' ? 'text-white' : 'text-muted-foreground'}`}>
                         FAQ
                     </Link>
+                    <Link href="/about" className={`transition-colors hover:text-white ${pathname === '/about' ? 'text-white' : 'text-muted-foreground'}`}>
+                        Sobre
+                    </Link>
                 </nav>
             </div>
         </header>
