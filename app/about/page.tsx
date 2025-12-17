@@ -108,38 +108,44 @@ export default function AboutPage() {
                 </div>
             </section>
 
-            {/* Features Grid */}
-            <section className="py-16 px-4">
-                <div className="container mx-auto max-w-5xl">
-                    <motion.h2
+            {/* Features Section - Vertical List */}
+            <section className="py-12 px-4">
+                <div className="container mx-auto max-w-4xl">
+                    <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        className="text-3xl font-bold mb-12 text-center"
+                        className="bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 md:p-12"
                     >
-                        O que oferecemos
-                    </motion.h2>
+                        <h2 className="text-3xl font-bold mb-8 text-center">
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-orange-400">
+                                🚀 O que oferecemos
+                            </span>
+                        </h2>
 
-                    <div className="grid md:grid-cols-3 gap-6">
-                        {features.map((feature, index) => (
-                            <motion.div
-                                key={feature.title}
-                                initial={{ opacity: 0, y: 30 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: index * 0.1 }}
-                                className="group relative bg-card/50 backdrop-blur-sm border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-all duration-300"
-                            >
-                                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                                    <feature.icon className="w-7 h-7 text-white" />
-                                </div>
-                                <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
-                                <p className="text-muted-foreground text-sm leading-relaxed">
-                                    {feature.description}
-                                </p>
-                            </motion.div>
-                        ))}
-                    </div>
+                        <div className="space-y-6">
+                            {features.map((feature, index) => (
+                                <motion.div
+                                    key={feature.title}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    whileInView={{ opacity: 1, x: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ delay: index * 0.1 }}
+                                    className="flex items-start gap-4"
+                                >
+                                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center flex-shrink-0`}>
+                                        <feature.icon className="w-6 h-6 text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-bold mb-1 text-white">{feature.title}</h3>
+                                        <p className="text-muted-foreground text-sm leading-relaxed">
+                                            {feature.description}
+                                        </p>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </motion.div>
                 </div>
             </section>
 
@@ -147,8 +153,8 @@ export default function AboutPage() {
 
 
             {/* Disclaimer Section */}
-            <section className="py-16 px-4">
-                <div className="container mx-auto max-w-3xl">
+            <section className="py-8 px-4">
+                <div className="container mx-auto max-w-4xl">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -158,15 +164,14 @@ export default function AboutPage() {
                         <p className="text-sm text-muted-foreground leading-relaxed">
                             <strong className="text-white">Aviso Legal:</strong> Este projeto não é afiliado, associado,
                             autorizado, endossado ou de qualquer forma conectado oficialmente à Valve Corporation
-                            ou ao Dota 2. Todos os logotipos e marcas registradas pertencem aos seus respectivos proprietários.
-                            Os dados utilizados são obtidos através da API pública do OpenDota.
+                            ou ao Dota 2. Os dados utilizados são obtidos através da API pública do OpenDota.
                         </p>
                     </motion.div>
                 </div>
             </section>
 
             {/* CTA Section */}
-            <section className="py-20 px-4">
+            <section className="py-12 px-4">
                 <div className="container mx-auto max-w-4xl text-center">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
