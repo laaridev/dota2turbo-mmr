@@ -102,7 +102,7 @@ export default function MuralDasTretasPage() {
                             matchDetails: data.matchDetails || []
                         }
                     });
-                    setShowHistory(false);
+                    setShowHistory(true); // Auto-expand match history
                 } else {
                     console.error('Error loading from DB:', data.error);
                     setSelectedHistoryItem(item);
