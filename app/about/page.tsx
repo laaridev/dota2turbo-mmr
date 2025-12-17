@@ -44,7 +44,7 @@ const features = [
     {
         icon: Trophy,
         title: 'Ranking Alto Nível',
-        description: 'Competição exclusiva para jogadores com TMMR 60+. O olimpo do Turbo brasileiro!',
+        description: 'Competição para jogadores de elite. Baseado no avg_rank da API, que indica a dificuldade média das partidas. Apenas jogadores que enfrentam adversários de nível 60+ entram aqui.',
         gradient: 'from-amber-500 to-yellow-500'
     }
 ];
