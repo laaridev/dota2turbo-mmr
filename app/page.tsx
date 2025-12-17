@@ -116,7 +116,7 @@ export default function Home() {
 
         {/* Title */}
         <div className="relative">
-          <div className="absolute inset-0 blur-3xl bg-gradient-to-r from-primary/30 via-orange-500/20 to-primary/30 opacity-50" />
+          <div className="absolute inset-0 blur-3xl bg-gradient-to-r from-primary/30 via-orange-500/20 to-primary/30 opacity-50 animate-pulse" />
           <h1 className="text-6xl md:text-8xl font-black tracking-tighter relative">
             <span className="bg-gradient-to-r from-primary via-orange-400 to-amber-400 bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%] drop-shadow-2xl">
               Turbo
