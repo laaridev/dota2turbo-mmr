@@ -798,7 +798,7 @@ export default function MuralDasTretasPage() {
                                                 initial={{ opacity: 0, height: 0 }}
                                                 animate={{ opacity: 1, height: 'auto' }}
                                                 exit={{ opacity: 0, height: 0 }}
-                                                className="mt-3 space-y-2"
+                                                className="mt-3 space-y-2 max-h-36 overflow-y-auto"
                                             >
                                                 {comparison.headToHead.matchDetails.slice(0, 10).map((match, index) => (
                                                     <motion.div
