@@ -93,16 +93,42 @@ export default function MuralDasTretasPage() {
                 const data = await response.json();
 
                 if (response.ok) {
-                    setSelectedHistoryItem({
-                        ...data,
-                        headToHead: data.headToHead || {
-                            player1Wins: data.player1Wins || 0,
-                            player2Wins: data.player2Wins || 0,
-                            totalMatches: data.totalMatches || 0,
-                            matchDetails: data.matchDetails || []
+                    // Check if we have matchDetails from DB
+                    const hasMatchDetails = data.headToHead?.matchDetails && data.headToHead.matchDetails.length > 0;
+
+                    if (hasMatchDetails) {
+                        // Use data from database directly
+                        setSelectedHistoryItem({
+                            ...data,
+                            headToHead: data.headToHead
+                        });
+                        setShowHistory(true);
+                    } else {
+                        // Fallback: fetch from OpenDota for legacy records
+                        console.log('No matchDetails in DB, fetching from OpenDota...');
+                        const compareResponse = await fetch('/api/rivalry/compare', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                player1Id: data.player1Id || data.player1?.steamId,
+                                player2Id: data.player2Id || data.player2?.steamId
+                            })
+                        });
+                        const compareData = await compareResponse.json();
+
+                        if (compareResponse.ok && compareData.headToHead) {
+                            setSelectedHistoryItem({
+                                ...data,
+                                headToHead: compareData.headToHead,
+                                player1: compareData.player1 || data.player1,
+                                player2: compareData.player2 || data.player2
+                            });
+                        } else {
+                            // Ultimate fallback
+                            setSelectedHistoryItem(data);
                         }
-                    });
-                    setShowHistory(true); // Auto-expand match history
+                        setShowHistory(true);
+                    }
                 } else {
                     console.error('Error loading from DB:', data.error);
                     setSelectedHistoryItem(item);
@@ -1118,7 +1144,7 @@ export default function MuralDasTretasPage() {
                                                         initial={{ height: 0, opacity: 0 }}
                                                         animate={{ height: 'auto', opacity: 1 }}
                                                         exit={{ height: 0, opacity: 0 }}
-                                                        className="space-y-2 mt-2 max-h-80 overflow-y-auto"
+                                                        className="space-y-2 mt-2"
                                                     >
                                                         {selectedHistoryItem.headToHead.matchDetails.slice(0, 20).map((match: any, index: number) => (
                                                             <motion.div
