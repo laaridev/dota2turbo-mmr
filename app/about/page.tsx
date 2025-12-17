@@ -98,7 +98,7 @@ export default function AboutPage() {
             </section>
 
             {/* Mission Section */}
-            <section className="py-16 px-4">
+            <section className="py-10 px-4">
                 <div className="container mx-auto max-w-4xl">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -133,7 +133,7 @@ export default function AboutPage() {
             </section>
 
             {/* Features Section - Vertical List */}
-            <section className="py-12 px-4">
+            <section className="py-8 px-4">
                 <div className="container mx-auto max-w-4xl">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -222,15 +222,6 @@ export default function AboutPage() {
                             </Link>
                         </motion.div>
                     </motion.div>
-                </div>
-            </section>
-
-            {/* Footer Credit */}
-            <section className="py-8 px-4 border-t border-white/5">
-                <div className="container mx-auto max-w-4xl text-center">
-                    <p className="text-sm text-muted-foreground">
-                        Feito com ❤️ pela comunidade brasileira de Dota 2 Turbo
-                    </p>
                 </div>
             </section>
         </div>
