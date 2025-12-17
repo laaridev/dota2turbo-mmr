@@ -440,25 +440,29 @@ export async function POST(req: NextRequest) {
 
             const p1Match = p1MatchMap.get(p2Match.match_id);
 
-            // IMPORTANTE: Se P2 tem essa partida com included_account_id=P1,
-            // então sabemos que P1 também estava nessa partida!
-            // Mesmo que P1 não tenha retornado (lista limitada), podemos processar.
-
-            // Como não temos os dados de P1 para essa partida,
-            // vamos assumir resultados baseados apenas em P2
-            // (a OpenDota garante que ambos estavam com included_account_id)
+            // Se não temos dados de P1 para essa partida, não podemos determinar
+            // se estavam em times opostos. Pulamos para evitar contar partidas
+            // onde jogaram JUNTOS (mesmo time) como confrontos.
+            if (!p1Match) {
+                console.log(`Match ${p2Match.match_id} não tem dados de P1 - pulando (não é possível verificar times)`);
+                continue;
+            }
 
             processedMatches.add(p2Match.match_id);
 
-            console.log(`Match ${p2Match.match_id} encontrado em P2 mas não em P1 - processando mesmo assim`);
-
-            // P2 sabemos os dados
+            // Agora temos dados de ambos, podemos verificar times
+            const p1Radiant = p1Match.player_slot < 128;
             const p2Radiant = p2Match.player_slot < 128;
-            const p2Won = (p2Radiant && p2Match.radiant_win) || (!p2Radiant && !p2Match.radiant_win);
 
-            // P1 estava no time oposto (assumption baseada em included_account_id)
-            // Se P2 ganhou e estava no Radiant, P1 perdeu e estava no Dire
-            const p1Won = !p2Won; // Times opostos
+            // Se estavam no MESMO time, pular (não é confronto)
+            if (p1Radiant === p2Radiant) {
+                console.log(`Match ${p2Match.match_id}: SAME TEAM (both ${p1Radiant ? 'Radiant' : 'Dire'}) - skipped`);
+                continue;
+            }
+
+            // Times opostos! Contar como confronto
+            const p1Won = (p1Radiant && p1Match.radiant_win) || (!p1Radiant && !p1Match.radiant_win);
+            const p2Won = (p2Radiant && p2Match.radiant_win) || (!p2Radiant && !p2Match.radiant_win);
 
             headToHead.totalMatches++;
 
@@ -471,12 +475,12 @@ export async function POST(req: NextRequest) {
             headToHead.matchDetails.push({
                 matchId: p2Match.match_id.toString(),
                 winner: p1Won ? player1Id : player2Id,
-                player1Hero: 0, // Não sabemos o herói de P1
+                player1Hero: p1Match.hero_id || 0,
                 player2Hero: p2Match.hero_id || 0,
                 timestamp: p2Match.start_time || 0
             });
 
-            console.log(`Match ${p2Match.match_id} (from P2 only): P1=${p1Won ? 'WIN' : 'LOSS'} (team unknown), P2=${p2Won ? 'WIN' : 'LOSS'} (${p2Radiant ? 'Radiant' : 'Dire'}) → COUNTED`);
+            console.log(`Match ${p2Match.match_id} (from P2): P1=${p1Won ? 'WIN' : 'LOSS'} (${p1Radiant ? 'Radiant' : 'Dire'}), P2=${p2Won ? 'WIN' : 'LOSS'} (${p2Radiant ? 'Radiant' : 'Dire'}) → OPPOSING TEAMS`);
         }
 
         console.log('Final count - P1 wins:', headToHead.player1Wins, 'P2 wins:', headToHead.player2Wins, 'Total confrontos:', headToHead.totalMatches);
