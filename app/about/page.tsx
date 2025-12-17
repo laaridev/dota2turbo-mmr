@@ -10,37 +10,49 @@ const features = [
         icon: Trophy,
         title: 'TMMR - Turbo MMR',
         description: 'Sistema exclusivo de ranking para o modo Turbo, calculado com base em performance, KDA e dificuldade dos adversários.',
-        gradient: 'from-yellow-500 to-orange-500'
+        gradient: 'from-yellow-500 to-orange-500',
+        link: '/leaderboard',
+        linkText: 'Ver ranking'
     },
     {
         icon: Users,
         title: 'Confrontos Diretos',
         description: 'Compare seu histórico de vitórias e derrotas contra seus amigos. Descubra quem realmente domina nos duelos.',
-        gradient: 'from-red-500 to-pink-500'
+        gradient: 'from-red-500 to-pink-500',
+        link: '/rivalry',
+        linkText: 'Comparar agora'
     },
     {
         icon: Zap,
         title: 'Dados em Tempo Real',
         description: 'Integração com OpenDota API para trazer estatísticas atualizadas de todas as suas partidas Turbo.',
-        gradient: 'from-blue-500 to-cyan-500'
+        gradient: 'from-blue-500 to-cyan-500',
+        link: '/',
+        linkText: 'Analisar perfil'
     },
     {
         icon: Trophy,
         title: 'Ranking de Winrate',
         description: 'Classificação baseada na sua taxa de vitória. Quanto mais você vence, mais sobe no ranking!',
-        gradient: 'from-green-500 to-emerald-500'
+        gradient: 'from-green-500 to-emerald-500',
+        link: '/leaderboard?mode=winrate',
+        linkText: 'Ver ranking'
     },
     {
         icon: Trophy,
         title: 'Ranking de Performance',
         description: 'Avaliação focada no seu KDA médio. Premia jogadores que consistemente performam bem nas partidas.',
-        gradient: 'from-purple-500 to-violet-500'
+        gradient: 'from-purple-500 to-violet-500',
+        link: '/leaderboard?mode=performance',
+        linkText: 'Ver ranking'
     },
     {
         icon: Trophy,
         title: 'Ranking de Especialistas',
         description: 'Destaque para jogadores que dominam heróis específicos. Mostra sua maestria em personagens favoritos.',
-        gradient: 'from-pink-500 to-rose-500'
+        gradient: 'from-pink-500 to-rose-500',
+        link: '/leaderboard?mode=specialist',
+        linkText: 'Ver ranking'
     },
     {
         icon: Trophy,
@@ -50,7 +62,9 @@ const features = [
         tooltipTerm: 'avg_rank',
         tooltipContent: 'O OpenDota avalia o nível de cada partida baseado no ranking médio de todos os jogadores. Este valor é fornecido pela API e usamos para identificar jogadores de alto nível.',
         descriptionAfter: ', que indica a dificuldade média das partidas. Apenas jogadores com média 60+ entram aqui.',
-        gradient: 'from-amber-500 to-yellow-500'
+        gradient: 'from-amber-500 to-yellow-500',
+        link: '/leaderboard?mode=pro',
+        linkText: 'Ver ranking'
     }
 ];
 
@@ -185,6 +199,14 @@ export default function AboutPage() {
                                                 </TooltipProvider>
                                             )}
                                             {(feature as any).descriptionAfter}
+                                            {(feature as any).link && (
+                                                <Link
+                                                    href={(feature as any).link}
+                                                    className="ml-1 text-primary hover:text-primary/80 underline font-medium"
+                                                >
+                                                    {(feature as any).linkText} →
+                                                </Link>
+                                            )}
                                         </p>
                                     </div>
                                 </motion.div>
