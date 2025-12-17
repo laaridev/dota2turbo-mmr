@@ -84,14 +84,14 @@ export default function Home() {
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
           className="absolute w-[600px] h-[600px] rounded-full bg-gradient-to-br from-primary/25 to-orange-600/20 blur-[120px]"
-          animate={{ x: ['-50%', '-40%', '-60%', '-50%'], y: ['-50%', '-60%', '-40%', '-50%'], scale: [1, 1.1, 0.95, 1] }}
-          transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
+          animate={{ x: ['-50%', '-30%', '-70%', '-50%'], y: ['-50%', '-70%', '-30%', '-50%'], scale: [1, 1.2, 0.9, 1] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
           style={{ top: '20%', left: '40%' }}
         />
         <motion.div
           className="absolute w-[400px] h-[400px] rounded-full bg-gradient-to-br from-orange-500/15 to-rose-500/10 blur-[100px]"
-          animate={{ x: ['50%', '60%', '40%', '50%'], y: ['50%', '40%', '60%', '50%'], scale: [1, 0.95, 1.1, 1] }}
-          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+          animate={{ x: ['50%', '70%', '30%', '50%'], y: ['50%', '30%', '70%', '50%'], scale: [1, 0.9, 1.2, 1] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
           style={{ bottom: '30%', right: '30%' }}
         />
       </div>
