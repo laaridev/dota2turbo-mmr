@@ -1144,7 +1144,7 @@ export default function MuralDasTretasPage() {
                                                         initial={{ height: 0, opacity: 0 }}
                                                         animate={{ height: 'auto', opacity: 1 }}
                                                         exit={{ height: 0, opacity: 0 }}
-                                                        className="space-y-2 mt-2"
+                                                        className="space-y-2 mt-2 max-h-36 overflow-y-auto"
                                                     >
                                                         {selectedHistoryItem.headToHead.matchDetails.slice(0, 20).map((match: any, index: number) => (
                                                             <motion.div
