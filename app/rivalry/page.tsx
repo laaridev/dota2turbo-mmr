@@ -231,11 +231,11 @@ export default function MuralDasTretasPage() {
                 >
                     <h1 className="text-4xl font-black mb-3">
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-orange-400 to-red-400">
-                            Rivalries
+                            Mural de Confrontos
                         </span>
                     </h1>
                     <p className="text-muted-foreground text-sm">
-                        Discover who dominates head-to-head duels
+                        Descubra quem domina nos duelos diretos
                     </p>
                 </motion.div>
 
@@ -247,21 +247,21 @@ export default function MuralDasTretasPage() {
                     className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 max-w-4xl mx-auto"
                 >
                     <div className="bg-card/30 backdrop-blur-sm border border-white/5 rounded-xl p-4">
-                        <h3 className="font-bold text-sm mb-1">Select 2 Players</h3>
+                        <h3 className="font-bold text-sm mb-1">Selecione 2 Jogadores</h3>
                         <p className="text-xs text-muted-foreground">
-                            Search by name or paste Steam ID to compare any two players
+                            Busque por nome ou cole o Steam ID de quem você quiser comparar
                         </p>
                     </div>
                     <div className="bg-card/30 backdrop-blur-sm border border-white/5 rounded-xl p-4">
-                        <h3 className="font-bold text-sm mb-1">Analyze Matchup</h3>
+                        <h3 className="font-bold text-sm mb-1">Analise o Confronto</h3>
                         <p className="text-xs text-muted-foreground">
-                            See overall score, compare TMMR, and view full history with Dotabuff links
+                            Veja o placar geral, compare TMMR e acesse o histórico completo com links do Dotabuff
                         </p>
                     </div>
                     <div className="bg-card/30 backdrop-blur-sm border border-white/5 rounded-xl p-4">
-                        <h3 className="font-bold text-sm mb-1">Public Feed</h3>
+                        <h3 className="font-bold text-sm mb-1">Feed Público</h3>
                         <p className="text-xs text-muted-foreground">
-                            All matchups are posted here. Track the server's biggest rivalries
+                            Todos os confrontos vão para o mural. Descubra quem é o maior freguês do servidor
                         </p>
                     </div>
                 </motion.div>
