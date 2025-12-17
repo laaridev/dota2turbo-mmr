@@ -250,30 +250,31 @@ export default function MuralDasTretasPage() {
 
     return (
         <div className="min-h-screen bg-background">
-            {/* Hero Section - Compact for form visibility */}
-            <section className="relative overflow-hidden pt-12 pb-16 px-4">
-                {/* Background Effects */}
-                <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 via-background to-orange-500/10" />
-                <div className="absolute top-10 left-10 w-48 h-48 bg-red-500/20 rounded-full blur-3xl animate-pulse" />
-                <div className="absolute bottom-10 right-10 w-64 h-64 bg-orange-500/20 rounded-full blur-3xl animate-pulse" />
-
-                <div className="container mx-auto max-w-4xl relative z-10">
+            {/* Hero Section - Card Style */}
+            <section className="pt-8 pb-6 px-4">
+                <div className="container mx-auto max-w-4xl">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5 }}
-                        className="text-center"
+                        className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-primary/5 via-card/50 to-orange-500/5 p-8"
                     >
-                        <h1 className="text-4xl md:text-5xl font-black mb-4">
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-orange-400 to-red-500">
-                                Mural de Confrontos
-                            </span>
-                        </h1>
+                        {/* Background Orbs */}
+                        <div className="absolute top-0 left-0 w-48 h-48 bg-primary/20 rounded-full blur-3xl animate-pulse" />
+                        <div className="absolute bottom-0 right-0 w-64 h-64 bg-orange-500/20 rounded-full blur-3xl animate-pulse" />
 
-                        <p className="text-muted-foreground max-w-xl mx-auto leading-relaxed text-sm">
-                            Selecione dois jogadores para comparar o histórico de vitórias e derrotas entre eles no modo Turbo.
-                            Os resultados são salvos automaticamente no mural público!
-                        </p>
+                        <div className="relative z-10 text-center">
+                            <h1 className="text-4xl md:text-5xl font-black mb-4">
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-orange-400 to-red-500">
+                                    Mural de Confrontos
+                                </span>
+                            </h1>
+
+                            <p className="text-muted-foreground max-w-xl mx-auto leading-relaxed text-sm">
+                                Selecione dois jogadores para comparar o histórico de vitórias e derrotas entre eles no modo Turbo.
+                                Os resultados são salvos automaticamente no mural público!
+                            </p>
+                        </div>
                     </motion.div>
                 </div>
             </section>

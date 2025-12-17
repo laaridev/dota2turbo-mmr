@@ -61,39 +61,40 @@ const faqs = [
 export default function FAQPage() {
     return (
         <div className="min-h-screen bg-background">
-            {/* Hero Section - Same style as About */}
-            <section className="relative overflow-hidden py-20 px-4 pb-16">
-                {/* Background Effects */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-orange-500/10" />
-                <div className="absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full blur-3xl animate-pulse" />
-                <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-500/20 rounded-full blur-3xl animate-pulse" />
-
-                <div className="container mx-auto max-w-4xl relative z-10">
+            {/* Hero Section - Card Style */}
+            <section className="pt-8 pb-6 px-4">
+                <div className="container mx-auto max-w-4xl">
                     <motion.div
-                        initial={{ opacity: 0, y: 30 }}
+                        initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6 }}
-                        className="text-center"
+                        transition={{ duration: 0.5 }}
+                        className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-primary/5 via-card/50 to-orange-500/5 p-8 md:p-12"
                     >
-                        <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
-                            className="inline-flex items-center gap-2 bg-primary/10 border border-primary/30 rounded-full px-4 py-2 mb-6"
-                        >
-                            <Sparkles className="w-4 h-4 text-primary" />
-                            <span className="text-sm font-medium text-primary">Tire Suas Dúvidas</span>
-                        </motion.div>
+                        {/* Background Orbs */}
+                        <div className="absolute top-0 left-0 w-48 h-48 bg-primary/20 rounded-full blur-3xl animate-pulse" />
+                        <div className="absolute bottom-0 right-0 w-64 h-64 bg-orange-500/20 rounded-full blur-3xl animate-pulse" />
 
-                        <h1 className="text-5xl md:text-6xl font-black mb-6">
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-orange-400 to-red-500">
-                                Dúvidas Frequentes
-                            </span>
-                        </h1>
+                        <div className="relative z-10 text-center">
+                            <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
+                                className="inline-flex items-center gap-2 bg-primary/10 border border-primary/30 rounded-full px-4 py-2 mb-6"
+                            >
+                                <Sparkles className="w-4 h-4 text-primary" />
+                                <span className="text-sm font-medium text-primary">Tire Suas Dúvidas</span>
+                            </motion.div>
 
-                        <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                            Tudo que você precisa saber sobre o TurboBuff e como o sistema funciona.
-                        </p>
+                            <h1 className="text-5xl md:text-6xl font-black mb-6">
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-orange-400 to-red-500">
+                                    Dúvidas Frequentes
+                                </span>
+                            </h1>
+
+                            <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                                Tudo que você precisa saber sobre o TurboBuff e como o sistema funciona.
+                            </p>
+                        </div>
                     </motion.div>
                 </div>
             </section>
