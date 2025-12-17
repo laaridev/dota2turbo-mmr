@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Swords, Trophy, TrendingUp, ChevronDown, Loader2, AlertCircle, Flame, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
+import { Swords, Trophy, TrendingUp, ChevronDown, Loader2, AlertCircle, Flame, ChevronLeft, ChevronRight, ExternalLink, Sparkles } from 'lucide-react';
 import { PlayerAutocomplete } from '@/components/player-autocomplete';
 import {
     Dialog, DialogContent, DialogHeader,
@@ -264,15 +264,24 @@ export default function MuralDasTretasPage() {
                         <div className="absolute bottom-0 right-0 w-64 h-64 bg-orange-500/20 rounded-full blur-3xl animate-pulse" />
 
                         <div className="relative z-10 text-center">
-                            <h1 className="text-4xl md:text-5xl font-black mb-4">
+                            <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
+                                className="inline-flex items-center gap-2 bg-primary/10 border border-primary/30 rounded-full px-4 py-2 mb-6"
+                            >
+                                <Sparkles className="w-4 h-4 text-primary" />
+                                <span className="text-sm font-medium text-primary">Compare Jogadores</span>
+                            </motion.div>
+
+                            <h1 className="text-5xl md:text-6xl font-black mb-6">
                                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-orange-400 to-red-500">
                                     Mural de Confrontos
                                 </span>
                             </h1>
 
-                            <p className="text-muted-foreground max-w-xl mx-auto leading-relaxed text-sm">
-                                Selecione dois jogadores para comparar o histórico de vitórias e derrotas entre eles no modo Turbo.
-                                Os resultados são salvos automaticamente no mural público!
+                            <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                                Descubra quem domina nos duelos diretos no modo Turbo.
                             </p>
                         </div>
                     </motion.div>
@@ -286,7 +295,6 @@ export default function MuralDasTretasPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="mx-auto max-w-4xl"
                 >
                     <div className="bg-card/40 backdrop-blur-sm border border-white/5 rounded-xl p-8 shadow-lg">
                         <div className="space-y-4">
