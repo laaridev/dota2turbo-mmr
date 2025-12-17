@@ -110,49 +110,25 @@ export async function POST(req: NextRequest) {
         let p2IsPrivate = false;
 
         try {
-            // STEP 1: Check if each player has public Turbo matches
-            // This helps us identify WHICH player has a private profile
-            console.log('[Privacy Check] Verifying profile accessibility...');
-
-            const [p1Check, p2Check] = await Promise.all([
-                fetchWithTimeout(`https://api.opendota.com/api/players/${player1Id}/matches?game_mode=23&significant=0&limit=1`, 5000).catch(() => null),
-                fetchWithTimeout(`https://api.opendota.com/api/players/${player2Id}/matches?game_mode=23&significant=0&limit=1`, 5000).catch(() => null)
-            ]);
-
-            p1IsPrivate = !p1Check || !p1Check.ok || p1Check.status >= 500;
-            p2IsPrivate = !p2Check || !p2Check.ok || p2Check.status >= 500;
-
-            // If we can check bodies, verify they have matches
-            // Empty array = private profile or no Turbo matches
-            if (p1Check?.ok) {
-                const p1Data = await p1Check.json();
-                if (p1Data.length === 0) {
-                    console.log(`[Privacy Check] Player 1 (${player1.name}) has no public Turbo matches`);
-                    p1IsPrivate = true; // MARK AS PRIVATE
-                }
-            }
-            if (p2Check?.ok) {
-                const p2Data = await p2Check.json();
-                if (p2Data.length === 0) {
-                    console.log(`[Privacy Check] Player 2 (${player2.name}) has no public Turbo matches`);
-                    p2IsPrivate = true; // MARK AS PRIVATE
-                }
-            }
-
-            console.log(`[Privacy Check] P1 private: ${p1IsPrivate}, P2 private: ${p2IsPrivate}`);
-
-            // STEP 2: Fetch matches from OpenDota where both players participated
+            // Fetch matches from OpenDota where both players participated
             // game_mode=23 = Turbo, significant=0 = include non-ranked
-            // NO LIMIT = returns ALL matches
-            // 10 second timeout to avoid hanging on private profiles
+            // 15 second timeout to allow for slower responses
+            console.log('[Rivalry] Fetching matches with included_account_id...');
+
             const [p1Response, p2Response] = await Promise.all([
-                fetchWithTimeout(`https://api.opendota.com/api/players/${player1Id}/matches?included_account_id=${player2Id}&game_mode=23&significant=0`, 10000),
-                fetchWithTimeout(`https://api.opendota.com/api/players/${player2Id}/matches?included_account_id=${player1Id}&game_mode=23&significant=0`, 10000)
+                fetchWithTimeout(`https://api.opendota.com/api/players/${player1Id}/matches?included_account_id=${player2Id}&game_mode=23&significant=0`, 15000),
+                fetchWithTimeout(`https://api.opendota.com/api/players/${player2Id}/matches?included_account_id=${player1Id}&game_mode=23&significant=0`, 15000)
             ]);
+
+            console.log(`[Rivalry] Response status: P1=${p1Response.status}, P2=${p2Response.status}`);
 
             // Check for server errors (5xx) which often indicate private profiles
             if (!p1Response.ok || !p2Response.ok) {
                 console.error('OpenDota API error:', p1Response.status, p2Response.status);
+
+                // 5xx errors often mean private profile
+                p1IsPrivate = p1Response.status >= 500;
+                p2IsPrivate = p2Response.status >= 500;
 
                 // Determine which player is problematic
                 let privatePlayerName = 'Um ou ambos os jogadores';
@@ -164,46 +140,33 @@ export async function POST(req: NextRequest) {
                     privatePlayerName = 'Ambos os jogadores';
                 }
 
-                // 5xx errors (500-599) often mean private profile or API issues
-                if (p1Response.status >= 500 || p2Response.status >= 500) {
-                    return NextResponse.json({
-                        error: `Perfil privado: ${privatePlayerName}`,
-                        isPrivate: true,
-                        privatePlayer: privatePlayerName,
-                        player1: {
-                            steamId: player1.steamId,
-                            name: player1.name,
-                            avatar: player1.avatar,
-                            tmmr: player1.tmmr,
-                            wins: player1.wins,
-                            losses: player1.losses,
-                            avgKDA: player1.avgKDA,
-                            skillScore: player1.skillScore,
-                            confidenceScore: player1.confidenceScore,
-                            difficultyExposure: player1.difficultyExposure
-                        },
-                        player2: {
-                            steamId: player2.steamId,
-                            name: player2.name,
-                            avatar: player2.avatar,
-                            tmmr: player2.tmmr,
-                            wins: player2.wins,
-                            losses: player2.losses,
-                            avgKDA: player2.avgKDA,
-                            skillScore: player2.skillScore,
-                            confidenceScore: player2.confidenceScore,
-                            difficultyExposure: player2.difficultyExposure
-                        },
-                        headToHead: {
-                            player1Wins: 0,
-                            player2Wins: 0,
-                            totalMatches: 0,
-                            matchDetails: []
-                        }
-                    }, { status: 200 }); // Return 200 to trigger modal instead of error
-                }
-
-                return NextResponse.json({ error: 'Erro ao buscar dados do OpenDota' }, { status: 500 });
+                return NextResponse.json({
+                    error: `Perfil privado: ${privatePlayerName}`,
+                    isPrivate: true,
+                    privatePlayer: privatePlayerName,
+                    player1: {
+                        steamId: player1.steamId,
+                        name: player1.name,
+                        avatar: player1.avatar,
+                        tmmr: player1.tmmr,
+                        wins: player1.wins,
+                        losses: player1.losses,
+                    },
+                    player2: {
+                        steamId: player2.steamId,
+                        name: player2.name,
+                        avatar: player2.avatar,
+                        tmmr: player2.tmmr,
+                        wins: player2.wins,
+                        losses: player2.losses,
+                    },
+                    headToHead: {
+                        player1Wins: 0,
+                        player2Wins: 0,
+                        totalMatches: 0,
+                        matchDetails: []
+                    }
+                }, { status: 200 });
             }
 
             p1Matches = await p1Response.json();
@@ -211,14 +174,13 @@ export async function POST(req: NextRequest) {
 
             console.log('P1 matches with P2:', p1Matches.length);
             console.log('P2 matches with P1:', p2Matches.length);
+
         } catch (error: any) {
             console.error('OpenDota request failed:', error.message);
 
-            // Timeout or network error - likely private profile
+            // Timeout or network error
             return NextResponse.json({
-                error: 'Perfil privado ou tempo esgotado',
-                isPrivate: true,
-                privatePlayer: 'Não foi possível determinar',
+                error: 'Erro ao conectar com OpenDota. Tente novamente.',
                 player1: {
                     steamId: player1.steamId,
                     name: player1.name,
@@ -226,10 +188,6 @@ export async function POST(req: NextRequest) {
                     tmmr: player1.tmmr,
                     wins: player1.wins,
                     losses: player1.losses,
-                    avgKDA: player1.avgKDA,
-                    skillScore: player1.skillScore,
-                    confidenceScore: player1.confidenceScore,
-                    difficultyExposure: player1.difficultyExposure
                 },
                 player2: {
                     steamId: player2.steamId,
@@ -238,10 +196,6 @@ export async function POST(req: NextRequest) {
                     tmmr: player2.tmmr,
                     wins: player2.wins,
                     losses: player2.losses,
-                    avgKDA: player2.avgKDA,
-                    skillScore: player2.skillScore,
-                    confidenceScore: player2.confidenceScore,
-                    difficultyExposure: player2.difficultyExposure
                 },
                 headToHead: {
                     player1Wins: 0,
@@ -249,107 +203,10 @@ export async function POST(req: NextRequest) {
                     totalMatches: 0,
                     matchDetails: []
                 }
-            }, { status: 200 }); // Return 200 to trigger modal
+            }, { status: 200 });
         }
 
-        try {
-            // Fetch matches from OpenDota where both players participated
-            // game_mode=23 = Turbo, significant=0 = include non-ranked
-            // 10 second timeout to avoid hanging on private profiles
-            const [p1Response, p2Response] = await Promise.all([
-                fetchWithTimeout(`https://api.opendota.com/api/players/${player1Id}/matches?included_account_id=${player2Id}&game_mode=23&significant=0`, 10000),
-                fetchWithTimeout(`https://api.opendota.com/api/players/${player2Id}/matches?included_account_id=${player1Id}&game_mode=23&significant=0`, 10000)
-            ]);
 
-            // Check for server errors (5xx) which often indicate private profiles
-            if (!p1Response.ok || !p2Response.ok) {
-                console.error('OpenDota API error:', p1Response.status, p2Response.status);
-
-                // 5xx errors (500-599) often mean private profile or API issues
-                if (p1Response.status >= 500 || p2Response.status >= 500) {
-                    return NextResponse.json({
-                        error: 'Perfil privado ou OpenDota indisponível',
-                        isPrivate: true,
-                        player1: {
-                            steamId: player1.steamId,
-                            name: player1.name,
-                            avatar: player1.avatar,
-                            tmmr: player1.tmmr,
-                            wins: player1.wins,
-                            losses: player1.losses,
-                            avgKDA: player1.avgKDA,
-                            skillScore: player1.skillScore,
-                            confidenceScore: player1.confidenceScore,
-                            difficultyExposure: player1.difficultyExposure
-                        },
-                        player2: {
-                            steamId: player2.steamId,
-                            name: player2.name,
-                            avatar: player2.avatar,
-                            tmmr: player2.tmmr,
-                            wins: player2.wins,
-                            losses: player2.losses,
-                            avgKDA: player2.avgKDA,
-                            skillScore: player2.skillScore,
-                            confidenceScore: player2.confidenceScore,
-                            difficultyExposure: player2.difficultyExposure
-                        },
-                        headToHead: {
-                            player1Wins: 0,
-                            player2Wins: 0,
-                            totalMatches: 0,
-                            matchDetails: []
-                        }
-                    }, { status: 200 }); // Return 200 to trigger modal instead of error
-                }
-
-                return NextResponse.json({ error: 'Erro ao buscar dados do OpenDota' }, { status: 500 });
-            }
-
-            p1Matches = await p1Response.json();
-            p2Matches = await p2Response.json();
-
-            console.log('P1 matches with P2:', p1Matches.length);
-            console.log('P2 matches with P1:', p2Matches.length);
-        } catch (error: any) {
-            console.error('OpenDota request failed:', error.message);
-
-            // Timeout or network error - likely private profile
-            return NextResponse.json({
-                error: 'Perfil privado ou tempo esgotado',
-                isPrivate: true,
-                player1: {
-                    steamId: player1.steamId,
-                    name: player1.name,
-                    avatar: player1.avatar,
-                    tmmr: player1.tmmr,
-                    wins: player1.wins,
-                    losses: player1.losses,
-                    avgKDA: player1.avgKDA,
-                    skillScore: player1.skillScore,
-                    confidenceScore: player1.confidenceScore,
-                    difficultyExposure: player1.difficultyExposure
-                },
-                player2: {
-                    steamId: player2.steamId,
-                    name: player2.name,
-                    avatar: player2.avatar,
-                    tmmr: player2.tmmr,
-                    wins: player2.wins,
-                    losses: player2.losses,
-                    avgKDA: player2.avgKDA,
-                    skillScore: player2.skillScore,
-                    confidenceScore: player2.confidenceScore,
-                    difficultyExposure: player2.difficultyExposure
-                },
-                headToHead: {
-                    player1Wins: 0,
-                    player2Wins: 0,
-                    totalMatches: 0,
-                    matchDetails: []
-                }
-            }, { status: 200 }); // Return 200 to trigger modal
-        }
 
         // Criar map das partidas do P2 para lookup rápido
         const p2MatchMap = new Map<number, {
