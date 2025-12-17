@@ -26,7 +26,7 @@ export function Navbar() {
 
     return (
         <header className="sticky top-0 z-50 w-full border-b border-white/5 bg-background/80 backdrop-blur-lg">
-            <div className="container flex h-12 items-center justify-between mx-auto px-4">
+            <div className="container flex h-14 items-center justify-between mx-auto px-4">
                 <Link href="/" className="flex gap-2 items-center group">
                     <div className="h-6 w-6 rounded-md bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center font-bold text-white text-[10px] transition-transform group-hover:scale-105">TB</div>
                     <span className="font-bold text-base tracking-tight">
@@ -41,20 +41,20 @@ export function Navbar() {
                     </Suspense>
                 )}
 
-                <nav className="flex items-center gap-4 text-sm">
-                    <Link href="/" className={`transition-colors hover:text-white ${pathname === '/' ? 'text-white' : 'text-muted-foreground'}`}>
+                <nav className="flex items-center gap-5 text-sm">
+                    <Link href="/" className={`transition-colors hover:text-primary ${pathname === '/' ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
                         Início
                     </Link>
-                    <Link href="/leaderboard" className={`transition-colors hover:text-white ${pathname === '/leaderboard' ? 'text-white' : 'text-muted-foreground'}`}>
+                    <Link href="/leaderboard" className={`transition-colors hover:text-primary ${pathname === '/leaderboard' ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
                         Ranking
                     </Link>
-                    <Link href="/rivalry" className={`transition-colors hover:text-white ${pathname === '/rivalry' ? 'text-white' : 'text-muted-foreground'}`}>
+                    <Link href="/rivalry" className={`transition-colors hover:text-primary ${pathname === '/rivalry' ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
                         Confrontos
                     </Link>
-                    <Link href="/faq" className={`transition-colors hover:text-white ${pathname === '/faq' ? 'text-white' : 'text-muted-foreground'}`}>
+                    <Link href="/faq" className={`transition-colors hover:text-primary ${pathname === '/faq' ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
                         FAQ
                     </Link>
-                    <Link href="/about" className={`transition-colors hover:text-white ${pathname === '/about' ? 'text-white' : 'text-muted-foreground'}`}>
+                    <Link href="/about" className={`transition-colors hover:text-primary ${pathname === '/about' ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
                         Sobre
                     </Link>
                 </nav>

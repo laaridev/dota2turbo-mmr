@@ -99,7 +99,7 @@ export default function FAQPage() {
             </section>
 
             {/* FAQ Content */}
-            <div className="container mx-auto px-4 pb-12 max-w-4xl -mt-8">
+            <div className="container mx-auto px-4 pb-12 max-w-4xl mt-4">
                 {/* FAQ Accordion */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
