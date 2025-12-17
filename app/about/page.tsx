@@ -179,7 +179,7 @@ export default function AboutPage() {
                                                             </span>
                                                         </TooltipTrigger>
                                                         <TooltipContent className="max-w-xs">
-                                                            <p className="text-xs">{(feature as any).tooltipContent}</p>
+                                                            <span className="text-xs">{(feature as any).tooltipContent}</span>
                                                         </TooltipContent>
                                                     </Tooltip>
                                                 </TooltipProvider>
