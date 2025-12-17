@@ -72,38 +72,35 @@ export async function POST(request: Request) {
         // Calculate TMMR
         const calculation = calculateTMMR(matchesData);
 
-        // Save Matches
-        // We only save matches that are NOT already in DB or update them?
-        // For simplicity and "snapshot" nature, and to avoid huge complexity, 
-        // usually we'd upsert. Given the scale, upserting 1000+ matches might be slow.
-        // BUT we need to save them to verify history.
-        // Optimization: Only insert new ones in a real app. 
-        // Here we'll map all processed matches to operations.
-
-        const splitOps = [];
+        // Save Matches with radiantWin (already available in matchesData)
         const BATCH_SIZE = 500;
 
         // Create bulk write operations
-        const bulkOps = calculation.processedMatches.map(m => ({
-            updateOne: {
-                filter: { matchId: m.matchId },
-                update: {
-                    $set: {
-                        matchId: m.matchId,
-                        playerSteamId: accountId,
-                        heroId: m.heroId,
-                        win: m.win,
-                        duration: m.duration,
-                        kda: m.kda,
-                        timestamp: m.timestamp,
-                        tmmrChange: m.tmmrChange,
-                        skill: m.skill,
-                        averageRank: m.averageRank
-                    }
-                },
-                upsert: true
-            }
-        }));
+        const bulkOps = calculation.processedMatches.map((m, index) => {
+            // Get radiantWin from original matchesData
+            const originalMatch = matchesData[index];
+
+            return {
+                updateOne: {
+                    filter: { matchId: m.matchId },
+                    update: {
+                        $set: {
+                            playerSteamId: accountId,
+                            heroId: m.heroId,
+                            win: m.win,
+                            duration: m.duration,
+                            kda: m.kda,
+                            timestamp: m.timestamp,
+                            tmmrChange: m.tmmrChange,
+                            skill: m.skill,
+                            averageRank: m.averageRank,
+                            radiantWin: originalMatch?.radiant_win // Add radiantWin from API response
+                        }
+                    },
+                    upsert: true
+                }
+            };
+        });
 
         // Execute in batches
         for (let i = 0; i < bulkOps.length; i += BATCH_SIZE) {

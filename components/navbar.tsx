@@ -48,6 +48,9 @@ export function Navbar() {
                     <Link href="/leaderboard" className={`transition-colors hover:text-white ${pathname === '/leaderboard' ? 'text-white' : 'text-muted-foreground'}`}>
                         Ranking
                     </Link>
+                    <Link href="/rivalry" className={`transition-colors hover:text-white ${pathname === '/rivalry' ? 'text-white' : 'text-muted-foreground'}`}>
+                        Confronts
+                    </Link>
                     <Link href="/faq" className={`transition-colors hover:text-white ${pathname === '/faq' ? 'text-white' : 'text-muted-foreground'}`}>
                         FAQ
                     </Link>
