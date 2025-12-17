@@ -62,7 +62,7 @@ export default function MuralDasTretasPage() {
     const [historyPage, setHistoryPage] = useState(1);
     const [totalHistoryPages, setTotalHistoryPages] = useState(1);
     const [selectedHistoryItem, setSelectedHistoryItem] = useState<any>(null);
-    const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+    const [loadingDetailsId, setLoadingDetailsId] = useState<string | null>(null);
     const [isPublishing, setIsPublishing] = useState(false);
 
     // Fetch history on mount and page change
@@ -84,7 +84,8 @@ export default function MuralDasTretasPage() {
     }, [historyPage]);
 
     const loadRivalryDetails = async (item: any) => {
-        setIsLoadingDetails(true);
+        const itemId = item._id || `${item.player1Id}-${item.player2Id}`;
+        setLoadingDetailsId(itemId);
         try {
             // Fetch full confrontation details with matchDetails
             const response = await fetch('/api/rivalry/compare', {
@@ -113,7 +114,7 @@ export default function MuralDasTretasPage() {
             console.error('Error loading rivalry details:', error);
             setSelectedHistoryItem(item); // Fallback to original data
         } finally {
-            setIsLoadingDetails(false);
+            setLoadingDetailsId(null);
         }
     };
 
@@ -498,10 +499,10 @@ export default function MuralDasTretasPage() {
                                             {/* View Details Button */}
                                             <button
                                                 onClick={() => loadRivalryDetails(item)}
-                                                disabled={isLoadingDetails}
+                                                disabled={loadingDetailsId !== null}
                                                 className="ml-4 px-5 py-2.5 bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded-lg text-xs font-semibold text-primary transition whitespace-nowrap group-hover:bg-primary/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                             >
-                                                {isLoadingDetails ? (
+                                                {loadingDetailsId === (item._id || `${item.player1Id}-${item.player2Id}`) ? (
                                                     <>
                                                         <Loader2 className="w-3 h-3 animate-spin" />
                                                         Carregando...
