@@ -427,11 +427,7 @@ export default function MuralDasTretasPage() {
                     transition={{ delay: 0.2 }}
                     className="mx-auto max-w-4xl mt-12"
                 >
-                    <h2 className="text-2xl font-bold mb-6 text-center">
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-orange-400">
-                            Confrontos Recentes
-                        </span>
-                    </h2>
+
 
                     {isLoadingHistory ? (
                         <div className="flex justify-center py-12">
