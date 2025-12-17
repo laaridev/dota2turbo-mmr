@@ -79,7 +79,7 @@ export default function AboutPage() {
     return (
         <div className="min-h-screen bg-background">
             {/* Hero Section */}
-            <section className="relative overflow-hidden pt-20 pb-28 px-4" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 85%, 0 100%)' }}>
+            <section className="relative overflow-hidden pt-20 pb-16 px-4">
                 {/* Background Effects */}
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-orange-500/10" />
                 <div className="absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full blur-3xl animate-pulse" />

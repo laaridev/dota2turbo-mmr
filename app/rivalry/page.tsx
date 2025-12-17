@@ -251,7 +251,7 @@ export default function MuralDasTretasPage() {
     return (
         <div className="min-h-screen bg-background">
             {/* Hero Section - Compact for form visibility */}
-            <section className="relative overflow-hidden pt-12 pb-16 px-4" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 90%, 0 100%)' }}>
+            <section className="relative overflow-hidden pt-12 pb-16 px-4">
                 {/* Background Effects */}
                 <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 via-background to-orange-500/10" />
                 <div className="absolute top-10 left-10 w-48 h-48 bg-red-500/20 rounded-full blur-3xl animate-pulse" />
@@ -265,7 +265,7 @@ export default function MuralDasTretasPage() {
                         className="text-center"
                     >
                         <h1 className="text-4xl md:text-5xl font-black mb-4">
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-orange-400 to-red-400">
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-orange-400 to-red-500">
                                 Mural de Confrontos
                             </span>
                         </h1>
