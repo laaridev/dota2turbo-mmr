@@ -1,8 +1,9 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Heart, Code, Users, Gamepad2, Coffee, Github, Sparkles, Trophy, Zap } from 'lucide-react';
+import { Heart, Code, Users, Gamepad2, Coffee, Github, Sparkles, Trophy, Zap, HelpCircle } from 'lucide-react';
 import Link from 'next/link';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const features = [
     {
@@ -44,7 +45,11 @@ const features = [
     {
         icon: Trophy,
         title: 'Ranking Alto Nível',
-        description: 'Competição para jogadores de elite. Baseado no avg_rank da API, que indica a dificuldade média das partidas. Apenas jogadores que enfrentam adversários de nível 60+ entram aqui.',
+        description: 'Competição para jogadores de elite. Baseado no',
+        hasTooltip: true,
+        tooltipTerm: 'avg_rank',
+        tooltipContent: 'O OpenDota avalia o nível de cada partida baseado no ranking médio de todos os jogadores. Este valor é fornecido pela API e usamos para identificar jogadores de alto nível.',
+        descriptionAfter: ', que indica a dificuldade média das partidas. Apenas jogadores com média 60+ entram aqui.',
         gradient: 'from-amber-500 to-yellow-500'
     }
 ];
@@ -85,7 +90,7 @@ export default function AboutPage() {
 
                         <h1 className="text-5xl md:text-6xl font-black mb-6">
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-orange-400 to-red-500">
-                                Sobre o TurboRank
+                                Sobre o TurboBuff
                             </span>
                         </h1>
 
@@ -119,7 +124,7 @@ export default function AboutPage() {
                                 ou comparar habilidades com amigos.
                             </p>
                             <p>
-                                O <strong className="text-primary">TurboRank</strong> nasceu dessa necessidade! Criamos um sistema
+                                O <strong className="text-primary">TurboBuff</strong> nasceu dessa necessidade! Criamos um sistema
                                 de pontuação próprio chamado <strong className="text-orange-400">TMMR (Turbo MMR)</strong> que
                                 analisa suas partidas e calcula um ranking baseado em múltiplos fatores.
                             </p>
@@ -164,6 +169,22 @@ export default function AboutPage() {
                                         <h3 className="text-lg font-bold mb-1 text-white">{feature.title}</h3>
                                         <p className="text-muted-foreground text-sm leading-relaxed">
                                             {feature.description}
+                                            {(feature as any).hasTooltip && (
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <span className="inline-flex items-center gap-1 text-primary underline decoration-dotted cursor-help mx-1">
+                                                                {(feature as any).tooltipTerm}
+                                                                <HelpCircle className="w-3 h-3" />
+                                                            </span>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent className="max-w-xs">
+                                                            <p className="text-xs">{(feature as any).tooltipContent}</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            )}
+                                            {(feature as any).descriptionAfter}
                                         </p>
                                     </div>
                                 </motion.div>
