@@ -171,14 +171,14 @@ export default function AboutPage() {
                                             {feature.description}
                                             {(feature as any).hasTooltip && (
                                                 <TooltipProvider>
-                                                    <Tooltip>
-                                                        <TooltipTrigger asChild>
+                                                    <Tooltip delayDuration={0}>
+                                                        <TooltipTrigger>
                                                             <span className="inline-flex items-center gap-1 text-primary underline decoration-dotted cursor-help mx-1">
                                                                 {(feature as any).tooltipTerm}
                                                                 <HelpCircle className="w-3 h-3" />
                                                             </span>
                                                         </TooltipTrigger>
-                                                        <TooltipContent className="max-w-xs">
+                                                        <TooltipContent side="top" className="max-w-xs">
                                                             <span className="text-xs">{(feature as any).tooltipContent}</span>
                                                         </TooltipContent>
                                                     </Tooltip>
