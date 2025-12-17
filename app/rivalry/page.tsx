@@ -87,32 +87,33 @@ export default function MuralDasTretasPage() {
         const itemId = item._id || `${item.player1Id}-${item.player2Id}`;
         setLoadingDetailsId(itemId);
         try {
-            // Fetch full confrontation details with matchDetails
-            const response = await fetch('/api/rivalry/compare', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    player1Id: item.player1Id || item.player1?.steamId,
-                    player2Id: item.player2Id || item.player2?.steamId
-                })
-            });
+            // If the item has a MongoDB _id, load from database (fast)
+            if (item._id) {
+                const response = await fetch(`/api/rivalry/${item._id}`);
+                const data = await response.json();
 
-            const data = await response.json();
-
-            if (response.ok && data.headToHead) {
-                setSelectedHistoryItem({
-                    ...item,
-                    headToHead: data.headToHead,
-                    player1: data.player1 || item.player1,
-                    player2: data.player2 || item.player2
-                });
-                setShowHistory(false); // Reset collapse state
+                if (response.ok) {
+                    setSelectedHistoryItem({
+                        ...data,
+                        headToHead: data.headToHead || {
+                            player1Wins: data.player1Wins || 0,
+                            player2Wins: data.player2Wins || 0,
+                            totalMatches: data.totalMatches || 0,
+                            matchDetails: data.matchDetails || []
+                        }
+                    });
+                    setShowHistory(false);
+                } else {
+                    console.error('Error loading from DB:', data.error);
+                    setSelectedHistoryItem(item);
+                }
             } else {
-                setSelectedHistoryItem(item); // Fallback to original data
+                // Fallback to original data if no _id
+                setSelectedHistoryItem(item);
             }
         } catch (error) {
             console.error('Error loading rivalry details:', error);
-            setSelectedHistoryItem(item); // Fallback to original data
+            setSelectedHistoryItem(item);
         } finally {
             setLoadingDetailsId(null);
         }
