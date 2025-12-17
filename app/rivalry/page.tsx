@@ -753,33 +753,6 @@ export default function MuralDasTretasPage() {
                                     )}
                                 </div>
 
-                                {/* Key Metrics Grid */}
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div className="bg-card/30 border border-white/10 rounded-lg p-4">
-                                        <p className="text-xs text-muted-foreground mb-1">Winrate P1</p>
-                                        <p className="text-2xl font-bold text-primary">
-                                            {((comparison.player1.wins / (comparison.player1.wins + comparison.player1.losses)) * 100).toFixed(0)}%
-                                        </p>
-                                    </div>
-                                    <div className="bg-card/30 border border-white/10 rounded-lg p-4">
-                                        <p className="text-xs text-muted-foreground mb-1">Winrate P2</p>
-                                        <p className="text-2xl font-bold text-orange-400">
-                                            {((comparison.player2.wins / (comparison.player2.wins + comparison.player2.losses)) * 100).toFixed(0)}%
-                                        </p>
-                                    </div>
-                                    <div className="bg-card/30 border border-white/10 rounded-lg p-4">
-                                        <p className="text-xs text-muted-foreground mb-1">Total Jogos P1</p>
-                                        <p className="text-xl font-bold text-white">
-                                            {comparison.player1.wins + comparison.player1.losses}
-                                        </p>
-                                    </div>
-                                    <div className="bg-card/30 border border-white/10 rounded-lg p-4">
-                                        <p className="text-xs text-muted-foreground mb-1">Total Jogos P2</p>
-                                        <p className="text-xl font-bold text-white">
-                                            {comparison.player2.wins + comparison.player2.losses}
-                                        </p>
-                                    </div>
-                                </div>
 
                                 {/* Collapsible Match History */}
                                 <div className="border-t border-white/10 pt-4">
