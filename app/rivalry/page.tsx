@@ -279,7 +279,7 @@ export default function MuralDasTretasPage() {
             </section>
 
             {/* Form Section - Visible without scrolling */}
-            <div className="container mx-auto max-w-4xl px-4 -mt-4">
+            <div className="container mx-auto max-w-4xl px-4 mt-6">
                 {/* PHASE 1: MINIMAL SELECTION */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
