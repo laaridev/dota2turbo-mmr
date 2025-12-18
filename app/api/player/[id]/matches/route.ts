@@ -1,6 +1,4 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/db';
-import Match from '@/lib/models/Match';
 import { opendota } from '@/lib/opendota';
 
 export async function GET(
@@ -8,42 +6,44 @@ export async function GET(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        await dbConnect();
         const { id } = await params;
 
         // Convert to Account ID (32-bit) if necessary
         const accountId = opendota.steamId64to32(id);
-        console.log(`[Matches API] Looking for playerSteamId: "${accountId}" or "${id}"`);
+        console.log(`[Matches API] Fetching from OpenDota for: ${accountId}`);
 
-        // Get ALL matches from MongoDB - try both ID formats
-        let matches = await Match.find({ playerSteamId: accountId })
-            .sort({ timestamp: -1 })
-            .lean();
+        // Fetch ALL turbo matches from OpenDota API
+        const matches = await opendota.getPlayerMatches(accountId);
 
-        // If no matches found with converted ID, try original ID
-        if (matches.length === 0) {
-            console.log(`[Matches API] No matches with converted ID, trying original...`);
-            matches = await Match.find({ playerSteamId: id })
-                .sort({ timestamp: -1 })
-                .lean();
+        if (!matches || matches.length === 0) {
+            console.log(`[Matches API] No matches found`);
+            return NextResponse.json({
+                heroStats: [],
+                performance: { avgKDA: '0/0/0', avgDuration: 0, positiveKDA: 0 },
+                recentMatches: [],
+                dailyStats: [],
+                totalMatches: 0,
+            });
         }
 
-        console.log(`[Matches API] Found ${matches.length} matches`);
+        console.log(`[Matches API] Found ${matches.length} matches from OpenDota`);
 
         // Aggregate hero stats from ALL matches
         const heroMap = new Map<number, { games: number; wins: number; kills: number; deaths: number; assists: number; totalDuration: number }>();
 
-        for (const match of matches) {
-            const existing = heroMap.get(match.heroId) || { games: 0, wins: 0, kills: 0, deaths: 0, assists: 0, totalDuration: 0 };
-            const [kills, deaths, assists] = (match.kda as string).split('/').map(Number);
+        const validMatches = matches.filter(m => m.duration >= 480 && (!m.leaver_status || m.leaver_status <= 1));
 
-            heroMap.set(match.heroId, {
+        for (const match of validMatches) {
+            const existing = heroMap.get(match.hero_id) || { games: 0, wins: 0, kills: 0, deaths: 0, assists: 0, totalDuration: 0 };
+            const isWin = (match.player_slot < 128) === match.radiant_win;
+
+            heroMap.set(match.hero_id, {
                 games: existing.games + 1,
-                wins: existing.wins + (match.win ? 1 : 0),
-                kills: existing.kills + (kills || 0),
-                deaths: existing.deaths + (deaths || 0),
-                assists: existing.assists + (assists || 0),
-                totalDuration: existing.totalDuration + (match.duration as number),
+                wins: existing.wins + (isWin ? 1 : 0),
+                kills: existing.kills + (match.kills || 0),
+                deaths: existing.deaths + (match.deaths || 0),
+                assists: existing.assists + (match.assists || 0),
+                totalDuration: existing.totalDuration + match.duration,
             });
         }
 
@@ -61,41 +61,37 @@ export async function GET(
 
         // Calculate overall performance metrics
         let totalKills = 0, totalDeaths = 0, totalAssists = 0, totalDuration = 0;
-        for (const match of matches) {
-            const [k, d, a] = (match.kda as string).split('/').map(Number);
-            totalKills += k || 0;
-            totalDeaths += d || 0;
-            totalAssists += a || 0;
-            totalDuration += match.duration as number;
+        for (const match of validMatches) {
+            totalKills += match.kills || 0;
+            totalDeaths += match.deaths || 0;
+            totalAssists += match.assists || 0;
+            totalDuration += match.duration;
         }
 
-        const matchCount = matches.length;
+        const matchCount = validMatches.length;
         const performance = {
             avgKDA: matchCount > 0 ? `${(totalKills / matchCount).toFixed(1)}/${(totalDeaths / matchCount).toFixed(1)}/${(totalAssists / matchCount).toFixed(1)}` : '0/0/0',
             avgDuration: matchCount > 0 ? Math.round(totalDuration / matchCount) : 0,
-            positiveKDA: matches.filter(m => {
-                const [k, d, a] = (m.kda as string).split('/').map(Number);
-                return (k + a) > d;
-            }).length,
+            positiveKDA: validMatches.filter(m => (m.kills + m.assists) > m.deaths).length,
         };
 
         // Aggregate matches by day for chart
         const dailyMap = new Map<string, { wins: number; losses: number }>();
 
-        // Fill with match data (use actual match dates)
-        for (const match of matches) {
-            if (!match.timestamp) continue; // Skip if no timestamp
+        for (const match of validMatches) {
+            if (!match.start_time) continue;
             try {
-                const date = new Date(match.timestamp as Date).toISOString().split('T')[0];
+                const date = new Date(match.start_time * 1000).toISOString().split('T')[0];
                 const existing = dailyMap.get(date) || { wins: 0, losses: 0 };
-                if (match.win) {
+                const isWin = (match.player_slot < 128) === match.radiant_win;
+                if (isWin) {
                     existing.wins++;
                 } else {
                     existing.losses++;
                 }
                 dailyMap.set(date, existing);
-            } catch (e) {
-                console.log(`[Matches API] Invalid timestamp:`, match.timestamp);
+            } catch {
+                console.log(`[Matches API] Invalid timestamp:`, match.start_time);
             }
         }
 
@@ -108,15 +104,16 @@ export async function GET(
         console.log(`[Matches API] dailyStats count: ${dailyStats.length}`);
 
         // Recent matches (last 10) - with additional data for display
-        const recentMatches = matches.slice(0, 10).map(m => ({
-            matchId: m.matchId,
-            heroId: m.heroId,
-            win: m.win,
-            kda: m.kda,
+        const recentMatches = validMatches.slice(0, 10).map(m => ({
+            matchId: m.match_id,
+            heroId: m.hero_id,
+            win: (m.player_slot < 128) === m.radiant_win,
+            kda: `${m.kills}/${m.deaths}/${m.assists}`,
             duration: m.duration,
-            tmmrChange: m.tmmrChange,
-            timestamp: m.timestamp,
-            averageRank: m.averageRank || 0,
+            tmmrChange: 0,
+            timestamp: new Date(m.start_time * 1000).toISOString(),
+            averageRank: m.average_rank || 0,
+            partySize: m.party_size || 1,
         }));
 
         return NextResponse.json({
