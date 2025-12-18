@@ -251,6 +251,19 @@ function calculateTMMRv4(matches) {
 // ============================================
 // MAIN MIGRATION
 // ============================================
+async function fetchPlayerProfile(accountId, delay = 500) {
+    await new Promise(r => setTimeout(r, delay));
+    try {
+        const res = await fetch(`${OPENDOTA_API}/players/${accountId}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        return data;
+    } catch (err) {
+        console.error(`    Failed to fetch profile: ${err.message}`);
+        return null;
+    }
+}
+
 async function fetchPlayerMatches(accountId, delay = 1000) {
     await new Promise(r => setTimeout(r, delay));
     try {
@@ -258,7 +271,7 @@ async function fetchPlayerMatches(accountId, delay = 1000) {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return await res.json();
     } catch (err) {
-        console.error(`    Failed to fetch: ${err.message}`);
+        console.error(`    Failed to fetch matches: ${err.message}`);
         return null;
     }
 }
@@ -266,6 +279,7 @@ async function fetchPlayerMatches(accountId, delay = 1000) {
 async function main() {
     console.log('========================================');
     console.log('TMMR v4.0 Migration Script');
+    console.log('With Privacy Check');
     console.log('========================================\n');
 
     try {
@@ -282,14 +296,39 @@ async function main() {
         let updated = 0;
         let failed = 0;
         let skipped = 0;
+        let privateProfiles = 0;
 
         for (let i = 0; i < players.length; i++) {
             const player = players[i];
             console.log(`[${i + 1}/${players.length}] Processing: ${player.name} (${player.steamId})`);
             console.log(`    Current TMMR: ${player.tmmr}`);
 
+            // First, check if profile is public
+            const profile = await fetchPlayerProfile(player.steamId, 600);
+
+            // Check if profile is private
+            // OpenDota returns profile without profile.steam_id if private
+            // or returns an empty/null profile object
+            const isPrivate = !profile || !profile.profile || !profile.profile.steamid;
+
+            if (isPrivate) {
+                console.log('    ⚠️ Private profile! Marking as private in DB.');
+                await Player.updateOne(
+                    { _id: player._id },
+                    { $set: { isPrivate: true } }
+                );
+                console.log('    Skipped: Private profile\n');
+                privateProfiles++;
+                skipped++;
+                continue;
+            }
+
+            // Profile is public - update player info if needed
+            const updatedName = profile.profile.personaname || player.name;
+            const updatedAvatar = profile.profile.avatarfull || player.avatar;
+
             // Fetch matches from OpenDota
-            const matches = await fetchPlayerMatches(player.steamId, 1200);
+            const matches = await fetchPlayerMatches(player.steamId, 800);
 
             if (!matches || matches.length === 0) {
                 console.log('    Skipped: No matches found\n');
@@ -312,11 +351,15 @@ async function main() {
             console.log(`    Solo: ${result.breakdown.soloGames} games (${result.breakdown.soloWinrate.toFixed(1)}% WR)`);
             console.log(`    Party: ${result.breakdown.partyGames} games (${result.breakdown.partyWinrate.toFixed(1)}% WR)`);
 
-            // Update player
+            // Update player with fresh data
             await Player.updateOne(
                 { _id: player._id },
                 {
                     $set: {
+                        name: updatedName,
+                        avatar: updatedAvatar,
+                        isPrivate: false,
+                        lastUpdate: new Date(),
                         tmmr: result.tmmr,
                         skillScore: result.breakdown.skillScore,
                         confidenceScore: result.breakdown.confidence,
@@ -346,6 +389,7 @@ async function main() {
         console.log('========================================');
         console.log('Migration Complete!');
         console.log(`  Updated: ${updated}`);
+        console.log(`  Private: ${privateProfiles}`);
         console.log(`  Skipped: ${skipped}`);
         console.log(`  Failed: ${failed}`);
         console.log('========================================');
