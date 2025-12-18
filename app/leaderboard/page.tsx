@@ -55,9 +55,28 @@ function LeaderboardContent() {
         const fetchLeaderboard = async () => {
             setLoading(true);
             try {
-                const res = await fetch(`/api/leaderboard?period=${currentPeriod}&mode=${rankingMode}&limit=100`);
-                const data = await res.json();
-                setPlayers(data.players || []);
+                // Use dedicated specialists API for that mode
+                if (rankingMode === 'specialist') {
+                    const res = await fetch('/api/specialists');
+                    const data = await res.json();
+                    // Transform specialists data to player format
+                    const transformedPlayers = (data.specialists || []).map((s: any) => ({
+                        steamId: s.playerId,
+                        name: s.playerName,
+                        avatar: s.playerAvatar,
+                        bestHeroId: s.heroId,
+                        bestHeroGames: s.games,
+                        bestHeroWinrate: s.winrate,
+                        bestHeroName: s.heroName,
+                        avgKDA: s.avgKDA,
+                        score: s.score
+                    }));
+                    setPlayers(transformedPlayers);
+                } else {
+                    const res = await fetch(`/api/leaderboard?period=${currentPeriod}&mode=${rankingMode}&limit=100`);
+                    const data = await res.json();
+                    setPlayers(data.players || []);
+                }
             } catch (e) {
                 console.error(e);
             } finally {
@@ -182,7 +201,8 @@ function PlayerRow({ player, position, isTopThree, rankingMode }: {
     const category = getTierCategory(tier);
     const totalGames = (player.wins || 0) + (player.losses || 0);
     const isSpecialist = rankingMode === 'specialist';
-    const heroName = player.bestHeroId ? HERO_NAMES[player.bestHeroId] || `Hero ${player.bestHeroId}` : '';
+    // Use bestHeroName from API if available, otherwise lookup
+    const heroName = player.bestHeroName || (player.bestHeroId ? HERO_NAMES[player.bestHeroId] || `Hero ${player.bestHeroId}` : '');
 
     // Get the metric value based on ranking mode
     let metricValue = '';
