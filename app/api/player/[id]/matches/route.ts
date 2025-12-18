@@ -107,7 +107,7 @@ export async function GET(
 
         console.log(`[Matches API] dailyStats count: ${dailyStats.length}`);
 
-        // Recent matches (last 10)
+        // Recent matches (last 10) - with additional data for display
         const recentMatches = matches.slice(0, 10).map(m => ({
             matchId: m.matchId,
             heroId: m.heroId,
@@ -115,6 +115,8 @@ export async function GET(
             kda: m.kda,
             duration: m.duration,
             tmmrChange: m.tmmrChange,
+            timestamp: m.timestamp,
+            averageRank: m.averageRank || 0,
         }));
 
         return NextResponse.json({
