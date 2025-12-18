@@ -83,17 +83,16 @@ export async function POST(req: NextRequest) {
                 : [player2Id, player2Name, player1Id, player1Name];
 
         // Also normalize headToHead data if players were swapped
+        // NOTE: winner field in matchDetails stores the ACTUAL Steam ID of who won
+        // This should NEVER change - only the win counts need to be swapped
         const normalizedHeadToHead = player1Id < player2Id
             ? headToHead
             : {
                 player1Wins: headToHead.player2Wins,
                 player2Wins: headToHead.player1Wins,
                 totalMatches: headToHead.totalMatches,
-                matchDetails: headToHead.matchDetails?.map((match: any) => ({
-                    ...match,
-                    // Swap winner if needed
-                    winner: match.winner === player1Id ? player2Id : match.winner === player2Id ? player1Id : match.winner
-                }))
+                // Keep matchDetails as-is - winner is a Steam ID, not a positional reference
+                matchDetails: headToHead.matchDetails
             };
 
         // Use findOneAndUpdate with upsert to avoid duplicates
