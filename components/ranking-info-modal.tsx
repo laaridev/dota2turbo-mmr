@@ -12,15 +12,16 @@ interface RankingInfoModalProps {
 
 const INFO_CONTENT: Record<string, { title: string; icon: any; description: string; details: string[] }> = {
     general: {
-        title: 'Rank Geral (TMMR)',
+        title: 'Rank Geral (TMMR v4.0)',
         icon: Trophy,
-        description: 'Sistema de classificação baseado em três pilares multiplicativos: Skill Score × Confidence × Difficulty Exposure.',
+        description: 'Sistema de classificação justo com ponderação solo/party, decaimento temporal e KDA normalizado por role.',
         details: [
-            'Skill Score (Habilidade): Winrate confiável via Wilson Score (60%), KDA normalizado (25%) e rank médio das partidas (15%).',
-            'Confidence Score (Confiança): Usa curva exponencial (1 - e^(-jogos/150)) que satura em ~300-500 partidas, mínimo 30%.',
-            'Difficulty Exposure (Dificuldade): Multiplicador 0.7-1.5x baseado em % de jogos Ancient+ (rank 55+) e taxa de vitória nesse nível.',
-            'Fórmula final: TMMR = 3500 + (SkillScore × 3000 × Confidence × Difficulty), limitado entre 500-9500.',
-            'Evita volume puro: sem consistência e evolução, o TMMR estabiliza naturalmente.'
+            'Winrate Ponderada (50%): Partidas solo valem 1.3x, partidas em party valem 0.85x. Evita inflação por ser carregado.',
+            'KDA Normalizado por Role (25%): Compara seu KDA com o esperado para seu herói. Supports com 2.0 KDA = Carry com 4.0 KDA.',
+            'Rank das Partidas (15%): Média de rank dos lobbies onde você joga. Jogar contra melhores = bônus.',
+            'Consistência (10%): Quão estável é seu desempenho. Menos variação = mais confiável.',
+            'Decaimento Temporal: Partidas recentes pesam mais. Meia-vida de 180 dias. Reflete sua habilidade atual.',
+            'Fórmula: TMMR = 3500 + (SkillScore × 3000 × Confiança × Recência × Dificuldade), limite 500-9500.'
         ]
     },
     winrate: {

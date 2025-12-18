@@ -125,7 +125,7 @@ export async function POST(request: Request) {
             matches: calculation.processedMatches.map(m => m.matchId),
             isPrivate: false, // assumed public if we got this far
 
-            // TMMR v3.0 Transparency Fields
+            // TMMR v4.0 Transparency Fields
             skillScore: calculation.breakdown.skillScore,
             confidenceScore: calculation.confidence,
             difficultyExposure: calculation.breakdown.difficultyExposure,
@@ -133,6 +133,15 @@ export async function POST(request: Request) {
             avgRankPlayed: calculation.breakdown.skillComponents.avgRank,
             highRankGames: calculation.breakdown.difficultyComponents.highRankGames,
             highRankWinrate: calculation.breakdown.difficultyComponents.highRankWinrate,
+
+            // v4.0 New Fields
+            soloGames: calculation.breakdown.skillComponents.soloGames,
+            partyGames: calculation.breakdown.skillComponents.partyGames,
+            soloWinrate: calculation.breakdown.skillComponents.soloWinrate,
+            partyWinrate: calculation.breakdown.skillComponents.partyWinrate,
+            heroNormalizedKDA: calculation.breakdown.skillComponents.heroNormalizedKDA,
+            recencyMultiplier: calculation.breakdown.recencyMultiplier,
+            consistencyScore: calculation.breakdown.skillComponents.consistencyScore,
 
             // Multi-Ranking Stats (legacy)
             winrate: calculation.breakdown.winrate,

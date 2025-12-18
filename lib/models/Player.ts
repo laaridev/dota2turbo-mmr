@@ -12,7 +12,7 @@ export interface IPlayer extends Document {
     matches: number[]; // Array of Match IDs
     isPrivate: boolean;
 
-    // TMMR v3.0 Transparency Fields
+    // TMMR v4.0 Transparency Fields
     skillScore: number;         // -1 to 1 (pure skill)
     confidenceScore: number;    // 0.3 to 1 (reliability)
     difficultyExposure: number; // 0.7 to 1.5 (competition level)
@@ -20,6 +20,15 @@ export interface IPlayer extends Document {
     avgRankPlayed: number;      // Average rank of matches
     highRankGames: number;      // Games in Ancient+ lobbies
     highRankWinrate: number;    // Winrate in those games
+
+    // v4.0 New Fields
+    soloGames: number;          // Number of solo games
+    partyGames: number;         // Number of party games
+    soloWinrate: number;        // Solo winrate (0-100)
+    partyWinrate: number;       // Party winrate (0-100)
+    heroNormalizedKDA: number;  // KDA normalized by hero role
+    recencyMultiplier: number;  // Time decay multiplier (0.7-1.0)
+    consistencyScore: number;   // Performance consistency (0-1)
 
     // Multi-Ranking Stats (legacy)
     winrate: number; // Percentage (0-100)
@@ -46,7 +55,7 @@ const PlayerSchema: Schema = new Schema({
     matches: [{ type: Number }],
     isPrivate: { type: Boolean, default: false },
 
-    // TMMR v3.0 Transparency Fields
+    // TMMR v4.0 Transparency Fields
     skillScore: { type: Number, default: 0, index: true },
     confidenceScore: { type: Number, default: 0.3 },
     difficultyExposure: { type: Number, default: 1.0 },
@@ -54,6 +63,16 @@ const PlayerSchema: Schema = new Schema({
     avgRankPlayed: { type: Number, default: 50 },
     highRankGames: { type: Number, default: 0 },
     highRankWinrate: { type: Number, default: 0 },
+
+    // v4.0 New Fields
+    soloGames: { type: Number, default: 0 },
+    partyGames: { type: Number, default: 0 },
+    soloWinrate: { type: Number, default: 0 },
+    partyWinrate: { type: Number, default: 0 },
+    heroNormalizedKDA: { type: Number, default: 1.0 },
+    recencyMultiplier: { type: Number, default: 1.0 },
+    consistencyScore: { type: Number, default: 1.0 },
+
 
     // Multi-Ranking Stats (legacy, indexed for leaderboards)
     winrate: { type: Number, default: 0, index: true },
