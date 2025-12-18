@@ -109,8 +109,11 @@ export async function POST(request: Request) {
 
         // Calculate Multi-Ranking Stats
         const rankingStats = calculateRankingStats(matchesData);
-        // Calculate Best Hero
-        const bestHero = calculateBestHero(matchesData.map(m => ({ heroId: m.hero_id, win: m.radiant_win })));
+        // Calculate Best Hero (fix: correctly infer win from player_slot + radiant_win)
+        const bestHero = calculateBestHero(matchesData.map(m => ({
+            heroId: m.hero_id,
+            win: (m.player_slot < 128) === m.radiant_win // Radiant slots: 0-127, Dire: 128-255
+        })));
 
         // Save Player
         const playerUpdate = {

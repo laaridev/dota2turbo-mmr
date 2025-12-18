@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { getTier, getTierCategory, TIER_NAMES } from '@/lib/tmmr';
+import { HERO_NAMES, getHeroImageUrl } from '@/lib/heroes';
 import { Trophy, TrendingUp, Target, Star, Zap, Info, Swords, ShieldCheck } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import Link from 'next/link';
@@ -180,6 +181,8 @@ function PlayerRow({ player, position, isTopThree, rankingMode }: {
     const tier = getTier(player.tmmr);
     const category = getTierCategory(tier);
     const totalGames = (player.wins || 0) + (player.losses || 0);
+    const isSpecialist = rankingMode === 'specialist';
+    const heroName = player.bestHeroId ? HERO_NAMES[player.bestHeroId] || `Hero ${player.bestHeroId}` : '';
 
     // Get the metric value based on ranking mode
     let metricValue = '';
@@ -235,87 +238,96 @@ function PlayerRow({ player, position, isTopThree, rankingMode }: {
                     {position}
                 </div>
 
-                {/* Avatar or Hero Image */}
-                <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 ring-2 ring-white/10">
-                    {rankingMode === 'specialist' ? (
-                        player.bestHeroId && player.bestHeroId > 0 ? (
+                {/* Avatar/Hero Images - Specialist mode shows both */}
+                {isSpecialist && player.bestHeroId > 0 ? (
+                    <div className="relative flex-shrink-0">
+                        {/* Hero image (main) */}
+                        <div className="w-14 h-14 rounded-lg overflow-hidden ring-2 ring-amber-500/50">
                             <img
-                                src={`https://api.opendota.com/api/heroes/${player.bestHeroId}/icon`}
-                                alt={`Hero ${player.bestHeroId}`}
+                                src={getHeroImageUrl(player.bestHeroId)}
+                                alt={heroName}
                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                                 onError={(e) => {
-                                    console.error('Hero icon failed for:', player.name, 'heroId:', player.bestHeroId);
                                     (e.target as HTMLImageElement).src = player.avatar;
                                 }}
                             />
-                        ) : (
-                            <>
-                                {console.log('No hero ID for', player.name, player.bestHeroId)}
-                                <img
-                                    src={player.avatar}
-                                    alt={player.name}
-                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                                />
-                            </>
-                        )
-                    ) : (
+                        </div>
+                        {/* Player avatar (overlay) */}
+                        <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full overflow-hidden ring-2 ring-card">
+                            <img src={player.avatar} alt={player.name} className="w-full h-full object-cover" />
+                        </div>
+                    </div>
+                ) : (
+                    <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 ring-2 ring-white/10">
                         <img
                             src={player.avatar}
                             alt={player.name}
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                         />
-                    )}
-                </div>
+                    </div>
+                )}
 
                 <div className="flex-1 min-w-0 flex flex-col justify-center">
                     <div className="flex items-center gap-2">
-                        <span className={`font-bold text-base truncate group-hover:text-primary transition-colors ${position <= 3 ? 'text-white' : 'text-gray-200'}`}>
-                            {player.name}
-                        </span>
+                        {isSpecialist && heroName ? (
+                            <div className="flex items-center gap-2">
+                                <span className={`font-bold text-base truncate group-hover:text-amber-400 transition-colors ${position <= 3 ? 'text-amber-300' : 'text-gray-100'}`}>
+                                    {heroName}
+                                </span>
+                                <span className="text-sm text-muted-foreground">por</span>
+                                <span className="font-medium text-sm text-gray-300 truncate">{player.name}</span>
+                            </div>
+                        ) : (
+                            <span className={`font-bold text-base truncate group-hover:text-primary transition-colors ${position <= 3 ? 'text-white' : 'text-gray-200'}`}>
+                                {player.name}
+                            </span>
+                        )}
 
-                        {/* Badges Row */}
-                        <div className="flex items-center gap-1.5">
-                            {/* Confidence Badge */}
-                            {player.confidenceScore !== undefined && (
-                                <TooltipProvider>
-                                    <Tooltip delayDuration={0}>
-                                        <TooltipTrigger>
-                                            <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md ${player.confidenceScore > 0.8 ? 'bg-blue-500/15 text-blue-400 border border-blue-500/30' : 'bg-gray-500/15 text-gray-400 border border-gray-500/30'}`}>
-                                                <ShieldCheck className="w-3 h-3 flex-shrink-0" />
-                                                <span className="text-[10px] font-semibold tabular-nums">{(player.confidenceScore * 100).toFixed(0)}%</span>
-                                            </div>
-                                        </TooltipTrigger>
-                                        <TooltipContent side="top">
-                                            <p>Confiança: {(player.confidenceScore * 100).toFixed(0)}%</p>
-                                            <p className="text-xs text-gray-400">Baseado em {totalGames} jogos</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                            )}
+                        {/* Badges Row - hide in specialist mode for cleaner look */}
+                        {!isSpecialist && (
+                            <div className="flex items-center gap-1.5">
+                                {/* Confidence Badge */}
+                                {player.confidenceScore !== undefined && (
+                                    <TooltipProvider>
+                                        <Tooltip delayDuration={0}>
+                                            <TooltipTrigger>
+                                                <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md ${player.confidenceScore > 0.8 ? 'bg-blue-500/15 text-blue-400 border border-blue-500/30' : 'bg-gray-500/15 text-gray-400 border border-gray-500/30'}`}>
+                                                    <ShieldCheck className="w-3 h-3 flex-shrink-0" />
+                                                    <span className="text-[10px] font-semibold tabular-nums">{(player.confidenceScore * 100).toFixed(0)}%</span>
+                                                </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent side="top">
+                                                <p>Confiança: {(player.confidenceScore * 100).toFixed(0)}%</p>
+                                                <p className="text-xs text-gray-400">Baseado em {totalGames} jogos</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                )}
 
-                            {/* Difficulty Badge - Only for high difficulty exposure */}
-                            {player.difficultyExposure !== undefined && player.difficultyExposure > 1.1 && (
-                                <TooltipProvider>
-                                    <Tooltip delayDuration={0}>
-                                        <TooltipTrigger>
-                                            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-purple-500/15 text-purple-400 border border-purple-500/30">
-                                                <Swords className="w-3 h-3 flex-shrink-0" />
-                                                <span className="text-[10px] font-semibold tabular-nums">+{((player.difficultyExposure - 1) * 100).toFixed(0)}%</span>
-                                            </div>
-                                        </TooltipTrigger>
-                                        <TooltipContent side="top">
-                                            <p>Bônus de Dificuldade</p>
-                                            <p className="text-xs text-gray-400">Joga contra adversários de alto nível</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                            )}
-                        </div>
+                                {/* Difficulty Badge - Only for high difficulty exposure */}
+                                {player.difficultyExposure !== undefined && player.difficultyExposure > 1.1 && (
+                                    <TooltipProvider>
+                                        <Tooltip delayDuration={0}>
+                                            <TooltipTrigger>
+                                                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-purple-500/15 text-purple-400 border border-purple-500/30">
+                                                    <Swords className="w-3 h-3 flex-shrink-0" />
+                                                    <span className="text-[10px] font-semibold tabular-nums">+{((player.difficultyExposure - 1) * 100).toFixed(0)}%</span>
+                                                </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent side="top">
+                                                <p>Bônus de Dificuldade</p>
+                                                <p className="text-xs text-gray-400">Joga contra adversários de alto nível</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
                         <span className="flex items-center gap-1">
-                            <Swords className="w-3 h-3" /> {totalGames} jogos
+                            <Swords className="w-3 h-3" /> {isSpecialist ? `${player.bestHeroGames || 0} jogos` : `${totalGames} jogos`}
                         </span>
                     </div>
                 </div>
