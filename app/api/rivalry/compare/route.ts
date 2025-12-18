@@ -259,10 +259,13 @@ export async function POST(req: NextRequest) {
             processedMatches.add(p1Match.match_id);
 
             // Determinar se cada um ganhou
+            // IMPORTANTE: usar radiant_win do p1Match como fonte única de verdade
+            // pois radiant_win é um valor global da partida (não depende de quem está olhando)
             const p1Radiant = p1Match.player_slot < 128;
             const p2Radiant = p2Match.player_slot < 128;
-            const p1Won = (p1Radiant && p1Match.radiant_win) || (!p1Radiant && !p1Match.radiant_win);
-            const p2Won = (p2Radiant && p2Match.radiant_win) || (!p2Radiant && !p2Match.radiant_win);
+            const radiantWon = p1Match.radiant_win;
+            const p1Won = (p1Radiant && radiantWon) || (!p1Radiant && !radiantWon);
+            const p2Won = (p2Radiant && radiantWon) || (!p2Radiant && !radiantWon);
 
             // Se estavam em times opostos (um ganhou, outro perdeu)
             if (p1Won !== p2Won) {
@@ -318,8 +321,10 @@ export async function POST(req: NextRequest) {
             }
 
             // Times opostos! Contar como confronto
-            const p1Won = (p1Radiant && p1Match.radiant_win) || (!p1Radiant && !p1Match.radiant_win);
-            const p2Won = (p2Radiant && p2Match.radiant_win) || (!p2Radiant && !p2Match.radiant_win);
+            // Usar radiant_win do p1Match como fonte única de verdade
+            const radiantWon = p1Match.radiant_win;
+            const p1Won = (p1Radiant && radiantWon) || (!p1Radiant && !radiantWon);
+            const p2Won = (p2Radiant && radiantWon) || (!p2Radiant && !radiantWon);
 
             headToHead.totalMatches++;
 
