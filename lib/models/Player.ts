@@ -1,5 +1,15 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
+// Hero stats for specialist ranking
+export interface IHeroStat {
+    heroId: number;
+    heroName: string;
+    games: number;
+    wins: number;
+    winrate: number;
+    avgKDA: string;
+}
+
 export interface IPlayer extends Document {
     steamId: string;
     name: string;
@@ -37,11 +47,23 @@ export interface IPlayer extends Document {
     proWinrate: number; // Winrate in pro games
     proKDA: number; // Average KDA in pro games
 
-    // Hero Specialist Stats
+    // Hero Specialist Stats (kept for backward compatibility)
     bestHeroId: number; // Hero ID with highest winrate
     bestHeroGames: number; // Games played with best hero
     bestHeroWinrate: number; // Winrate with best hero
+
+    // Hero Stats Array (top heroes with 50+ games for specialist ranking)
+    heroStats: IHeroStat[];
 }
+
+const HeroStatSchema: Schema = new Schema({
+    heroId: { type: Number, required: true },
+    heroName: { type: String, required: true },
+    games: { type: Number, required: true },
+    wins: { type: Number, required: true },
+    winrate: { type: Number, required: true },
+    avgKDA: { type: String, required: true }
+}, { _id: false });
 
 const PlayerSchema: Schema = new Schema({
     steamId: { type: String, required: true, unique: true, index: true },
@@ -73,7 +95,6 @@ const PlayerSchema: Schema = new Schema({
     recencyMultiplier: { type: Number, default: 1.0 },
     consistencyScore: { type: Number, default: 1.0 },
 
-
     // Multi-Ranking Stats (legacy, indexed for leaderboards)
     winrate: { type: Number, default: 0, index: true },
     kdaVariance: { type: Number, default: 0, index: true },
@@ -85,6 +106,9 @@ const PlayerSchema: Schema = new Schema({
     bestHeroId: { type: Number, default: 0 },
     bestHeroGames: { type: Number, default: 0, index: true },
     bestHeroWinrate: { type: Number, default: 0, index: true },
+
+    // Hero Stats Array (top heroes with 50+ games)
+    heroStats: { type: [HeroStatSchema], default: [] },
 }, { timestamps: true });
 
 // Prevent recompilation in development

@@ -6,6 +6,7 @@ import { opendota } from '@/lib/opendota';
 import { calculateTMMR } from '@/lib/tmmr';
 import { calculateRankingStats } from '@/lib/ranking-stats';
 import { calculateBestHero } from '@/lib/hero-stats';
+import { HERO_NAMES } from '@/lib/heroes';
 
 const UPDATE_LOCK_DAYS = 7;
 const UPDATE_LOCK_MS = UPDATE_LOCK_DAYS * 24 * 60 * 60 * 1000;
@@ -109,11 +110,53 @@ export async function POST(request: Request) {
 
         // Calculate Multi-Ranking Stats
         const rankingStats = calculateRankingStats(matchesData);
-        // Calculate Best Hero (fix: correctly infer win from player_slot + radiant_win)
-        const bestHero = calculateBestHero(matchesData.map(m => ({
-            heroId: m.hero_id,
-            win: (m.player_slot < 128) === m.radiant_win // Radiant slots: 0-127, Dire: 128-255
-        })));
+
+        // Calculate Hero Stats for specialist ranking (50+ games per hero)
+        const MIN_HERO_GAMES = 50;
+        const heroMap = new Map<number, { wins: number; games: number; kills: number; deaths: number; assists: number }>();
+
+        const validMatches = matchesData.filter(m => m.duration >= 480 && (!m.leaver_status || m.leaver_status <= 1));
+        for (const m of validMatches) {
+            const heroId = m.hero_id;
+            const isWin = (m.player_slot < 128) === m.radiant_win;
+
+            const stats = heroMap.get(heroId) || { wins: 0, games: 0, kills: 0, deaths: 0, assists: 0 };
+            stats.games++;
+            if (isWin) stats.wins++;
+            stats.kills += m.kills || 0;
+            stats.deaths += m.deaths || 0;
+            stats.assists += m.assists || 0;
+            heroMap.set(heroId, stats);
+        }
+
+        // Build heroStats array (only heroes with 50+ games)
+        const heroStats = Array.from(heroMap.entries())
+            .filter(([, stats]) => stats.games >= MIN_HERO_GAMES)
+            .map(([heroId, stats]) => ({
+                heroId,
+                heroName: HERO_NAMES[heroId] || `Hero ${heroId}`,
+                games: stats.games,
+                wins: stats.wins,
+                winrate: parseFloat(((stats.wins / stats.games) * 100).toFixed(2)),
+                avgKDA: `${(stats.kills / stats.games).toFixed(1)}/${(stats.deaths / stats.games).toFixed(1)}/${(stats.assists / stats.games).toFixed(1)}`
+            }))
+            .sort((a, b) => b.winrate - a.winrate); // Sort by winrate
+
+        // Calculate Best Hero (use top from heroStats if available, otherwise use old method)
+        let bestHero;
+        if (heroStats.length > 0) {
+            const top = heroStats[0];
+            bestHero = {
+                bestHeroId: top.heroId,
+                bestHeroGames: top.games,
+                bestHeroWinrate: top.winrate
+            };
+        } else {
+            bestHero = calculateBestHero(matchesData.map(m => ({
+                heroId: m.hero_id,
+                win: (m.player_slot < 128) === m.radiant_win
+            })));
+        }
 
         // Save Player
         const playerUpdate = {
@@ -153,7 +196,10 @@ export async function POST(request: Request) {
             proWinrate: rankingStats.proWinrate,
             proKDA: rankingStats.proKDA,
 
-            // Hero Specialist Stats
+            // Hero Stats Array (for specialist ranking)
+            heroStats: heroStats,
+
+            // Hero Specialist Stats (legacy, using best from heroStats)
             bestHeroId: bestHero.bestHeroId,
             bestHeroGames: bestHero.bestHeroGames,
             bestHeroWinrate: bestHero.bestHeroWinrate
