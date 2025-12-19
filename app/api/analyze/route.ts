@@ -63,7 +63,7 @@ export async function POST(request: Request) {
         // Calculate TMMR v5
         const calculation = calculateTMMRv5(matchesData);
 
-        console.log(`[Analyze v5] ${profileData.profile.personaname}: TMMR ${calculation.currentTmmr} (WR: ${(calculation.breakdown.rawWinrate * 100).toFixed(1)}% → Wilson: ${(calculation.breakdown.wilsonWinrate * 100).toFixed(1)}%, Diff: ${calculation.breakdown.difficultyMod.toFixed(2)})`);
+        console.log(`[Analyze v5.2] ${profileData.profile.personaname}: TMMR ${calculation.currentTmmr} (WR: ${(calculation.breakdown.rawWinrate * 100).toFixed(1)}%, Rank: ${calculation.breakdown.avgRank.toFixed(0)}, Penalty: ${calculation.breakdown.maturityPenalty.toFixed(0)})`);
 
         // Save Matches
         const BATCH_SIZE = 500;
@@ -141,13 +141,13 @@ export async function POST(request: Request) {
             lastUpdate: new Date(),
             isPrivate: false,
 
-            // TMMR v5.0 Fields
+            // TMMR v5.2 Fields
             winrate: calculation.breakdown.rawWinrate * 100,
-            wilsonWinrate: calculation.breakdown.wilsonWinrate * 100,
-            // v5.1: no confidence multiplier, kept for UI display only
-            confidenceScore: 1.0,
+            // v5.2: maturity penalty for <200 games
+            confidenceScore: 1.0 - (calculation.breakdown.maturityPenalty / 300),
             avgRankPlayed: calculation.breakdown.avgRank,
-            difficultyExposure: calculation.breakdown.difficultyMod,
+            // v5.2: rank multiplier = 1.02^(rank-50)
+            difficultyExposure: Math.pow(1.02, calculation.breakdown.avgRank - 50),
 
             // Hero Stats
             heroStats: heroStats,

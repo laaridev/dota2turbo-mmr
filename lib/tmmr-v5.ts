@@ -1,30 +1,24 @@
 /**
- * TurboMMR (TMMR) Calculation System v5.0
- * 
- * A simplified, transparent rating system for Dota 2 Turbo mode.
+ * TurboMMR (TMMR) Calculation System v5.2
  * 
  * === PHILOSOPHY ===
- * "Quanto você ganha e contra quem?"
+ * "Vitórias contra oponentes fortes valem mais"
  * 
- * === 2 PILLARS ===
+ * === COMPONENTS ===
  * 
- * 1. SKILL (Wilson Winrate): Conservative winrate that penalizes small samples
- *    - Volume is handled here: 60% with 100 games ≠ 60% with 1000 games
- *    - Wilson Score naturally gives more credit to proven performance
+ * 1. WEIGHTED WINS: Each win is worth 1.02^(rank-50) points
+ *    - Legend (50) = 1.0x, Divine (65) = 1.35x, Immortal (75) = 1.64x
  * 
- * 2. DIFFICULTY (Rank Multiplier): Playing in higher lobbies = more valuable
- *    - Guardian lobbies = penalty
- *    - Ancient/Divine lobbies = bonus
+ * 2. MATURITY PENALTY: Players with < 200 games lose up to 300 TMMR
+ *    - Prevents inflated ratings from small samples
  * 
  * === FORMULA ===
  * 
- * TMMR = 3500 + (WilsonWR - 0.5) × 4000 × DifficultyMod
+ * weightedWins = Σ(win × 1.02^(rank-50))
+ * performance = (weightedWins - games×0.5) / games
+ * maturityPenalty = max(0, (200 - games) / 200 × 300)
  * 
- * === REMOVED ===
- * - Solo/Party weighting (unreliable data)
- * - Confidence as multiplier (volume handled by Wilson)
- * - Hero-normalized KDA (complex)
- * - Consistency score (noise)
+ * TMMR = 3500 + performance × 3500 - maturityPenalty
  */
 
 import { OpenDotaMatch } from './opendota';
@@ -34,27 +28,29 @@ import { OpenDotaMatch } from './opendota';
 // ============================================
 
 export interface TMMRv5Breakdown {
-    // Skill (Wilson Winrate)
-    rawWinrate: number;          // Actual winrate (0-1)
-    wilsonWinrate: number;       // Conservative winrate (0-1)
-
-    // Volume info (for display, not calculation)
+    // Raw stats
     games: number;
-
-    // Difficulty
-    avgRank: number;             // 0-80 scale
-    difficultyMod: number;       // 0.7 to 1.7
-
-    // Stats
     wins: number;
     losses: number;
+    rawWinrate: number;
+
+    // Weighted system
+    weightedWins: number;
+    expectedWins: number;
+    performance: number;
+
+    // Difficulty
+    avgRank: number;
+
+    // Maturity
+    maturityPenalty: number;
 
     // Final
+    rawTMMR: number;
     finalTMMR: number;
     isCalibrating: boolean;
 
-    // Version
-    version: 5;
+    version: string;
 }
 
 export interface TMMRv5Result {
@@ -69,22 +65,18 @@ export interface TMMRv5Result {
 // CONSTANTS
 // ============================================
 
-// Base TMMR (Legend-like center at 50% winrate)
 const BASE_TMMR = 3500;
-
-// Scale factor for skill score
-// 60% Wilson WR at 1.3x difficulty = 3500 + (0.1 × 4000 × 1.3) = 4020
-const SKILL_SCALE = 4000;
-
-// Minimum games to be ranked
+const PERFORMANCE_SCALE = 3500;
 const MIN_GAMES = 30;
-
-// Wilson score Z value (1.65 = 90% confidence)
-const WILSON_Z = 1.65;
-
-// TMMR clamps
+const MATURITY_THRESHOLD = 200;
+const MATURITY_MAX_PENALTY = 300;
 const TMMR_MIN = 500;
 const TMMR_MAX = 7000;
+
+// Rank weight: 1.02^(rank-50)
+// Legend (50) = 1.0x, Divine (65) = 1.35x, Immortal (75) = 1.64x
+const RANK_WEIGHT_BASE = 1.02;
+const RANK_WEIGHT_CENTER = 50;
 
 // ============================================
 // UTILITY FUNCTIONS
@@ -95,29 +87,24 @@ function clamp(value: number, min: number, max: number): number {
 }
 
 /**
- * Wilson score lower bound for binomial proportion
- * Returns a conservative estimate of true winrate given observed data
- * This penalizes small sample sizes naturally!
- * 
- * Examples:
- * - 60 wins / 100 games = 51.8% Wilson
- * - 600 wins / 1000 games = 57.5% Wilson
- * - 6000 wins / 10000 games = 59.2% Wilson
- * 
- * Volume matters, but with DIMINISHING returns built-in!
+ * Calculate rank multiplier for a win
+ * Higher rank = more valuable win
  */
-function wilsonLowerBound(wins: number, total: number, z: number = WILSON_Z): number {
-    if (total === 0) return 0.5;
+function getRankMultiplier(rank: number): number {
+    // Clamp rank to reasonable range
+    const r = clamp(rank, 10, 85);
 
-    const p = wins / total;
-    const n = total;
+    // Exponential: 1.02^(rank-50)
+    return Math.pow(RANK_WEIGHT_BASE, r - RANK_WEIGHT_CENTER);
+}
 
-    // Wilson score interval lower bound formula
-    const denominator = 1 + (z * z) / n;
-    const center = p + (z * z) / (2 * n);
-    const spread = z * Math.sqrt((p * (1 - p) / n) + (z * z) / (4 * n * n));
-
-    return (center - spread) / denominator;
+/**
+ * Calculate maturity penalty for players with few games
+ * Linear decay from 300 at 0 games to 0 at 200 games
+ */
+function getMaturityPenalty(games: number): number {
+    if (games >= MATURITY_THRESHOLD) return 0;
+    return ((MATURITY_THRESHOLD - games) / MATURITY_THRESHOLD) * MATURITY_MAX_PENALTY;
 }
 
 /**
@@ -138,98 +125,74 @@ function isValidMatch(match: OpenDotaMatch): boolean {
 }
 
 // ============================================
-// PILLAR 1: SKILL (Wilson Winrate)
-// ============================================
-
-/**
- * Calculate Wilson winrate - conservative estimate of true skill
- * Volume is handled here - more games = Wilson approaches raw winrate
- */
-function calculateWilsonWinrate(wins: number, games: number): number {
-    return wilsonLowerBound(wins, games, WILSON_Z);
-}
-
-// ============================================
-// PILLAR 2: DIFFICULTY (Rank Multiplier)
-// ============================================
-
-/**
- * Calculate difficulty modifier based on average lobby rank
- * 
- * Formula: 0.7 + (avgRank / 80) × 1.0
- * 
- * Scale (OpenDota rank 0-80):
- * - Rank 20 (Guardian) = 0.95x
- * - Rank 35 (Archon)   = 1.14x
- * - Rank 50 (Legend)   = 1.33x (neutral reference)
- * - Rank 60 (Ancient)  = 1.45x
- * - Rank 70 (Divine)   = 1.58x
- * - Rank 80 (Immortal) = 1.70x
- */
-function calculateDifficultyMod(avgRank: number): number {
-    const rank = clamp(avgRank, 0, 80);
-    return 0.7 + (rank / 80) * 1.0;
-}
-
-// ============================================
 // MAIN CALCULATION FUNCTION
 // ============================================
 
-/**
- * Calculate TMMR v5
- * 
- * Formula: TMMR = 3500 + (WilsonWR - 0.5) × 4000 × DifficultyMod
- * 
- * NO Confidence multiplier! Volume is handled by Wilson Score.
- */
 export function calculateTMMRv5(matches: OpenDotaMatch[]): TMMRv5Result {
     // Filter valid matches
     const validMatches = matches.filter(isValidMatch);
-
-    // Count wins/losses
-    const wins = validMatches.filter(inferWin).length;
-    const losses = validMatches.length - wins;
     const games = validMatches.length;
 
     // Not enough games
     if (games < MIN_GAMES) {
-        return createCalibratingResult(wins, losses, games);
+        return createCalibratingResult(validMatches);
     }
 
-    // PILLAR 1: Skill (Wilson Winrate)
-    const rawWinrate = games > 0 ? wins / games : 0.5;
-    const wilsonWinrate = calculateWilsonWinrate(wins, games);
+    // Calculate weighted wins
+    let weightedWins = 0;
+    let totalWins = 0;
+    let rankSum = 0;
+    let rankedCount = 0;
 
-    // PILLAR 2: Difficulty (Rank Multiplier)
-    const rankedMatches = validMatches.filter(m => m.average_rank && m.average_rank > 0);
-    const avgRank = rankedMatches.length > 0
-        ? rankedMatches.reduce((sum, m) => sum + m.average_rank!, 0) / rankedMatches.length
-        : 50; // Default to Legend if no rank data
-    const difficultyMod = calculateDifficultyMod(avgRank);
+    for (const match of validMatches) {
+        const isWin = inferWin(match);
+        const rank = match.average_rank || 50; // Default to Legend if no rank
 
-    // FINAL CALCULATION
-    // TMMR = 3500 + (WilsonWR - 0.5) × 4000 × DifficultyMod
-    // NO Confidence multiplier - Wilson handles sample size!
-    const skillDelta = wilsonWinrate - 0.5;
-    const rawTMMR = BASE_TMMR + (skillDelta * SKILL_SCALE * difficultyMod);
-    const finalTMMR = Math.round(clamp(rawTMMR, TMMR_MIN, TMMR_MAX));
+        if (isWin) {
+            totalWins++;
+            weightedWins += getRankMultiplier(rank);
+        }
+
+        if (match.average_rank && match.average_rank > 0) {
+            rankSum += match.average_rank;
+            rankedCount++;
+        }
+    }
+
+    const losses = games - totalWins;
+    const rawWinrate = totalWins / games;
+    const avgRank = rankedCount > 0 ? rankSum / rankedCount : 50;
+
+    // Performance: how much better than expected (50% at rank 50)
+    const expectedWins = games * 0.5;
+    const performance = (weightedWins - expectedWins) / games;
+
+    // Maturity penalty
+    const maturityPenalty = getMaturityPenalty(games);
+
+    // Final TMMR
+    const rawTMMR = BASE_TMMR + (performance * PERFORMANCE_SCALE);
+    const finalTMMR = Math.round(clamp(rawTMMR - maturityPenalty, TMMR_MIN, TMMR_MAX));
 
     const breakdown: TMMRv5Breakdown = {
-        rawWinrate,
-        wilsonWinrate,
         games,
-        avgRank,
-        difficultyMod,
-        wins,
+        wins: totalWins,
         losses,
+        rawWinrate,
+        weightedWins,
+        expectedWins,
+        performance,
+        avgRank,
+        maturityPenalty,
+        rawTMMR: Math.round(rawTMMR),
         finalTMMR,
         isCalibrating: games < 50,
-        version: 5
+        version: '5.2'
     };
 
     return {
         currentTmmr: finalTMMR,
-        wins,
+        wins: totalWins,
         losses,
         isCalibrating: games < 50,
         breakdown
@@ -239,18 +202,25 @@ export function calculateTMMRv5(matches: OpenDotaMatch[]): TMMRv5Result {
 /**
  * Create result for players still calibrating
  */
-function createCalibratingResult(wins: number, losses: number, games: number): TMMRv5Result {
+function createCalibratingResult(validMatches: OpenDotaMatch[]): TMMRv5Result {
+    const games = validMatches.length;
+    const wins = validMatches.filter(inferWin).length;
+    const losses = games - wins;
+
     const breakdown: TMMRv5Breakdown = {
-        rawWinrate: games > 0 ? wins / games : 0.5,
-        wilsonWinrate: 0.5,
         games,
-        avgRank: 50,
-        difficultyMod: 1.0,
         wins,
         losses,
+        rawWinrate: games > 0 ? wins / games : 0.5,
+        weightedWins: 0,
+        expectedWins: 0,
+        performance: 0,
+        avgRank: 50,
+        maturityPenalty: getMaturityPenalty(games),
+        rawTMMR: BASE_TMMR,
         finalTMMR: BASE_TMMR,
         isCalibrating: true,
-        version: 5
+        version: '5.2'
     };
 
     return {
@@ -292,5 +262,5 @@ export const TIER_NAMES_V5: Record<TierKey, string> = {
     immortal: 'Immortal'
 };
 
-// Export as main function for easy migration
+// Backward compatibility
 export { calculateTMMRv5 as calculateTMMR };

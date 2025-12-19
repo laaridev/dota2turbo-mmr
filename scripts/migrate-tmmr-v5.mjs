@@ -1,8 +1,9 @@
 /**
- * Migration script: Recalculate all players with TMMR v5.1
+ * Migration script: TMMR v5.2
  * 
- * Formula: TMMR = 3500 + (WilsonWR - 0.5) × 4000 × DifficultyMod
- * NO Confidence multiplier - volume handled by Wilson Score!
+ * Features:
+ * - Weighted wins: 1.02^(rank-50) per win
+ * - Maturity penalty: -300 for 0 games, -0 for 200+ games
  */
 
 import mongoose from 'mongoose';
@@ -15,31 +16,29 @@ envContent.split('\n').forEach(line => {
     if (key && val.length) process.env[key.trim()] = val.join('=').trim();
 });
 
-// TMMR v5.1 Constants
+// Constants
 const BASE_TMMR = 3500;
-const SKILL_SCALE = 4000;
+const PERFORMANCE_SCALE = 3500;
 const MIN_GAMES = 30;
-const WILSON_Z = 1.65;
+const MATURITY_THRESHOLD = 200;
+const MATURITY_MAX_PENALTY = 300;
 const TMMR_MIN = 500;
 const TMMR_MAX = 7000;
+const RANK_WEIGHT_BASE = 1.02;
+const RANK_WEIGHT_CENTER = 50;
 
 function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
 }
 
-function wilsonLowerBound(wins, total, z = WILSON_Z) {
-    if (total === 0) return 0.5;
-    const p = wins / total;
-    const n = total;
-    const denominator = 1 + (z * z) / n;
-    const center = p + (z * z) / (2 * n);
-    const spread = z * Math.sqrt((p * (1 - p) / n) + (z * z) / (4 * n * n));
-    return (center - spread) / denominator;
+function getRankMultiplier(rank) {
+    const r = clamp(rank, 10, 85);
+    return Math.pow(RANK_WEIGHT_BASE, r - RANK_WEIGHT_CENTER);
 }
 
-function calculateDifficultyMod(avgRank) {
-    const rank = clamp(avgRank, 0, 80);
-    return 0.7 + (rank / 80) * 1.0;
+function getMaturityPenalty(games) {
+    if (games >= MATURITY_THRESHOLD) return 0;
+    return ((MATURITY_THRESHOLD - games) / MATURITY_THRESHOLD) * MATURITY_MAX_PENALTY;
 }
 
 function steamId64to32(steamId64) {
@@ -60,51 +59,61 @@ async function fetchMatches(accountId) {
     return await res.json();
 }
 
-function calculateTMMRv5(matches) {
+function calculateTMMRv52(matches) {
     const validMatches = matches.filter(m => m.duration >= 480 && (!m.leaver_status || m.leaver_status <= 1));
-
-    const wins = validMatches.filter(m => (m.player_slot < 128) === m.radiant_win).length;
-    const losses = validMatches.length - wins;
     const games = validMatches.length;
 
     if (games < MIN_GAMES) {
         return {
             tmmr: BASE_TMMR,
-            wins, losses, games,
-            rawWinrate: games > 0 ? wins / games : 0.5,
-            wilsonWinrate: 0.5,
-            avgRank: 50,
-            difficultyMod: 1.0,
+            wins: 0, losses: 0, games,
+            weightedWins: 0, performance: 0,
+            avgRank: 50, maturityPenalty: getMaturityPenalty(games),
             isCalibrating: true
         };
     }
 
-    const rawWinrate = wins / games;
-    const wilsonWinrate = wilsonLowerBound(wins, games);
+    let weightedWins = 0;
+    let totalWins = 0;
+    let rankSum = 0;
+    let rankedCount = 0;
 
-    const rankedMatches = validMatches.filter(m => m.average_rank && m.average_rank > 0);
-    const avgRank = rankedMatches.length > 0
-        ? rankedMatches.reduce((sum, m) => sum + m.average_rank, 0) / rankedMatches.length
-        : 50;
-    const difficultyMod = calculateDifficultyMod(avgRank);
+    for (const match of validMatches) {
+        const isWin = (match.player_slot < 128) === match.radiant_win;
+        const rank = match.average_rank || 50;
 
-    // v5.1 Formula: NO Confidence multiplier!
-    const skillDelta = wilsonWinrate - 0.5;
-    const rawTMMR = BASE_TMMR + (skillDelta * SKILL_SCALE * difficultyMod);
-    const tmmr = Math.round(clamp(rawTMMR, TMMR_MIN, TMMR_MAX));
+        if (isWin) {
+            totalWins++;
+            weightedWins += getRankMultiplier(rank);
+        }
+
+        if (match.average_rank && match.average_rank > 0) {
+            rankSum += match.average_rank;
+            rankedCount++;
+        }
+    }
+
+    const losses = games - totalWins;
+    const avgRank = rankedCount > 0 ? rankSum / rankedCount : 50;
+
+    const expectedWins = games * 0.5;
+    const performance = (weightedWins - expectedWins) / games;
+
+    const maturityPenalty = getMaturityPenalty(games);
+    const rawTMMR = BASE_TMMR + (performance * PERFORMANCE_SCALE);
+    const tmmr = Math.round(clamp(rawTMMR - maturityPenalty, TMMR_MIN, TMMR_MAX));
 
     return {
-        tmmr, wins, losses, games,
-        rawWinrate, wilsonWinrate,
-        avgRank, difficultyMod,
+        tmmr, wins: totalWins, losses, games,
+        weightedWins, performance, avgRank, maturityPenalty,
         isCalibrating: games < 50
     };
 }
 
 async function main() {
     console.log('==========================================');
-    console.log('     TMMR v5.1 Migration Script');
-    console.log('   (NO Confidence multiplier!)');
+    console.log('     TMMR v5.2 Migration Script');
+    console.log('  (Weighted Wins + Maturity Penalty)');
     console.log('==========================================\n');
 
     await mongoose.connect(process.env.MONGODB_URI);
@@ -121,7 +130,7 @@ async function main() {
 
     for (const player of players) {
         try {
-            process.stdout.write(`[${processed + 1}/${players.length}] ${player.name.substring(0, 30).padEnd(30)}... `);
+            process.stdout.write(`[${processed + 1}/${players.length}] ${player.name.substring(0, 25).padEnd(25)}... `);
 
             const accountId = steamId64to32(player.steamId);
             const matches = await fetchMatches(accountId);
@@ -132,7 +141,7 @@ async function main() {
                 continue;
             }
 
-            const calc = calculateTMMRv5(matches);
+            const calc = calculateTMMRv52(matches);
 
             await Player.updateOne(
                 { steamId: player.steamId },
@@ -141,24 +150,23 @@ async function main() {
                         tmmr: calc.tmmr,
                         wins: calc.wins,
                         losses: calc.losses,
-                        winrate: calc.rawWinrate * 100,
-                        wilsonWinrate: calc.wilsonWinrate * 100,
+                        winrate: calc.wins / (calc.wins + calc.losses) * 100,
                         avgRankPlayed: calc.avgRank,
-                        difficultyExposure: calc.difficultyMod
+                        difficultyExposure: getRankMultiplier(calc.avgRank),
+                        confidenceScore: 1.0 - (calc.maturityPenalty / MATURITY_MAX_PENALTY)
                     }
                 }
             );
 
-            console.log(`✅ TMMR ${calc.tmmr} | WR: ${(calc.rawWinrate * 100).toFixed(1)}% → Wilson: ${(calc.wilsonWinrate * 100).toFixed(1)}% | Diff: ${calc.difficultyMod.toFixed(2)}`);
+            const penaltyStr = calc.maturityPenalty > 0 ? ` (-${calc.maturityPenalty.toFixed(0)} pen)` : '';
+            console.log(`✅ TMMR ${calc.tmmr}${penaltyStr} | WR: ${(calc.wins / calc.games * 100).toFixed(1)}% | Rank: ${calc.avgRank.toFixed(0)} | Games: ${calc.games}`);
 
             results.push({
                 name: player.name,
                 tmmr: calc.tmmr,
-                rawWR: calc.rawWinrate,
-                wilsonWR: calc.wilsonWinrate,
+                games: calc.games,
                 avgRank: calc.avgRank,
-                diffMod: calc.difficultyMod,
-                games: calc.games
+                penalty: calc.maturityPenalty
             });
 
             processed++;
@@ -182,7 +190,8 @@ async function main() {
     console.log('\n=== NEW RANKING (Top 20) ===');
     const byTMMR = results.sort((a, b) => b.tmmr - a.tmmr);
     byTMMR.slice(0, 20).forEach((p, i) => {
-        console.log(`${(i + 1).toString().padStart(2)}. ${p.name.substring(0, 25).padEnd(25)} TMMR: ${p.tmmr} | WR: ${(p.rawWR * 100).toFixed(1)}% | Rank: ${p.avgRank.toFixed(0)} | Games: ${p.games}`);
+        const penStr = p.penalty > 0 ? ` (pen: -${p.penalty.toFixed(0)})` : '';
+        console.log(`${(i + 1).toString().padStart(2)}. ${p.name.substring(0, 25).padEnd(25)} TMMR: ${p.tmmr} | Rank: ${p.avgRank.toFixed(0)} | Games: ${p.games}${penStr}`);
     });
 
     await mongoose.disconnect();
