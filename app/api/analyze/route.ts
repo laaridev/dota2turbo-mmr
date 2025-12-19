@@ -3,9 +3,7 @@ import dbConnect from '@/lib/db';
 import Player from '@/lib/models/Player';
 import Match from '@/lib/models/Match';
 import { opendota } from '@/lib/opendota';
-import { calculateTMMR } from '@/lib/tmmr';
-import { calculateRankingStats } from '@/lib/ranking-stats';
-import { calculateBestHero } from '@/lib/hero-stats';
+import { calculateTMMRv5 } from '@/lib/tmmr-v5';
 import { HERO_NAMES } from '@/lib/heroes';
 
 const UPDATE_LOCK_DAYS = 7;
@@ -23,21 +21,17 @@ export async function POST(request: Request) {
 
         // Normalize ID
         const steamId = id.toString();
-        // Ideally we should handle both SteamID64 and AccountID. 
-        // OpenDota uses AccountID (32-bit).
         const accountId = opendota.steamId64to32(steamId);
 
-        console.log(`[Analyze] Received ID: ${steamId} -> AccountID: ${accountId}`);
+        console.log(`[Analyze v5] Received ID: ${steamId} -> AccountID: ${accountId}`);
 
         // Check existing player
         const existingPlayer = await Player.findOne({ steamId: accountId });
 
         if (existingPlayer) {
-            console.log(`[Analyze] Found existing player: ${existingPlayer.name} (Last Update: ${existingPlayer.lastUpdate})`);
-            // Check lock
+            console.log(`[Analyze v5] Found existing player: ${existingPlayer.name}`);
             const timeDiff = Date.now() - new Date(existingPlayer.lastUpdate).getTime();
             if (timeDiff < UPDATE_LOCK_MS) {
-                console.log(`[Analyze] LOCKED. TimeDiff: ${timeDiff} < ${UPDATE_LOCK_MS}`);
                 const remainingMs = UPDATE_LOCK_MS - timeDiff;
                 const remainingDays = Math.ceil(remainingMs / (24 * 60 * 60 * 1000));
                 return NextResponse.json({
@@ -46,12 +40,9 @@ export async function POST(request: Request) {
                     player: existingPlayer
                 }, { status: 429 });
             }
-        } else {
-            console.log(`[Analyze] New player. Fetching from OpenDota...`);
         }
 
         // Fetch from OpenDota
-        // We run parallel requests for better performance
         const [profileData, matchesData] = await Promise.all([
             opendota.getPlayerProfile(accountId),
             opendota.getPlayerMatches(accountId)
@@ -61,41 +52,38 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Player not found on OpenDota' }, { status: 404 });
         }
 
-        // Check if profile is private (no matches returned)
         if (!matchesData || matchesData.length === 0) {
             return NextResponse.json({
                 error: 'Sem partidas Turbo encontradas',
                 isPrivate: true,
-                message: 'Não encontramos partidas Turbo para este jogador no OpenDota. Verifique se: 1) O perfil está público no Dota 2, 2) As partidas foram parseadas no OpenDota (visite opendota.com e clique em Refresh).'
+                message: 'Não encontramos partidas Turbo para este jogador no OpenDota.'
             }, { status: 403 });
         }
 
-        // Calculate TMMR
-        const calculation = calculateTMMR(matchesData);
+        // Calculate TMMR v5
+        const calculation = calculateTMMRv5(matchesData);
 
-        // Save Matches with radiantWin (already available in matchesData)
+        console.log(`[Analyze v5] ${profileData.profile.personaname}: TMMR ${calculation.currentTmmr} (WR: ${(calculation.breakdown.rawWinrate * 100).toFixed(1)}% → Wilson: ${(calculation.breakdown.wilsonWinrate * 100).toFixed(1)}%, Diff: ${calculation.breakdown.difficultyMod.toFixed(2)})`);
+
+        // Save Matches
         const BATCH_SIZE = 500;
+        const validMatches = matchesData.filter(m => m.duration >= 480 && (!m.leaver_status || m.leaver_status <= 1));
 
-        // Create bulk write operations
-        const bulkOps = calculation.processedMatches.map((m, index) => {
-            // Get radiantWin from original matchesData
-            const originalMatch = matchesData[index];
-
+        const bulkOps = validMatches.slice(0, 50).map((m) => {
+            const isWin = (m.player_slot < 128) === m.radiant_win;
             return {
                 updateOne: {
-                    filter: { matchId: m.matchId },
+                    filter: { matchId: m.match_id, playerSteamId: accountId },
                     update: {
                         $set: {
+                            matchId: m.match_id,
                             playerSteamId: accountId,
-                            heroId: m.heroId,
-                            win: m.win,
+                            heroId: m.hero_id,
+                            win: isWin,
                             duration: m.duration,
-                            kda: m.kda,
-                            timestamp: m.timestamp,
-                            tmmrChange: m.tmmrChange,
-                            skill: m.skill,
-                            averageRank: m.averageRank,
-                            radiantWin: originalMatch?.radiant_win // Add radiantWin from API response
+                            kda: `${m.kills}/${m.deaths}/${m.assists}`,
+                            timestamp: new Date(m.start_time * 1000),
+                            averageRank: m.average_rank || 0
                         }
                     },
                     upsert: true
@@ -103,19 +91,14 @@ export async function POST(request: Request) {
             };
         });
 
-        // Execute in batches
         for (let i = 0; i < bulkOps.length; i += BATCH_SIZE) {
             await Match.bulkWrite(bulkOps.slice(i, i + BATCH_SIZE));
         }
 
-        // Calculate Multi-Ranking Stats
-        const rankingStats = calculateRankingStats(matchesData);
-
-        // Calculate Hero Stats for specialist ranking (50+ games per hero)
+        // Calculate Hero Stats for specialist ranking
         const MIN_HERO_GAMES = 50;
         const heroMap = new Map<number, { wins: number; games: number; kills: number; deaths: number; assists: number }>();
 
-        const validMatches = matchesData.filter(m => m.duration >= 480 && (!m.leaver_status || m.leaver_status <= 1));
         for (const m of validMatches) {
             const heroId = m.hero_id;
             const isWin = (m.player_slot < 128) === m.radiant_win;
@@ -129,7 +112,6 @@ export async function POST(request: Request) {
             heroMap.set(heroId, stats);
         }
 
-        // Build heroStats array (only heroes with 50+ games)
         const heroStats = Array.from(heroMap.entries())
             .filter(([, stats]) => stats.games >= MIN_HERO_GAMES)
             .map(([heroId, stats]) => ({
@@ -140,25 +122,14 @@ export async function POST(request: Request) {
                 winrate: parseFloat(((stats.wins / stats.games) * 100).toFixed(2)),
                 avgKDA: `${(stats.kills / stats.games).toFixed(1)}/${(stats.deaths / stats.games).toFixed(1)}/${(stats.assists / stats.games).toFixed(1)}`
             }))
-            .sort((a, b) => b.winrate - a.winrate); // Sort by winrate
+            .sort((a, b) => b.winrate - a.winrate);
 
-        // Calculate Best Hero (use top from heroStats if available, otherwise use old method)
-        let bestHero;
-        if (heroStats.length > 0) {
-            const top = heroStats[0];
-            bestHero = {
-                bestHeroId: top.heroId,
-                bestHeroGames: top.games,
-                bestHeroWinrate: top.winrate
-            };
-        } else {
-            bestHero = calculateBestHero(matchesData.map(m => ({
-                heroId: m.hero_id,
-                win: (m.player_slot < 128) === m.radiant_win
-            })));
-        }
+        // Best hero
+        const bestHero = heroStats.length > 0
+            ? { bestHeroId: heroStats[0].heroId, bestHeroGames: heroStats[0].games, bestHeroWinrate: heroStats[0].winrate }
+            : { bestHeroId: 0, bestHeroGames: 0, bestHeroWinrate: 0 };
 
-        // Save Player
+        // Save Player with v5 data
         const playerUpdate = {
             steamId: accountId,
             name: profileData.profile.personaname,
@@ -166,40 +137,20 @@ export async function POST(request: Request) {
             tmmr: calculation.currentTmmr,
             wins: calculation.wins,
             losses: calculation.losses,
-            streak: calculation.streak,
+            streak: 0, // Deprecated
             lastUpdate: new Date(),
-            matches: calculation.processedMatches.map(m => m.matchId),
-            isPrivate: false, // assumed public if we got this far
+            isPrivate: false,
 
-            // TMMR v4.0 Transparency Fields
-            skillScore: calculation.breakdown.skillScore,
-            confidenceScore: calculation.confidence,
-            difficultyExposure: calculation.breakdown.difficultyExposure,
-            avgKDA: calculation.breakdown.skillComponents.avgKDA,
-            avgRankPlayed: calculation.breakdown.skillComponents.avgRank,
-            highRankGames: calculation.breakdown.difficultyComponents.highRankGames,
-            highRankWinrate: calculation.breakdown.difficultyComponents.highRankWinrate,
+            // TMMR v5.0 Fields
+            winrate: calculation.breakdown.rawWinrate * 100,
+            wilsonWinrate: calculation.breakdown.wilsonWinrate * 100,
+            // v5.1: no confidence multiplier, kept for UI display only
+            confidenceScore: 1.0,
+            avgRankPlayed: calculation.breakdown.avgRank,
+            difficultyExposure: calculation.breakdown.difficultyMod,
 
-            // v4.0 New Fields
-            soloGames: calculation.breakdown.skillComponents.soloGames,
-            partyGames: calculation.breakdown.skillComponents.partyGames,
-            soloWinrate: calculation.breakdown.skillComponents.soloWinrate,
-            partyWinrate: calculation.breakdown.skillComponents.partyWinrate,
-            heroNormalizedKDA: calculation.breakdown.skillComponents.heroNormalizedKDA,
-            recencyMultiplier: calculation.breakdown.recencyMultiplier,
-            consistencyScore: calculation.breakdown.skillComponents.consistencyScore,
-
-            // Multi-Ranking Stats (legacy)
-            winrate: calculation.breakdown.winrate,
-            kdaVariance: rankingStats.kdaVariance,
-            proGames: rankingStats.proGames,
-            proWinrate: rankingStats.proWinrate,
-            proKDA: rankingStats.proKDA,
-
-            // Hero Stats Array (for specialist ranking)
+            // Hero Stats
             heroStats: heroStats,
-
-            // Hero Specialist Stats (legacy, using best from heroStats)
             bestHeroId: bestHero.bestHeroId,
             bestHeroGames: bestHero.bestHeroGames,
             bestHeroWinrate: bestHero.bestHeroWinrate
@@ -211,19 +162,19 @@ export async function POST(request: Request) {
             { new: true, upsert: true }
         );
 
-        // Invalidate leaderboard cache (smart cache!)
+        // Invalidate cache
         try {
             const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://dotaturbo.vercel.app';
             await fetch(`${baseUrl}/api/leaderboard?revalidate=true`, { method: 'POST' });
         } catch (e) {
-            console.log('[Cache] Failed to invalidate, will expire naturally');
+            console.log('[Cache] Failed to invalidate');
         }
 
         return NextResponse.json({
             success: true,
             player,
             calculation,
-            message: 'Profile analyzed successfully'
+            message: 'Profile analyzed successfully (TMMR v5)'
         });
 
     } catch (error: any) {
