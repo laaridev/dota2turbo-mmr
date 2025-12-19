@@ -198,63 +198,102 @@ export default function ProfilePage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {/* Left: Calculation Steps */}
                                 <div className="space-y-3">
-                                    {/* Weighted Wins */}
-                                    <div className="p-3 rounded-xl bg-gradient-to-r from-emerald-500/10 to-transparent border border-emerald-500/20">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
-                                                <Sparkles className="w-4 h-4 text-emerald-400" />
-                                                <span className="text-sm font-medium">Vitórias Ponderadas</span>
-                                            </div>
-                                            <span className="text-lg font-bold text-emerald-400">{breakdown.weightedWins}</span>
+                                    {/* Comparison: Your Wins vs Expected */}
+                                    <div className="p-4 rounded-xl bg-gradient-to-br from-white/[0.02] to-transparent border border-white/[0.06]">
+                                        <p className="text-xs text-muted-foreground mb-3 font-medium">📊 Suas Vitórias vs Esperado</p>
+
+                                        {/* Visual comparison bar */}
+                                        <div className="relative h-8 bg-white/5 rounded-lg overflow-hidden mb-2">
+                                            {/* Expected line */}
+                                            <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-blue-400/50 z-10" />
+                                            <div className="absolute left-1/2 -translate-x-1/2 -top-1 text-[10px] text-blue-400 z-10">Esperado</div>
+
+                                            {/* Your performance bar */}
+                                            <motion.div
+                                                className={`absolute top-0 bottom-0 ${breakdown.performanceScore >= 0 ? 'left-1/2 bg-gradient-to-r from-emerald-500 to-emerald-400' : 'right-1/2 bg-gradient-to-l from-rose-500 to-rose-400'}`}
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${Math.min(Math.abs(breakdown.performanceScore) * 100, 50)}%` }}
+                                                transition={{ duration: 0.8, delay: 0.3 }}
+                                            />
                                         </div>
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                            Cada vitória × multiplicador do rank
-                                        </p>
+
+                                        <div className="flex justify-between text-xs">
+                                            <span className="text-muted-foreground">Pior que 50%</span>
+                                            <span className="text-muted-foreground">Melhor que 50%</span>
+                                        </div>
                                     </div>
 
-                                    {/* Expected */}
-                                    <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
-                                                <Target className="w-4 h-4 text-blue-400" />
-                                                <span className="text-sm font-medium">Esperado (50% WR)</span>
+                                    {/* Stats row */}
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {/* Your weighted wins */}
+                                        <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <Sparkles className="w-3 h-3 text-emerald-400" />
+                                                <span className="text-xs text-muted-foreground">Suas vitórias</span>
                                             </div>
-                                            <span className="text-lg font-bold text-blue-400">{breakdown.expectedWins}</span>
+                                            <p className="text-xl font-bold text-emerald-400">{breakdown.weightedWins}</p>
+                                            <p className="text-[10px] text-muted-foreground">pontos ponderados</p>
                                         </div>
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                            {breakdown.games} jogos × 0.5
-                                        </p>
+
+                                        {/* Expected */}
+                                        <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <Target className="w-3 h-3 text-blue-400" />
+                                                <span className="text-xs text-muted-foreground">Esperado (50%)</span>
+                                            </div>
+                                            <p className="text-xl font-bold text-blue-400">{breakdown.expectedWins}</p>
+                                            <p className="text-[10px] text-muted-foreground">{breakdown.games} jogos × 0.5</p>
+                                        </div>
                                     </div>
 
-                                    {/* Performance */}
-                                    <div className="p-3 rounded-xl bg-gradient-to-r from-primary/10 to-transparent border border-primary/20">
+                                    {/* Performance explanation */}
+                                    <div className={`p-3 rounded-xl ${breakdown.performanceScore >= 0 ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-rose-500/10 border border-rose-500/20'}`}>
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
-                                                <TrendingUp className="w-4 h-4 text-primary" />
-                                                <span className="text-sm font-medium">Performance Score</span>
+                                                <TrendingUp className={`w-4 h-4 ${breakdown.performanceScore >= 0 ? 'text-emerald-400' : 'text-rose-400'}`} />
+                                                <span className="text-sm font-medium">
+                                                    {breakdown.performanceScore >= 0 ? 'Você superou o esperado!' : 'Abaixo do esperado'}
+                                                </span>
                                             </div>
                                             <span className={`text-lg font-bold ${breakdown.performanceScore >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                                                {breakdown.performanceScore >= 0 ? '+' : ''}{(breakdown.performanceScore * 3500).toFixed(0)}
+                                                {breakdown.performanceScore >= 0 ? '+' : ''}{(breakdown.performanceScore * 3500).toFixed(0)} pts
                                             </span>
                                         </div>
                                         <p className="text-xs text-muted-foreground mt-1">
-                                            (Ponderadas - Esperado) / Jogos × 3500
+                                            {breakdown.performanceScore >= 0
+                                                ? `${(breakdown.weightedWins - breakdown.expectedWins).toFixed(1)} pontos acima do esperado → bônus de ${(breakdown.performanceScore * 3500).toFixed(0)} TMMR`
+                                                : `${(breakdown.expectedWins - breakdown.weightedWins).toFixed(1)} pontos abaixo do esperado → penalidade de ${Math.abs(breakdown.performanceScore * 3500).toFixed(0)} TMMR`
+                                            }
                                         </p>
                                     </div>
 
                                     {/* Maturity Penalty */}
                                     {breakdown.maturityPenalty > 0 && (
-                                        <div className="p-3 rounded-xl bg-gradient-to-r from-amber-500/10 to-transparent border border-amber-500/20">
+                                        <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-2">
                                                     <AlertTriangle className="w-4 h-4 text-amber-400" />
-                                                    <span className="text-sm font-medium">Penalidade Maturidade</span>
+                                                    <span className="text-sm font-medium">Penalidade de Maturidade</span>
                                                 </div>
                                                 <span className="text-lg font-bold text-amber-400">-{breakdown.maturityPenalty}</span>
                                             </div>
-                                            <p className="text-xs text-muted-foreground mt-1">
-                                                {breakdown.games}/200 jogos necessários
-                                            </p>
+                                            <div className="mt-2">
+                                                <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                                                    <span>{breakdown.games} jogos</span>
+                                                    <span>200 jogos</span>
+                                                </div>
+                                                <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                                    <motion.div
+                                                        className="h-full bg-amber-400 rounded-full"
+                                                        initial={{ width: 0 }}
+                                                        animate={{ width: `${Math.min((breakdown.games / 200) * 100, 100)}%` }}
+                                                        transition={{ duration: 0.5 }}
+                                                    />
+                                                </div>
+                                                <p className="text-[10px] text-muted-foreground mt-1">
+                                                    Jogue mais {200 - breakdown.games} partidas para remover esta penalidade
+                                                </p>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
