@@ -132,6 +132,22 @@ export function BetaNoticeModal() {
                                 </ul>
                             </motion.div>
 
+                            {/* Disclaimer */}
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.55 }}
+                                className="bg-white/5 border border-white/10 rounded-lg p-3 mb-4 text-left"
+                            >
+                                <p className="text-[10px] text-gray-400 leading-relaxed">
+                                    ⚠️ <strong className="text-gray-300">Aviso:</strong> O TMMR é uma métrica
+                                    <strong className="text-white"> informativa e recreativa</strong>. O modo Turbo tem dinâmicas
+                                    completamente diferentes do Dota normal (ouro 2x, XP 1.5x, builds alternativos),
+                                    tornando impossível medir habilidade real com precisão.
+                                    <strong className="text-gray-300"> Não leve muito a sério!</strong> 🎮
+                                </p>
+                            </motion.div>
+
                             {/* CTA */}
                             <motion.div
                                 initial={{ opacity: 0, y: 10 }}
