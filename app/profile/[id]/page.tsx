@@ -6,9 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PrivateProfileModal } from '@/components/private-profile-modal';
+import { Portal } from '@/components/portal';
 import { getTier, getTierCategory, TIER_NAMES } from '@/lib/tmmr';
 import { HERO_NAMES, getHeroImageUrl } from '@/lib/heroes';
-import { RefreshCw, Shield, Swords, Timer, Trophy, Flame, Clock, Target, TrendingUp, TrendingDown, Gamepad2, BarChart3, Zap, Activity, Sparkles, Award, AlertTriangle } from 'lucide-react';
+import { RefreshCw, Shield, Swords, Timer, Trophy, Flame, Clock, Target, TrendingUp, TrendingDown, Gamepad2, BarChart3, Zap, Activity, Sparkles, Award, AlertTriangle, HelpCircle, X } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { motion } from 'framer-motion';
@@ -83,6 +84,7 @@ export default function ProfilePage() {
     const [lockTimer, setLockTimer] = useState<number | null>(null);
     const [showPrivateModal, setShowPrivateModal] = useState(false);
     const [chartDays, setChartDays] = useState<7 | 15 | 30>(30);
+    const [showTMMRExplanation, setShowTMMRExplanation] = useState(false);
 
     const fetchProfile = async () => {
         setLoading(true);
@@ -191,59 +193,40 @@ export default function ProfilePage() {
                                     <Activity className="h-4 w-4 text-primary" />
                                     Como seu TMMR foi calculado
                                 </h3>
-                                <Badge variant="outline" className="text-xs">v5.2</Badge>
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={() => setShowTMMRExplanation(true)}
+                                        className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+                                    >
+                                        <HelpCircle className="h-3.5 w-3.5" />
+                                        Como funciona?
+                                    </button>
+                                    <Badge variant="outline" className="text-xs">v5.2</Badge>
+                                </div>
                             </div>
 
                             {/* Main Grid */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {/* Left: Calculation Steps */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Left: Stats Cards */}
                                 <div className="space-y-3">
-                                    {/* Comparison: Your Wins vs Expected */}
-                                    <div className="p-4 rounded-xl bg-gradient-to-br from-white/[0.02] to-transparent border border-white/[0.06]">
-                                        <p className="text-xs text-muted-foreground mb-3 font-medium">📊 Suas Vitórias vs Esperado</p>
-
-                                        {/* Visual comparison bar */}
-                                        <div className="relative h-8 bg-white/5 rounded-lg overflow-hidden mb-2">
-                                            {/* Expected line */}
-                                            <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-blue-400/50 z-10" />
-                                            <div className="absolute left-1/2 -translate-x-1/2 -top-1 text-[10px] text-blue-400 z-10">Esperado</div>
-
-                                            {/* Your performance bar */}
-                                            <motion.div
-                                                className={`absolute top-0 bottom-0 ${breakdown.performanceScore >= 0 ? 'left-1/2 bg-gradient-to-r from-emerald-500 to-emerald-400' : 'right-1/2 bg-gradient-to-l from-rose-500 to-rose-400'}`}
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${Math.min(Math.abs(breakdown.performanceScore) * 100, 50)}%` }}
-                                                transition={{ duration: 0.8, delay: 0.3 }}
-                                            />
+                                    {/* Your weighted wins */}
+                                    <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <Sparkles className="w-3 h-3 text-emerald-400" />
+                                            <span className="text-xs text-muted-foreground">Suas vitórias</span>
                                         </div>
-
-                                        <div className="flex justify-between text-xs">
-                                            <span className="text-muted-foreground">Pior que 50%</span>
-                                            <span className="text-muted-foreground">Melhor que 50%</span>
-                                        </div>
+                                        <p className="text-xl font-bold text-emerald-400">{breakdown.weightedWins}</p>
+                                        <p className="text-[10px] text-muted-foreground">pontos ponderados</p>
                                     </div>
 
-                                    {/* Stats row */}
-                                    <div className="grid grid-cols-2 gap-3">
-                                        {/* Your weighted wins */}
-                                        <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <Sparkles className="w-3 h-3 text-emerald-400" />
-                                                <span className="text-xs text-muted-foreground">Suas vitórias</span>
-                                            </div>
-                                            <p className="text-xl font-bold text-emerald-400">{breakdown.weightedWins}</p>
-                                            <p className="text-[10px] text-muted-foreground">pontos ponderados</p>
+                                    {/* Expected */}
+                                    <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <Target className="w-3 h-3 text-blue-400" />
+                                            <span className="text-xs text-muted-foreground">Esperado (50%)</span>
                                         </div>
-
-                                        {/* Expected */}
-                                        <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <Target className="w-3 h-3 text-blue-400" />
-                                                <span className="text-xs text-muted-foreground">Esperado (50%)</span>
-                                            </div>
-                                            <p className="text-xl font-bold text-blue-400">{breakdown.expectedWins}</p>
-                                            <p className="text-[10px] text-muted-foreground">{breakdown.games} jogos × 0.5</p>
-                                        </div>
+                                        <p className="text-xl font-bold text-blue-400">{breakdown.expectedWins}</p>
+                                        <p className="text-[10px] text-muted-foreground">{breakdown.games} jogos × 0.5</p>
                                     </div>
 
                                     {/* Performance explanation */}
@@ -335,6 +318,12 @@ export default function ProfilePage() {
                     </motion.div>
                 )}
 
+                {/* TMMR Explanation Modal */}
+                <TMMRExplanationModal
+                    isOpen={showTMMRExplanation}
+                    onClose={() => setShowTMMRExplanation(false)}
+                />
+
                 {/* Rank Distribution Chart */}
                 {matchData && matchData.rankDistribution && matchData.rankDistribution.length > 0 && (
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
@@ -392,9 +381,33 @@ export default function ProfilePage() {
                                 })}
                             </div>
 
-                            <p className="text-xs text-muted-foreground mt-4 text-center">
-                                Pontos = vitórias × multiplicador do tier (Legend=1.0x, Divine=1.35x, Immortal=1.64x)
-                            </p>
+                            {/* Summary and Explanation */}
+                            <div className="mt-4 p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                                    <div className="text-center p-2 rounded-lg bg-emerald-500/10">
+                                        <p className="text-[10px] text-muted-foreground">Total de Pontos</p>
+                                        <p className="text-lg font-bold text-emerald-400">
+                                            {matchData.rankDistribution.reduce((sum, t) => sum + t.points, 0).toFixed(1)}
+                                        </p>
+                                    </div>
+                                    <div className="text-center p-2 rounded-lg bg-blue-500/10">
+                                        <p className="text-[10px] text-muted-foreground">Esperado (50% WR)</p>
+                                        <p className="text-lg font-bold text-blue-400">
+                                            {breakdown?.expectedWins?.toFixed(1) || '—'}
+                                        </p>
+                                    </div>
+                                    <div className="text-center p-2 rounded-lg bg-primary/10">
+                                        <p className="text-[10px] text-muted-foreground">Diferença ÷ Jogos</p>
+                                        <p className="text-lg font-bold text-primary">
+                                            {breakdown ? `${breakdown.performanceScore >= 0 ? '+' : ''}${(breakdown.performanceScore * 3500).toFixed(0)}` : '—'} TMMR
+                                        </p>
+                                    </div>
+                                </div>
+                                <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
+                                    <strong className="text-white">Pontos de vitória ≠ Bônus TMMR.</strong> Cada vitória gera pontos brutos ({'>'}1.0 em lobbies difíceis).
+                                    O bônus final é a diferença entre seus pontos e o esperado, normalizado pelo volume de jogos.
+                                </p>
+                            </div>
                         </PremiumCard>
                     </motion.div>
                 )}
@@ -518,7 +531,7 @@ export default function ProfilePage() {
                     Estatísticas baseadas em {matchData?.totalMatches || 0} partidas Turbo.
                 </p>
             </div>
-        </div>
+        </div >
     );
 }
 
@@ -623,5 +636,172 @@ function ErrorState({ error, onShowModal }: { error: string; showPrivateModal?: 
             )}
             <Button variant="secondary" onClick={() => window.location.reload()}>Tentar Novamente</Button>
         </div>
+    );
+}
+
+function TMMRExplanationModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+    if (!isOpen) return null;
+
+    return (
+        <Portal>
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" onClick={onClose}>
+                <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+
+                <div
+                    className="relative z-10 bg-card border border-white/10 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    {/* Header */}
+                    <div className="sticky top-0 bg-card border-b border-white/10 p-6 pb-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-primary/20">
+                                    <HelpCircle className="w-6 h-6 text-primary" />
+                                </div>
+                                <h2 className="text-xl font-bold text-white">Como o TMMR v5.2 funciona</h2>
+                            </div>
+                            <button onClick={onClose} className="p-2 rounded-lg hover:bg-white/10 transition-colors">
+                                <X className="w-5 h-5 text-muted-foreground" />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Body */}
+                    <div className="p-6 space-y-6">
+                        {/* Introduction */}
+                        <div className="bg-primary/10 border border-primary/20 rounded-xl p-4">
+                            <h3 className="font-semibold text-primary mb-2">💡 A ideia principal</h3>
+                            <p className="text-sm text-gray-300 leading-relaxed">
+                                O TMMR mede sua performance comparando suas vitórias com o que seria esperado de um jogador
+                                com 50% de winrate. Mas aqui está o diferencial: <strong className="text-white">vitórias em lobbies
+                                    de rank mais alto valem mais pontos</strong>.
+                            </p>
+                        </div>
+
+                        {/* Section 1: Weighted Wins */}
+                        <div className="space-y-3">
+                            <h3 className="font-semibold flex items-center gap-2">
+                                <Sparkles className="w-4 h-4 text-emerald-400" />
+                                Suas Vitórias (Pontos Ponderados)
+                            </h3>
+                            <p className="text-sm text-gray-300 leading-relaxed">
+                                Cada vez que você ganha uma partida, você ganha pontos. Mas a quantidade de pontos
+                                depende do <strong className="text-white">rank médio</strong> daquele lobby:
+                            </p>
+                            <div className="bg-white/5 rounded-lg p-4 space-y-2">
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-yellow-400">Legend (rank 50)</span>
+                                    <span className="font-mono">= 1.00 ponto</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-cyan-400">Ancient (rank 55-60)</span>
+                                    <span className="font-mono">= 1.10 - 1.22 pontos</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-fuchsia-400">Divine (rank 60-70)</span>
+                                    <span className="font-mono">= 1.22 - 1.49 pontos</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-amber-400">Immortal (rank 70+)</span>
+                                    <span className="font-mono">= 1.49+ pontos</span>
+                                </div>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                Por exemplo: se você ganhou 100 partidas, mas 30 foram em lobbies Immortal,
+                                suas vitórias valem mais do que 100 pontos brutos.
+                            </p>
+                        </div>
+
+                        {/* Section 2: Expected */}
+                        <div className="space-y-3">
+                            <h3 className="font-semibold flex items-center gap-2">
+                                <Target className="w-4 h-4 text-blue-400" />
+                                O Esperado (Baseline 50%)
+                            </h3>
+                            <p className="text-sm text-gray-300 leading-relaxed">
+                                Para saber se você está indo bem, comparamos seus pontos com o que seria esperado
+                                de alguém com <strong className="text-white">exatamente 50% de winrate</strong>.
+                            </p>
+                            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+                                <p className="text-sm text-blue-300">
+                                    <strong>Esperado = Número de jogos × 0.5</strong>
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-2">
+                                    Se você jogou 200 partidas, o esperado seria ~100 pontos (metade).
+                                    Se você tem mais que isso, está acima da média!
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Section 3: Performance */}
+                        <div className="space-y-3">
+                            <h3 className="font-semibold flex items-center gap-2">
+                                <TrendingUp className="w-4 h-4 text-emerald-400" />
+                                Sua Performance
+                            </h3>
+                            <p className="text-sm text-gray-300 leading-relaxed">
+                                A diferença entre seus pontos reais e o esperado determina seu bônus ou penalidade:
+                            </p>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3">
+                                    <p className="text-sm font-medium text-emerald-400">Acima do esperado</p>
+                                    <p className="text-xs text-gray-400 mt-1">Você ganha pontos extras de TMMR</p>
+                                </div>
+                                <div className="bg-rose-500/10 border border-rose-500/20 rounded-lg p-3">
+                                    <p className="text-sm font-medium text-rose-400">Abaixo do esperado</p>
+                                    <p className="text-xs text-gray-400 mt-1">Você perde pontos de TMMR</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Section 4: Maturity */}
+                        <div className="space-y-3">
+                            <h3 className="font-semibold flex items-center gap-2">
+                                <AlertTriangle className="w-4 h-4 text-amber-400" />
+                                Penalidade de Maturidade
+                            </h3>
+                            <p className="text-sm text-gray-300 leading-relaxed">
+                                Jogadores com <strong className="text-white">menos de 200 partidas</strong> recebem uma penalidade
+                                temporária. Isso evita que alguém com 20 jogos e muita sorte lidere o ranking.
+                            </p>
+                            <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4 space-y-2">
+                                <div className="flex justify-between text-sm">
+                                    <span>0-50 jogos</span>
+                                    <span className="text-amber-400">-400 a -600 pts</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span>50-100 jogos</span>
+                                    <span className="text-amber-400">-200 a -400 pts</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span>100-200 jogos</span>
+                                    <span className="text-amber-400">-0 a -200 pts</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-emerald-400">200+ jogos</span>
+                                    <span className="text-emerald-400">Sem penalidade! ✓</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Final formula */}
+                        <div className="bg-gradient-to-r from-primary/10 to-orange-500/10 border border-primary/20 rounded-xl p-4">
+                            <h3 className="font-semibold text-white mb-3">📐 O Cálculo Final</h3>
+                            <div className="font-mono text-sm bg-black/30 rounded-lg p-3 text-center">
+                                <span className="text-muted-foreground">TMMR = </span>
+                                <span className="text-white">3500</span>
+                                <span className="text-muted-foreground"> + </span>
+                                <span className="text-emerald-400">Performance</span>
+                                <span className="text-muted-foreground"> - </span>
+                                <span className="text-amber-400">Maturidade</span>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-3 text-center">
+                                3500 é a base (equivalente a Legend). Performance pode ser positiva ou negativa.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Portal>
     );
 }
