@@ -100,11 +100,26 @@ function getRankMultiplier(rank: number): number {
 
 /**
  * Calculate maturity penalty for players with few games
- * Linear decay from 300 at 0 games to 0 at 200 games
+ * Exponential for <100 games, linear for 100-200 games
+ * 
+ * 0 games = -600 pts
+ * 50 games = -400 pts  
+ * 100 games = -200 pts
+ * 150 games = -100 pts
+ * 200+ games = 0 pts
  */
 function getMaturityPenalty(games: number): number {
     if (games >= MATURITY_THRESHOLD) return 0;
-    return ((MATURITY_THRESHOLD - games) / MATURITY_THRESHOLD) * MATURITY_MAX_PENALTY;
+
+    if (games < 100) {
+        // Exponential penalty for very low game counts
+        // 0 games = 600, 50 games = 400, 100 games = 200
+        const ratio = games / 100;
+        return 200 + (1 - ratio) * 400; // 200-600 range
+    }
+
+    // Linear from 100-200 games (200 → 0)
+    return ((MATURITY_THRESHOLD - games) / 100) * 200;
 }
 
 /**

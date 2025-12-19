@@ -38,7 +38,16 @@ function getRankMultiplier(rank) {
 
 function getMaturityPenalty(games) {
     if (games >= MATURITY_THRESHOLD) return 0;
-    return ((MATURITY_THRESHOLD - games) / MATURITY_THRESHOLD) * MATURITY_MAX_PENALTY;
+
+    if (games < 100) {
+        // Exponential penalty for very low game counts
+        // 0 games = 600, 50 games = 400, 100 games = 200
+        const ratio = games / 100;
+        return 200 + (1 - ratio) * 400; // 200-600 range
+    }
+
+    // Linear from 100-200 games (200 → 0)
+    return ((MATURITY_THRESHOLD - games) / 100) * 200;
 }
 
 function steamId64to32(steamId64) {

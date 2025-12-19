@@ -136,7 +136,16 @@ export async function GET(
         const games = validMatches.length;
         const expectedWins = games * 0.5;
         const performance_score = games > 0 ? (totalWeightedWins - expectedWins) / games : 0;
-        const maturityPenalty = games >= 200 ? 0 : ((200 - games) / 200) * 300;
+        // Exponential maturity penalty: <100 games = 200-600pts, 100-200 = 0-200pts
+        let maturityPenalty = 0;
+        if (games < 200) {
+            if (games < 100) {
+                const ratio = games / 100;
+                maturityPenalty = 200 + (1 - ratio) * 400;
+            } else {
+                maturityPenalty = ((200 - games) / 100) * 200;
+            }
+        }
         const avgRank = totalGamesWithRank > 0 ? avgRankSum / totalGamesWithRank : 50;
 
         const tmmrBreakdown = {
