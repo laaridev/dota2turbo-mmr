@@ -189,20 +189,25 @@ export default function ProfilePage() {
                     >
                         <PremiumCard>
                             <div className="flex items-center justify-between mb-4">
-                                <h3 className="font-semibold flex items-center gap-2">
-                                    <Activity className="h-4 w-4 text-primary" />
-                                    Como seu TMMR foi calculado
-                                </h3>
                                 <div className="flex items-center gap-3">
+                                    <h3 className="font-semibold flex items-center gap-2">
+                                        <Activity className="h-4 w-4 text-primary" />
+                                        Como seu TMMR foi calculado
+                                    </h3>
                                     <button
                                         onClick={() => setShowTMMRExplanation(true)}
-                                        className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+                                        className="text-xs text-primary/80 hover:text-primary transition-colors flex items-center gap-1.5 bg-primary/10 px-2 py-1 rounded-lg border border-primary/20 hover:border-primary/40"
                                     >
-                                        <HelpCircle className="h-3.5 w-3.5" />
+                                        <motion.div
+                                            animate={{ scale: [1, 1.2, 1] }}
+                                            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                                        >
+                                            <HelpCircle className="h-3.5 w-3.5" />
+                                        </motion.div>
                                         Como funciona?
                                     </button>
-                                    <Badge variant="outline" className="text-xs">v5.2</Badge>
                                 </div>
+                                <Badge variant="outline" className="text-xs">v5.2</Badge>
                             </div>
 
                             {/* Main Grid */}
@@ -281,34 +286,78 @@ export default function ProfilePage() {
                                     )}
                                 </div>
 
-                                {/* Right: Final Calculation */}
-                                <div className="flex flex-col justify-center">
-                                    <div className="p-4 rounded-xl bg-gradient-to-br from-primary/5 to-transparent border border-primary/10">
-                                        <div className="text-center mb-4">
-                                            <p className="text-xs text-muted-foreground mb-1">TMMR Final</p>
-                                            <p className="text-4xl font-black text-primary">{breakdown.finalTMMR}</p>
-                                        </div>
+                                {/* Right: Premium TMMR Final Card */}
+                                <div className="flex flex-col h-full">
+                                    <div className="relative flex-1 p-6 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 overflow-hidden flex flex-col">
+                                        {/* Glow effects */}
+                                        <div className="absolute top-0 right-0 w-40 h-40 bg-primary/20 rounded-full blur-3xl" />
+                                        <div className="absolute bottom-0 left-0 w-32 h-32 bg-orange-500/10 rounded-full blur-2xl" />
+                                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-primary/5 rounded-full blur-3xl" />
 
-                                        <div className="space-y-2 text-sm">
-                                            <div className="flex justify-between text-muted-foreground">
-                                                <span>Base</span>
-                                                <span>3500</span>
+                                        <div className="relative z-10 flex-1 flex flex-col">
+                                            {/* Header with tier badge */}
+                                            <div className="text-center mb-4">
+                                                <Badge className="mb-2 bg-primary/20 text-primary border-primary/30">
+                                                    {TIER_NAMES[getTier(breakdown.finalTMMR)]}
+                                                </Badge>
+                                                <p className="text-xs text-muted-foreground uppercase tracking-widest">TMMR Final</p>
                                             </div>
-                                            <div className="flex justify-between">
-                                                <span>+ Performance</span>
-                                                <span className={breakdown.performanceScore >= 0 ? 'text-emerald-400' : 'text-rose-400'}>
-                                                    {breakdown.performanceScore >= 0 ? '+' : ''}{(breakdown.performanceScore * 3500).toFixed(0)}
-                                                </span>
-                                            </div>
-                                            {breakdown.maturityPenalty > 0 && (
-                                                <div className="flex justify-between">
-                                                    <span>- Maturidade</span>
-                                                    <span className="text-amber-400">-{breakdown.maturityPenalty}</span>
+
+                                            {/* TMMR Value */}
+                                            <div className="text-center mb-6 flex-1 flex flex-col justify-center">
+                                                <div className="relative inline-block">
+                                                    <motion.p
+                                                        className="text-6xl font-black bg-gradient-to-r from-primary via-orange-400 to-primary bg-clip-text text-transparent"
+                                                        initial={{ scale: 0.9, opacity: 0 }}
+                                                        animate={{ scale: 1, opacity: 1 }}
+                                                        transition={{ delay: 0.2, duration: 0.5 }}
+                                                    >
+                                                        {breakdown.finalTMMR}
+                                                    </motion.p>
+                                                    <div className="absolute -inset-4 bg-primary/10 blur-2xl rounded-full -z-10" />
                                                 </div>
-                                            )}
-                                            <div className="border-t border-white/10 pt-2 flex justify-between font-bold">
-                                                <span>= Total</span>
-                                                <span className="text-primary">{breakdown.finalTMMR}</span>
+
+                                                {/* Quick stats row */}
+                                                <div className="flex justify-center gap-4 mt-4">
+                                                    <div className="text-center">
+                                                        <p className="text-lg font-bold text-white">{winrate}%</p>
+                                                        <p className="text-[10px] text-muted-foreground">Winrate</p>
+                                                    </div>
+                                                    <div className="w-px bg-white/10" />
+                                                    <div className="text-center">
+                                                        <p className="text-lg font-bold text-white">{breakdown.games}</p>
+                                                        <p className="text-[10px] text-muted-foreground">Partidas</p>
+                                                    </div>
+                                                    <div className="w-px bg-white/10" />
+                                                    <div className="text-center">
+                                                        <p className="text-lg font-bold text-white">{breakdown.avgMultiplier?.toFixed(2) || '1.00'}x</p>
+                                                        <p className="text-[10px] text-muted-foreground">Mult. Médio</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Calculation breakdown */}
+                                            <div className="space-y-1.5 text-sm bg-black/30 rounded-xl p-4 backdrop-blur-sm">
+                                                <div className="flex justify-between text-muted-foreground">
+                                                    <span>Base</span>
+                                                    <span className="font-mono">3500</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span>Performance</span>
+                                                    <span className={`font-mono font-semibold ${breakdown.performanceScore >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                                        {breakdown.performanceScore >= 0 ? '+' : ''}{(breakdown.performanceScore * 3500).toFixed(0)}
+                                                    </span>
+                                                </div>
+                                                {breakdown.maturityPenalty > 0 && (
+                                                    <div className="flex justify-between">
+                                                        <span>Maturidade</span>
+                                                        <span className="font-mono font-semibold text-amber-400">-{breakdown.maturityPenalty}</span>
+                                                    </div>
+                                                )}
+                                                <div className="border-t border-white/10 pt-2 flex justify-between font-bold">
+                                                    <span>Total</span>
+                                                    <span className="font-mono text-xl text-primary">{breakdown.finalTMMR}</span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
