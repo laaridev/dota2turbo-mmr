@@ -1,6 +1,23 @@
 import { NextResponse } from 'next/server';
 import { opendota } from '@/lib/opendota';
 
+// Rank multiplier from TMMR v5.2
+function getRankMultiplier(rank: number): number {
+    const r = Math.max(10, Math.min(85, rank));
+    return Math.pow(1.02, r - 50);
+}
+
+function getRankTier(rank: number): string {
+    if (rank < 10) return 'Herald';
+    if (rank < 20) return 'Guardian';
+    if (rank < 30) return 'Crusader';
+    if (rank < 40) return 'Archon';
+    if (rank < 50) return 'Legend';
+    if (rank < 60) return 'Ancient';
+    if (rank < 70) return 'Divine';
+    return 'Immortal';
+}
+
 export async function GET(
     request: Request,
     { params }: { params: Promise<{ id: string }> }
@@ -8,11 +25,9 @@ export async function GET(
     try {
         const { id } = await params;
 
-        // Convert to Account ID (32-bit) if necessary
         const accountId = opendota.steamId64to32(id);
         console.log(`[Matches API] Fetching from OpenDota for: ${accountId}`);
 
-        // Fetch ALL turbo matches from OpenDota API
         const matches = await opendota.getPlayerMatches(accountId);
 
         if (!matches || matches.length === 0) {
@@ -22,16 +37,20 @@ export async function GET(
                 performance: { avgKDA: '0/0/0', avgDuration: 0, positiveKDA: 0 },
                 recentMatches: [],
                 dailyStats: [],
+                rankDistribution: [],
+                tmmrBreakdown: null,
                 totalMatches: 0,
             });
         }
 
         console.log(`[Matches API] Found ${matches.length} matches from OpenDota`);
 
-        // Aggregate hero stats from ALL matches
-        const heroMap = new Map<number, { games: number; wins: number; kills: number; deaths: number; assists: number; totalDuration: number }>();
-
         const validMatches = matches.filter(m => m.duration >= 480 && (!m.leaver_status || m.leaver_status <= 1));
+
+        // ============================================
+        // HERO STATS
+        // ============================================
+        const heroMap = new Map<number, { games: number; wins: number; kills: number; deaths: number; assists: number; totalDuration: number }>();
 
         for (const match of validMatches) {
             const existing = heroMap.get(match.hero_id) || { games: 0, wins: 0, kills: 0, deaths: 0, assists: 0, totalDuration: 0 };
@@ -47,7 +66,6 @@ export async function GET(
             });
         }
 
-        // Convert to array sorted by games played
         const heroStats = Array.from(heroMap.entries())
             .map(([heroId, stats]) => ({
                 heroId,
@@ -57,9 +75,88 @@ export async function GET(
                 avgKDA: `${(stats.kills / stats.games).toFixed(1)}/${(stats.deaths / stats.games).toFixed(1)}/${(stats.assists / stats.games).toFixed(1)}`,
             }))
             .sort((a, b) => b.games - a.games)
-            .slice(0, 10); // Top 10 heroes
+            .slice(0, 10);
 
-        // Calculate overall performance metrics
+        // ============================================
+        // RANK DISTRIBUTION & TMMR BREAKDOWN
+        // ============================================
+        const rankTiers = {
+            'Herald': { games: 0, wins: 0, losses: 0, points: 0 },
+            'Guardian': { games: 0, wins: 0, losses: 0, points: 0 },
+            'Crusader': { games: 0, wins: 0, losses: 0, points: 0 },
+            'Archon': { games: 0, wins: 0, losses: 0, points: 0 },
+            'Legend': { games: 0, wins: 0, losses: 0, points: 0 },
+            'Ancient': { games: 0, wins: 0, losses: 0, points: 0 },
+            'Divine': { games: 0, wins: 0, losses: 0, points: 0 },
+            'Immortal': { games: 0, wins: 0, losses: 0, points: 0 },
+        };
+
+        let totalWeightedWins = 0;
+        let totalGamesWithRank = 0;
+        let totalWins = 0;
+        let avgRankSum = 0;
+
+        for (const match of validMatches) {
+            const isWin = (match.player_slot < 128) === match.radiant_win;
+            const rank = match.average_rank || 50;
+            const tier = getRankTier(rank);
+            const multiplier = getRankMultiplier(rank);
+
+            if (match.average_rank && match.average_rank > 0) {
+                rankTiers[tier as keyof typeof rankTiers].games++;
+                if (isWin) {
+                    rankTiers[tier as keyof typeof rankTiers].wins++;
+                    rankTiers[tier as keyof typeof rankTiers].points += multiplier;
+                } else {
+                    rankTiers[tier as keyof typeof rankTiers].losses++;
+                }
+                totalGamesWithRank++;
+                avgRankSum += match.average_rank;
+            }
+
+            if (isWin) {
+                totalWins++;
+                totalWeightedWins += multiplier;
+            }
+        }
+
+        // Convert to array for frontend
+        const rankDistribution = Object.entries(rankTiers)
+            .filter(([_, data]) => data.games > 0)
+            .map(([tier, data]) => ({
+                tier,
+                games: data.games,
+                wins: data.wins,
+                losses: data.losses,
+                winrate: data.games > 0 ? Math.round((data.wins / data.games) * 100) : 0,
+                points: parseFloat(data.points.toFixed(1)),
+            }));
+
+        // Calculate TMMR breakdown
+        const games = validMatches.length;
+        const expectedWins = games * 0.5;
+        const performance_score = games > 0 ? (totalWeightedWins - expectedWins) / games : 0;
+        const maturityPenalty = games >= 200 ? 0 : ((200 - games) / 200) * 300;
+        const avgRank = totalGamesWithRank > 0 ? avgRankSum / totalGamesWithRank : 50;
+
+        const tmmrBreakdown = {
+            games,
+            wins: totalWins,
+            losses: games - totalWins,
+            winrate: games > 0 ? parseFloat(((totalWins / games) * 100).toFixed(1)) : 0,
+            weightedWins: parseFloat(totalWeightedWins.toFixed(1)),
+            expectedWins: parseFloat(expectedWins.toFixed(1)),
+            performanceScore: parseFloat(performance_score.toFixed(3)),
+            avgRank: parseFloat(avgRank.toFixed(1)),
+            avgMultiplier: parseFloat(getRankMultiplier(avgRank).toFixed(2)),
+            maturityPenalty: Math.round(maturityPenalty),
+            rawTMMR: Math.round(3500 + performance_score * 3500),
+            finalTMMR: Math.round(3500 + performance_score * 3500 - maturityPenalty),
+        };
+
+        // ============================================
+        // PERFORMANCE
+        // ============================================
         let totalKills = 0, totalDeaths = 0, totalAssists = 0, totalDuration = 0;
         for (const match of validMatches) {
             totalKills += match.kills || 0;
@@ -69,13 +166,15 @@ export async function GET(
         }
 
         const matchCount = validMatches.length;
-        const performance = {
+        const matchPerformance = {
             avgKDA: matchCount > 0 ? `${(totalKills / matchCount).toFixed(1)}/${(totalDeaths / matchCount).toFixed(1)}/${(totalAssists / matchCount).toFixed(1)}` : '0/0/0',
             avgDuration: matchCount > 0 ? Math.round(totalDuration / matchCount) : 0,
             positiveKDA: validMatches.filter(m => (m.kills + m.assists) > m.deaths).length,
         };
 
-        // Aggregate matches by day for chart
+        // ============================================
+        // DAILY STATS
+        // ============================================
         const dailyMap = new Map<string, { wins: number; losses: number }>();
 
         for (const match of validMatches) {
@@ -95,15 +194,14 @@ export async function GET(
             }
         }
 
-        // Convert to array sorted by date ascending, take last 30 days with data
         const dailyStats = Array.from(dailyMap.entries())
             .map(([date, data]) => ({ date, ...data }))
             .sort((a, b) => a.date.localeCompare(b.date))
             .slice(-30);
 
-        console.log(`[Matches API] dailyStats count: ${dailyStats.length}`);
-
-        // Recent matches (last 10) - with additional data for display
+        // ============================================
+        // RECENT MATCHES
+        // ============================================
         const recentMatches = validMatches.slice(0, 10).map(m => ({
             matchId: m.match_id,
             heroId: m.hero_id,
@@ -113,14 +211,15 @@ export async function GET(
             tmmrChange: 0,
             timestamp: new Date(m.start_time * 1000).toISOString(),
             averageRank: m.average_rank || 0,
-            partySize: m.party_size || 1,
         }));
 
         return NextResponse.json({
             heroStats,
-            performance,
+            performance: matchPerformance,
             recentMatches,
             dailyStats,
+            rankDistribution,
+            tmmrBreakdown,
             totalMatches: matchCount,
         });
     } catch (error) {

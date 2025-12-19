@@ -82,8 +82,8 @@ export function BetaNoticeModal() {
                             >
                                 <h3 className="text-sm font-semibold text-amber-400 mb-2">⚠️ Estamos em Desenvolvimento Ativo</h3>
                                 <p className="text-xs text-gray-300 leading-relaxed mb-2">
-                                    O sistema de <strong className="text-white">TMMR v3.0</strong> está em fase beta.
-                                    Os valores de ranking podem sofrer ajustes enquanto refinamos a fórmula com base em dados reais e feedback da comunidade.
+                                    O sistema de <strong className="text-white">TMMR v5.2</strong> está em fase beta.
+                                    Vitórias em lobbies de rank mais alto valem mais pontos. Jogadores com poucos jogos têm penalidade de maturidade.
                                 </p>
                                 <p className="text-xs text-gray-400">
                                     Atualmente, os perfis são atualizados <strong className="text-white">manualmente a cada 7 dias</strong>.

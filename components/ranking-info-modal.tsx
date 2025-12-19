@@ -1,6 +1,6 @@
 'use client';
 
-import { Trophy, TrendingUp, Target, Activity, Star, Swords, X } from 'lucide-react';
+import { Trophy, TrendingUp, Target, Swords, Star, X } from 'lucide-react';
 import { useEffect } from 'react';
 import { Portal } from '@/components/portal';
 
@@ -12,16 +12,15 @@ interface RankingInfoModalProps {
 
 const INFO_CONTENT: Record<string, { title: string; icon: any; description: string; details: string[] }> = {
     general: {
-        title: 'Rank Geral (TMMR v4.0)',
+        title: 'Rank Geral (TMMR v5.2)',
         icon: Trophy,
-        description: 'Sistema de classificação justo com ponderação solo/party, decaimento temporal e KDA normalizado por role.',
+        description: 'Sistema justo baseado em vitórias ponderadas pelo nível das partidas.',
         details: [
-            'Winrate Ponderada (50%): Partidas solo valem 1.3x, partidas em party valem 0.85x. Evita inflação por ser carregado.',
-            'KDA Normalizado por Role (25%): Compara seu KDA com o esperado para seu herói. Supports com 2.0 KDA = Carry com 4.0 KDA.',
-            'Rank das Partidas (15%): Média de rank dos lobbies onde você joga. Jogar contra melhores = bônus.',
-            'Consistência (10%): Quão estável é seu desempenho. Menos variação = mais confiável.',
-            'Decaimento Temporal: Partidas recentes pesam mais. Meia-vida de 180 dias. Reflete sua habilidade atual.',
-            'Fórmula: TMMR = 3500 + (SkillScore × 3000 × Confiança × Recência × Dificuldade), limite 500-9500.'
+            'Vitórias Ponderadas: Cada vitória vale 1.02^(rank-50) pontos. Ganhar em lobbies Immortal (rank 75) vale 1.64x mais que em Legend (rank 50).',
+            'Penalidade de Maturidade: Jogadores com menos de 200 partidas perdem até 300 pontos de TMMR. Isso evita que alguém com 40 jogos e sorte lidere o ranking.',
+            'Dificuldade Real: Não usamos apenas a média - cada vitória é pesada individualmente pelo rank daquele lobby específico.',
+            'Sem Inflação por Volume: Ter 10.000 partidas não garante vantagem sobre alguém com 500 partidas se o winrate for igual.',
+            'Fórmula: TMMR = 3500 + (vitórias_ponderadas - esperado) / jogos × 3500 - penalidade_maturidade'
         ]
     },
     winrate: {
@@ -75,7 +74,6 @@ export function RankingInfoModal({ isOpen, onClose, mode }: RankingInfoModalProp
     const info = INFO_CONTENT[mode] || INFO_CONTENT.general;
     const Icon = info.icon;
 
-    // Lock body scroll when modal is open
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
@@ -95,10 +93,8 @@ export function RankingInfoModal({ isOpen, onClose, mode }: RankingInfoModalProp
                 className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
                 onClick={onClose}
             >
-                {/* Backdrop */}
                 <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
-                {/* Modal Content */}
                 <div
                     className="relative z-10 bg-card border border-white/10 rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto"
                     onClick={(e) => e.stopPropagation()}
@@ -126,26 +122,22 @@ export function RankingInfoModal({ isOpen, onClose, mode }: RankingInfoModalProp
 
                     {/* Body */}
                     <div className="p-6 space-y-4">
-                        {/* Context sections as introduction (only for general mode) */}
+                        {/* Context sections (only for general mode) */}
                         {mode === 'general' && (
                             <>
                                 <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4 space-y-2">
                                     <h4 className="text-sm font-semibold text-amber-400">O Desafio do Turbo</h4>
                                     <p className="text-xs text-gray-300 leading-relaxed">
-                                        Ao contrário do Dota competitivo, o modo Turbo não possui um sistema oficial de MMR.
-                                        Isso torna extremamente difícil medir com precisão o nível de habilidade dos jogadores.
-                                        Não há dados públicos de ranking real, matchmaking oculto ou histórico de partidas ranqueadas.
-                                        Trabalhamos apenas com estatísticas de performance individual e algumas inferências sobre o nível das partidas.
+                                        O modo Turbo não possui MMR oficial. Trabalhamos apenas com estatísticas
+                                        de performance individual e o rank médio dos lobbies onde você joga.
                                     </p>
                                 </div>
 
                                 <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 space-y-2">
-                                    <h4 className="text-sm font-semibold text-primary">Nossa Filosofia</h4>
+                                    <h4 className="text-sm font-semibold text-primary">Nossa Filosofia v5.2</h4>
                                     <p className="text-xs text-gray-300 leading-relaxed">
-                                        Tentamos encontrar uma fórmula ideal e justa que equilibre volume de jogos, consistência e qualidade.
-                                        O sistema foi projetado para recompensar jogadores dedicados que evoluem constantemente,
-                                        sem permitir que apenas "spammar" partidas garanta o topo.
-                                        Estamos sempre refinando o algoritmo com base em feedback da comunidade para torná-lo mais preciso e representativo.
+                                        Vitórias em lobbies difíceis valem mais. Jogadores com poucos jogos
+                                        são penalizados até provarem consistência. Volume não infla o rating.
                                     </p>
                                 </div>
                             </>
@@ -165,7 +157,7 @@ export function RankingInfoModal({ isOpen, onClose, mode }: RankingInfoModalProp
                         </div>
 
                         <div className="text-xs text-center text-muted-foreground pt-2">
-                            Todas as métricas são atualizadas automaticamente a cada nova partida analisada.
+                            Todas as métricas são atualizadas quando você clica em &quot;Atualizar&quot;.
                         </div>
                     </div>
                 </div>

@@ -13,50 +13,51 @@ const faqs = [
     },
     {
         icon: Calculator,
-        question: "Como o sistema calcula meu TMMR?",
-        answer: "O TMMR v3.0 usa uma fórmula em 3 camadas: Skill Score (baseado em winrate confiável via Wilson Score, KDA e rank das partidas) × Confidence Score (baseado na quantidade de jogos) × Difficulty Exposure (bônus por jogar contra oponentes de alto nível). A fórmula final é: TMMR = 3500 + (SkillScore × 3000 × Confidence × Difficulty), limitado entre 500-9500."
+        question: "Como o sistema calcula meu TMMR? (v5.2)",
+        answer: "O TMMR v5.2 usa um sistema de vitórias ponderadas: cada vitória vale 1.02^(rank-50) pontos. Vitórias em lobbies Immortal (rank 75) valem 1.64x mais que em Legend (rank 50). A fórmula é: TMMR = 3500 + (vitórias_ponderadas - esperado) / jogos × 3500 - penalidade_maturidade. Jogadores com menos de 200 partidas perdem até 300 pontos de TMMR."
     },
     {
         icon: TrendingUp,
-        question: "Por que meu TMMR é diferente do meu MMR normal?",
-        answer: "O Dota 2 Turbo não possui um sistema oficial de MMR. Criamos o TMMR especificamente para o modo Turbo, que tem dinâmicas muito diferentes do ranked tradicional. O TMMR leva em conta fatores específicos do Turbo e não tem relação com seu MMR de partidas ranqueadas normais."
+        question: "O que são vitórias ponderadas?",
+        answer: "Cada vitória é pesada pelo nível do lobby onde você ganhou. Se você ganhou em um lobby de rank médio 65 (Divine), essa vitória vale 1.35x mais que uma vitória em Legend (rank 50). Isso significa que vencer contra jogadores melhores te dá mais pontos proporcionalmente ao nível deles."
+    },
+    {
+        icon: Shield,
+        question: "Por que existe penalidade de maturidade?",
+        answer: "A penalidade de maturidade evita que jogadores com poucos jogos e sorte inicial liderem o ranking. Se você tem menos de 200 partidas, perde até 300 pontos proporcionalmente. Com 40 jogos você perde 240 pontos, com 100 jogos perde 150 pontos, e com 200+ jogos não há penalidade. Isso garante que o ranking reflita desempenho consistente."
     },
     {
         icon: Clock,
         question: "Com que frequência posso atualizar meu perfil?",
-        answer: "Atualmente, você pode atualizar seu perfil uma vez a cada 7 dias. Isso é necessário para evitar sobrecarga nos servidores e garantir que todos tenham acesso justo ao sistema. No futuro, planejamos implementar atualizações automáticas em tempo real."
+        answer: "Atualmente, você pode atualizar seu perfil uma vez a cada 7 dias. Isso é necessário para evitar sobrecarga nos servidores e garantir que todos tenham acesso justo ao sistema."
     },
     {
         icon: Users,
         question: "Por que preciso ter no mínimo 30 partidas?",
-        answer: "Com menos de 30 partidas, não temos dados estatísticos suficientes para calcular um TMMR confiável. O sistema usa modelos estatísticos que precisam de uma amostra mínima para determinar com precisão seu nível de habilidade e evitar flutuações excessivas causadas por sorte/azar."
-    },
-    {
-        icon: Shield,
-        question: "Meu perfil não foi encontrado, o que fazer?",
-        answer: "Verifique se: 1) Seu perfil do Dota 2 está configurado como público nas configurações de privacidade do Steam; 2) Você digitou o ID correto (Steam ID, Friend ID ou link do perfil); 3) Você tem pelo menos 30 partidas no modo Turbo; 4) Suas partidas estão visíveis publicamente (opção 'Expor Dados Públicos de Partidas' habilitada no Dota 2)."
+        answer: "Com menos de 30 partidas, não temos dados estatísticos suficientes para calcular um TMMR confiável. O sistema usa modelos estatísticos que precisam de uma amostra mínima para determinar com precisão seu nível de habilidade."
     },
     {
         icon: Zap,
-        question: "Por que alguns valores podem mudar?",
-        answer: "O sistema está em BETA e em desenvolvimento contínuo. Estamos constantemente refinando a fórmula com base em feedback da comunidade e análise de dados reais. Pequenos ajustes podem ser feitos para tornar o ranking mais justo e representativo. Mudanças significativas serão sempre comunicadas."
-    },
-    {
-        icon: Calculator,
-        question: "O que são Skill Score, Confidence e Difficulty?",
-        answer: "São os 3 pilares do TMMR: Skill Score mede sua habilidade bruta (60% winrate, 25% KDA, 15% rank médio das partidas). Confidence Score reflete a confiabilidade dos dados (cresce com mais jogos, satura em ~300-500 partidas). Difficulty Exposure é um multiplicador (0.7-1.5x) baseado em quão frequentemente você enfrenta jogadores de alto nível (Ancient+)."
+        question: "Jogar em party afeta meu TMMR?",
+        answer: "Não diretamente. O TMMR v5.2 não diferencia partidas solo de party porque os dados de party_size da OpenDota não são confiáveis para a maioria das partidas. O que importa é o rank do lobby onde você joga e sua taxa de vitórias."
     },
     {
         icon: TrendingUp,
         question: "Como posso subir no ranking?",
-        answer: "Para subir no TMMR: 1) Vença mais partidas (fator mais importante); 2) Mantenha um KDA consistente; 3) Jogue contra oponentes de nível mais alto quando possível; 4) Acumule mais partidas para aumentar sua Confidence. Lembre-se: não basta apenas 'spammar' jogos - você precisa evoluir e vencer para subir."
+        answer: "Para subir no TMMR: 1) Vença mais partidas (fator mais importante); 2) Jogue em lobbies de rank mais alto - vitórias lá valem mais; 3) Acumule pelo menos 200 partidas para eliminar a penalidade de maturidade. Lembre-se: ter muitas partidas não garante posição alta se seu winrate for baixo."
     },
     {
         icon: HelpCircle,
         question: "O sistema leva em conta partidas ranqueadas?",
         answer: "Não. O TMMR é calculado EXCLUSIVAMENTE com base em partidas do modo Turbo. Seu MMR ranked, medalhas ou partidas unranked normais não afetam o cálculo do TMMR de forma alguma. São sistemas completamente independentes."
+    },
+    {
+        icon: Calculator,
+        question: "O que é o multiplicador de rank?",
+        answer: "O multiplicador de rank é 1.02^(rank-50). Isso significa que cada 10 níveis de rank acima de Legend (50) aumenta o valor da vitória em ~22%. Exemplos: Legend (50) = 1.0x, Ancient (55) = 1.10x, Divine (65) = 1.35x, Immortal (75) = 1.64x. Isso recompensa quem joga contra adversários fortes."
     }
 ];
+
 
 export default function FAQPage() {
     return (

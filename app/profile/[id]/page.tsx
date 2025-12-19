@@ -8,8 +8,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { PrivateProfileModal } from '@/components/private-profile-modal';
 import { getTier, getTierCategory, TIER_NAMES } from '@/lib/tmmr';
 import { HERO_NAMES, getHeroImageUrl } from '@/lib/heroes';
-import { RefreshCw, Shield, Swords, Timer, Trophy, Flame, Clock, Target, TrendingUp, TrendingDown, Gamepad2, BarChart3, Zap, ShieldCheck, Activity, Info, Users, User, Sparkles, Calendar } from 'lucide-react';
-import { formatDistanceToNow, format } from 'date-fns';
+import { RefreshCw, Shield, Swords, Timer, Trophy, Flame, Clock, Target, TrendingUp, TrendingDown, Gamepad2, BarChart3, Zap, Activity, Sparkles, Award, AlertTriangle } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { motion } from 'framer-motion';
 
@@ -22,23 +22,11 @@ type Player = {
     losses: number;
     streak: number;
     lastUpdate: string;
-    // TMMR v4.0 Transparency Fields
-    skillScore?: number;
     confidenceScore?: number;
     difficultyExposure?: number;
     avgKDA?: number;
     avgRankPlayed?: number;
-    highRankGames?: number;
-    highRankWinrate?: number;
     winrate?: number;
-    // v4.0 New Fields
-    soloGames?: number;
-    partyGames?: number;
-    soloWinrate?: number;
-    partyWinrate?: number;
-    heroNormalizedKDA?: number;
-    recencyMultiplier?: number;
-    consistencyScore?: number;
 };
 
 type HeroStat = { heroId: number; games: number; wins: number; winrate: number; avgKDA: string };
@@ -51,14 +39,37 @@ type RecentMatch = {
     duration: number;
     tmmrChange: number;
     timestamp?: string;
-    partySize?: number;
     averageRank?: number;
+};
+type RankDistribution = {
+    tier: string;
+    games: number;
+    wins: number;
+    losses: number;
+    winrate: number;
+    points: number;
+};
+type TMMRBreakdown = {
+    games: number;
+    wins: number;
+    losses: number;
+    winrate: number;
+    weightedWins: number;
+    expectedWins: number;
+    performanceScore: number;
+    avgRank: number;
+    avgMultiplier: number;
+    maturityPenalty: number;
+    rawTMMR: number;
+    finalTMMR: number;
 };
 type MatchData = {
     heroStats: HeroStat[];
     performance: { avgKDA: string; avgDuration: number; positiveKDA: number };
     recentMatches: RecentMatch[];
     dailyStats: DailyStat[];
+    rankDistribution: RankDistribution[];
+    tmmrBreakdown: TMMRBreakdown | null;
     totalMatches: number;
 };
 
@@ -111,20 +122,14 @@ export default function ProfilePage() {
     const tier = getTier(player.tmmr);
     const winrate = ((player.wins / (player.wins + player.losses || 1)) * 100).toFixed(1);
     const filteredDailyStats = matchData?.dailyStats.slice(-chartDays) || [];
-
-    // Calculate pie chart data for solo vs party
-    const soloGames = player.soloGames || 0;
-    const partyGames = player.partyGames || 0;
-    const totalGames = soloGames + partyGames;
-    const soloPercent = totalGames > 0 ? (soloGames / totalGames) * 100 : 50;
-    const partyPercent = totalGames > 0 ? (partyGames / totalGames) * 100 : 50;
+    const breakdown = matchData?.tmmrBreakdown;
 
     return (
         <div className="min-h-screen relative">
             {/* Noise texture */}
             <div className="fixed inset-0 opacity-[0.015] pointer-events-none z-50" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\'/%3E%3C/svg%3E")' }} />
 
-            {/* Radial glow behind content */}
+            {/* Radial glow */}
             <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
 
             <div className="container mx-auto p-4 space-y-6 pb-20 max-w-5xl relative z-10">
@@ -170,11 +175,11 @@ export default function ProfilePage() {
                     <StatCard icon={<Swords />} value={player.wins + player.losses} label="Partidas" color="blue" />
                     <StatCard icon={<Trophy />} value={`${winrate}%`} label="Winrate" color="yellow" />
                     <StatCard icon={<TrendingUp />} value={player.wins} label="Vitórias" subValue={`${player.losses} derrotas`} color="green" />
-                    <StatCard icon={player.streak > 0 ? <Flame /> : <TrendingDown />} value={player.streak > 0 ? `+${player.streak}` : player.streak} label="Streak" color={player.streak > 0 ? 'orange' : 'red'} />
+                    <StatCard icon={<Award />} value={breakdown?.avgRank?.toFixed(0) || '?'} label="Rank Médio" subValue={`${breakdown?.avgMultiplier?.toFixed(2) || '1.00'}x mult`} color="orange" />
                 </div>
 
-                {/* TMMR v4.0 Breakdown Section */}
-                {player.skillScore !== undefined && (
+                {/* TMMR v5.2 Breakdown Section */}
+                {breakdown && (
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -186,157 +191,178 @@ export default function ProfilePage() {
                                     <Activity className="h-4 w-4 text-primary" />
                                     Como seu TMMR foi calculado
                                 </h3>
-                                <Badge variant="outline" className="text-xs">v4.0</Badge>
+                                <Badge variant="outline" className="text-xs">v5.2</Badge>
                             </div>
 
                             {/* Main Grid */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                {/* Left: Skill Components */}
-                                <div className="md:col-span-2 space-y-3">
-                                    {/* Solo vs Party Card */}
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <BreakdownCard
-                                            icon={<User className="text-blue-400" />}
-                                            title="Solo"
-                                            value={`${(player.soloWinrate || 0).toFixed(1)}%`}
-                                            subtitle={`${soloGames} partidas`}
-                                            progress={(player.soloWinrate || 0)}
-                                            color="blue"
-                                            weight="1.3x"
-                                        />
-                                        <BreakdownCard
-                                            icon={<Users className="text-violet-400" />}
-                                            title="Party"
-                                            value={`${(player.partyWinrate || 0).toFixed(1)}%`}
-                                            subtitle={`${partyGames} partidas`}
-                                            progress={(player.partyWinrate || 0)}
-                                            color="purple"
-                                            weight="0.85x"
-                                        />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Left: Calculation Steps */}
+                                <div className="space-y-3">
+                                    {/* Weighted Wins */}
+                                    <div className="p-3 rounded-xl bg-gradient-to-r from-emerald-500/10 to-transparent border border-emerald-500/20">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <Sparkles className="w-4 h-4 text-emerald-400" />
+                                                <span className="text-sm font-medium">Vitórias Ponderadas</span>
+                                            </div>
+                                            <span className="text-lg font-bold text-emerald-400">{breakdown.weightedWins}</span>
+                                        </div>
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            Cada vitória × multiplicador do rank
+                                        </p>
                                     </div>
 
-                                    {/* Other metrics */}
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <BreakdownCard
-                                            icon={<Zap className="text-orange-400" />}
-                                            title="KDA vs Esperado"
-                                            value={`${((player.heroNormalizedKDA || 1) * 100).toFixed(0)}%`}
-                                            subtitle={`KDA ${(player.avgKDA || 0).toFixed(2)}`}
-                                            progress={Math.min((player.heroNormalizedKDA || 1) * 50, 100)}
-                                            color="orange"
-                                            infoText="Compara com KDA esperado do role"
-                                        />
-                                        <BreakdownCard
-                                            icon={<Calendar className="text-cyan-400" />}
-                                            title="Recência"
-                                            value={`${((player.recencyMultiplier || 1) * 100).toFixed(0)}%`}
-                                            subtitle="Peso temporal"
-                                            progress={(player.recencyMultiplier || 0.7) * 100}
-                                            color="cyan"
-                                            infoText="Partidas recentes pesam mais"
-                                        />
+                                    {/* Expected */}
+                                    <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <Target className="w-4 h-4 text-blue-400" />
+                                                <span className="text-sm font-medium">Esperado (50% WR)</span>
+                                            </div>
+                                            <span className="text-lg font-bold text-blue-400">{breakdown.expectedWins}</span>
+                                        </div>
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            {breakdown.games} jogos × 0.5
+                                        </p>
                                     </div>
 
-                                    {/* Third row */}
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <BreakdownCard
-                                            icon={<ShieldCheck className="text-emerald-400" />}
-                                            title="Confiança"
-                                            value={`${((player.confidenceScore || 0.3) * 100).toFixed(0)}%`}
-                                            subtitle={`${player.wins + player.losses} partidas`}
-                                            progress={(player.confidenceScore || 0.3) * 100}
-                                            color="emerald"
-                                            infoText="Mais jogos = mais confiável"
-                                        />
-                                        <BreakdownCard
-                                            icon={<Swords className="text-rose-400" />}
-                                            title="Dificuldade"
-                                            value={`${((player.difficultyExposure || 1) * 100).toFixed(0)}%`}
-                                            subtitle={`${player.highRankGames || 0} Ancient+`}
-                                            progress={Math.min(((player.difficultyExposure || 1) / 1.5) * 100, 100)}
-                                            color="rose"
-                                            infoText="Bônus por jogar em lobbies difíceis"
-                                        />
+                                    {/* Performance */}
+                                    <div className="p-3 rounded-xl bg-gradient-to-r from-primary/10 to-transparent border border-primary/20">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <TrendingUp className="w-4 h-4 text-primary" />
+                                                <span className="text-sm font-medium">Performance Score</span>
+                                            </div>
+                                            <span className={`text-lg font-bold ${breakdown.performanceScore >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                                {breakdown.performanceScore >= 0 ? '+' : ''}{(breakdown.performanceScore * 3500).toFixed(0)}
+                                            </span>
+                                        </div>
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            (Ponderadas - Esperado) / Jogos × 3500
+                                        </p>
                                     </div>
+
+                                    {/* Maturity Penalty */}
+                                    {breakdown.maturityPenalty > 0 && (
+                                        <div className="p-3 rounded-xl bg-gradient-to-r from-amber-500/10 to-transparent border border-amber-500/20">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <AlertTriangle className="w-4 h-4 text-amber-400" />
+                                                    <span className="text-sm font-medium">Penalidade Maturidade</span>
+                                                </div>
+                                                <span className="text-lg font-bold text-amber-400">-{breakdown.maturityPenalty}</span>
+                                            </div>
+                                            <p className="text-xs text-muted-foreground mt-1">
+                                                {breakdown.games}/200 jogos necessários
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
 
-                                {/* Right: Pie Chart */}
-                                <div className="flex flex-col items-center justify-center p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                                    <p className="text-xs text-muted-foreground mb-3">Solo vs Party</p>
-                                    <div className="relative w-32 h-32">
-                                        <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                                            {/* Background circle */}
-                                            <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="20" />
-                                            {/* Solo portion */}
-                                            <motion.circle
-                                                cx="50"
-                                                cy="50"
-                                                r="40"
-                                                fill="none"
-                                                stroke="url(#soloGradient)"
-                                                strokeWidth="20"
-                                                strokeLinecap="round"
-                                                strokeDasharray={`${soloPercent * 2.51} 251`}
-                                                initial={{ strokeDasharray: '0 251' }}
-                                                animate={{ strokeDasharray: `${soloPercent * 2.51} 251` }}
-                                                transition={{ delay: 0.5, duration: 1, ease: 'easeOut' }}
-                                            />
-                                            {/* Party portion */}
-                                            <motion.circle
-                                                cx="50"
-                                                cy="50"
-                                                r="40"
-                                                fill="none"
-                                                stroke="url(#partyGradient)"
-                                                strokeWidth="20"
-                                                strokeLinecap="round"
-                                                strokeDasharray={`${partyPercent * 2.51} 251`}
-                                                strokeDashoffset={`-${soloPercent * 2.51}`}
-                                                initial={{ strokeDasharray: '0 251' }}
-                                                animate={{ strokeDasharray: `${partyPercent * 2.51} 251` }}
-                                                transition={{ delay: 0.7, duration: 1, ease: 'easeOut' }}
-                                            />
-                                            <defs>
-                                                <linearGradient id="soloGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                                    <stop offset="0%" stopColor="#3b82f6" />
-                                                    <stop offset="100%" stopColor="#60a5fa" />
-                                                </linearGradient>
-                                                <linearGradient id="partyGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                                    <stop offset="0%" stopColor="#8b5cf6" />
-                                                    <stop offset="100%" stopColor="#a78bfa" />
-                                                </linearGradient>
-                                            </defs>
-                                        </svg>
-                                        <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                            <span className="text-2xl font-bold">{soloPercent.toFixed(0)}%</span>
-                                            <span className="text-[10px] text-muted-foreground">Solo</span>
+                                {/* Right: Final Calculation */}
+                                <div className="flex flex-col justify-center">
+                                    <div className="p-4 rounded-xl bg-gradient-to-br from-primary/5 to-transparent border border-primary/10">
+                                        <div className="text-center mb-4">
+                                            <p className="text-xs text-muted-foreground mb-1">TMMR Final</p>
+                                            <p className="text-4xl font-black text-primary">{breakdown.finalTMMR}</p>
                                         </div>
-                                    </div>
-                                    <div className="flex gap-4 mt-4 text-xs">
-                                        <div className="flex items-center gap-1.5">
-                                            <div className="w-2 h-2 rounded-full bg-blue-500" />
-                                            <span>Solo</span>
-                                        </div>
-                                        <div className="flex items-center gap-1.5">
-                                            <div className="w-2 h-2 rounded-full bg-violet-500" />
-                                            <span>Party</span>
+
+                                        <div className="space-y-2 text-sm">
+                                            <div className="flex justify-between text-muted-foreground">
+                                                <span>Base</span>
+                                                <span>3500</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span>+ Performance</span>
+                                                <span className={breakdown.performanceScore >= 0 ? 'text-emerald-400' : 'text-rose-400'}>
+                                                    {breakdown.performanceScore >= 0 ? '+' : ''}{(breakdown.performanceScore * 3500).toFixed(0)}
+                                                </span>
+                                            </div>
+                                            {breakdown.maturityPenalty > 0 && (
+                                                <div className="flex justify-between">
+                                                    <span>- Maturidade</span>
+                                                    <span className="text-amber-400">-{breakdown.maturityPenalty}</span>
+                                                </div>
+                                            )}
+                                            <div className="border-t border-white/10 pt-2 flex justify-between font-bold">
+                                                <span>= Total</span>
+                                                <span className="text-primary">{breakdown.finalTMMR}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-
-                            {/* Formula explanation */}
-                            <div className="mt-4 p-3 rounded-lg bg-white/[0.02] border border-white/[0.04] text-xs text-muted-foreground">
-                                <span className="text-primary font-medium">Fórmula: </span>
-                                TMMR = 3500 + (Skill × 3000 × Confiança × Recência × Dificuldade)
                             </div>
                         </PremiumCard>
                     </motion.div>
                 )}
 
-                {/* Chart */}
-                {matchData && (
+                {/* Rank Distribution Chart */}
+                {matchData && matchData.rankDistribution && matchData.rankDistribution.length > 0 && (
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+                        <PremiumCard>
+                            <h3 className="font-semibold flex items-center gap-2 mb-4">
+                                <BarChart3 className="h-4 w-4 text-primary" />
+                                Distribuição por Tier de Rank
+                            </h3>
+
+                            <div className="space-y-3">
+                                {matchData.rankDistribution.map((tier, i) => {
+                                    const maxGames = Math.max(...matchData.rankDistribution.map(t => t.games));
+                                    const widthPercent = (tier.games / maxGames) * 100;
+                                    const tierColors: Record<string, string> = {
+                                        'Herald': 'from-zinc-500 to-zinc-600',
+                                        'Guardian': 'from-zinc-400 to-zinc-500',
+                                        'Crusader': 'from-lime-600 to-lime-700',
+                                        'Archon': 'from-yellow-500 to-yellow-600',
+                                        'Legend': 'from-yellow-400 to-amber-500',
+                                        'Ancient': 'from-cyan-500 to-cyan-600',
+                                        'Divine': 'from-fuchsia-500 to-fuchsia-600',
+                                        'Immortal': 'from-amber-400 to-red-500',
+                                    };
+
+                                    return (
+                                        <motion.div
+                                            key={tier.tier}
+                                            className="relative"
+                                            initial={{ opacity: 0, x: -20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: 0.1 + i * 0.05 }}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <span className="w-20 text-sm font-medium">{tier.tier}</span>
+                                                <div className="flex-1 h-8 bg-white/5 rounded-lg overflow-hidden relative">
+                                                    <motion.div
+                                                        className={`h-full bg-gradient-to-r ${tierColors[tier.tier] || 'from-primary to-primary/80'} rounded-lg`}
+                                                        initial={{ width: 0 }}
+                                                        animate={{ width: `${widthPercent}%` }}
+                                                        transition={{ delay: 0.2 + i * 0.05, duration: 0.5 }}
+                                                    />
+                                                    <div className="absolute inset-0 flex items-center px-3">
+                                                        <span className="text-xs font-bold drop-shadow-lg">
+                                                            {tier.games} jogos • {tier.winrate}% WR
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div className="w-20 text-right">
+                                                    <span className="text-sm font-bold text-emerald-400">+{tier.points}</span>
+                                                    <span className="text-xs text-muted-foreground"> pts</span>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    );
+                                })}
+                            </div>
+
+                            <p className="text-xs text-muted-foreground mt-4 text-center">
+                                Pontos = vitórias × multiplicador do tier (Legend=1.0x, Divine=1.35x, Immortal=1.64x)
+                            </p>
+                        </PremiumCard>
+                    </motion.div>
+                )}
+
+                {/* Daily Chart */}
+                {matchData && (
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
                         <PremiumCard>
                             <div className="flex items-center justify-between mb-4">
                                 <h3 className="font-semibold flex items-center gap-2"><BarChart3 className="h-4 w-4 text-primary" />Partidas por Dia</h3>
@@ -383,7 +409,7 @@ export default function ProfilePage() {
                     </motion.div>
                 )}
 
-                {/* Two columns */}
+                {/* Two columns: Performance + Heroes */}
                 {matchData && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Performance */}
@@ -435,7 +461,7 @@ export default function ProfilePage() {
                     </div>
                 )}
 
-                {/* Recent Matches - Improved */}
+                {/* Recent Matches */}
                 {matchData && matchData.recentMatches.length > 0 && (
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
                         <PremiumCard>
@@ -457,114 +483,36 @@ export default function ProfilePage() {
     );
 }
 
-// Breakdown Card Component
-function BreakdownCard({
-    icon, title, value, subtitle, progress, color, weight, infoText
-}: {
-    icon: React.ReactNode;
-    title: string;
-    value: string;
-    subtitle: string;
-    progress: number;
-    color: string;
-    weight?: string;
-    infoText?: string;
-}) {
-    const colorClasses: Record<string, string> = {
-        blue: 'from-blue-500/10 to-blue-500/5 border-blue-500/20',
-        purple: 'from-violet-500/10 to-violet-500/5 border-violet-500/20',
-        orange: 'from-orange-500/10 to-orange-500/5 border-orange-500/20',
-        cyan: 'from-cyan-500/10 to-cyan-500/5 border-cyan-500/20',
-        emerald: 'from-emerald-500/10 to-emerald-500/5 border-emerald-500/20',
-        rose: 'from-rose-500/10 to-rose-500/5 border-rose-500/20',
-    };
-    const barColors: Record<string, string> = {
-        blue: 'from-blue-500 to-blue-400',
-        purple: 'from-violet-500 to-violet-400',
-        orange: 'from-orange-500 to-orange-400',
-        cyan: 'from-cyan-500 to-cyan-400',
-        emerald: 'from-emerald-500 to-emerald-400',
-        rose: 'from-rose-500 to-rose-400',
-    };
-
-    return (
-        <div className={`relative p-3 rounded-xl bg-gradient-to-br ${colorClasses[color]} border group`}>
-            <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-2">
-                    <span className="[&>svg]:w-4 [&>svg]:h-4">{icon}</span>
-                    <span className="text-xs text-muted-foreground">{title}</span>
-                </div>
-                {weight && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-muted-foreground">{weight}</span>
-                )}
-            </div>
-            <div className="text-xl font-bold">{value}</div>
-            <div className="text-[10px] text-muted-foreground">{subtitle}</div>
-            <div className="mt-2 h-1.5 bg-white/10 rounded-full overflow-hidden">
-                <motion.div
-                    className={`h-full bg-gradient-to-r ${barColors[color]} rounded-full`}
-                    initial={{ width: 0 }}
-                    animate={{ width: `${Math.min(progress, 100)}%` }}
-                    transition={{ delay: 0.3, duration: 0.5 }}
-                />
-            </div>
-            {infoText && (
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-card border border-white/10 rounded-lg text-[10px] text-muted-foreground opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-10">
-                    {infoText}
-                </div>
-            )}
-        </div>
-    );
-}
-
-// Recent Match Card with better info
+// Components
 function RecentMatchCard({ match, index }: { match: RecentMatch; index: number }) {
-    const [k, d, a] = match.kda.split('/').map(Number);
-    const kda = d > 0 ? ((k + a * 0.7) / d).toFixed(2) : 'Perfect';
-    const isGoodKDA = d === 0 || (k + a) / Math.max(d, 1) >= 2;
+    const tierName = match.averageRank ? (
+        match.averageRank >= 70 ? 'Immortal' :
+            match.averageRank >= 60 ? 'Divine' :
+                match.averageRank >= 50 ? 'Ancient' :
+                    match.averageRank >= 40 ? 'Legend' :
+                        match.averageRank >= 30 ? 'Archon' : 'Legend'
+    ) : '?';
 
     return (
         <motion.div
-            className={`flex items-center gap-3 p-3 rounded-xl transition-all hover:scale-[1.01] ${match.win ? 'bg-gradient-to-r from-emerald-500/10 to-transparent' : 'bg-gradient-to-r from-rose-500/10 to-transparent'}`}
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5 + index * 0.03 }}
+            transition={{ delay: 0.05 * index }}
+            className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${match.win ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-rose-500/5 border-rose-500/20'}`}
         >
-            {/* Win/Loss indicator */}
-            <div className={`w-1 h-12 rounded-full ${match.win ? 'bg-gradient-to-b from-emerald-400 to-emerald-600' : 'bg-gradient-to-b from-rose-400 to-rose-600'}`} />
-
-            {/* Hero image */}
-            <div className="w-12 h-12 rounded-lg overflow-hidden border-2 border-white/10 flex-shrink-0">
-                <img src={getHeroImageUrl(match.heroId)} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white/10">
+                <img src={getHeroImageUrl(match.heroId)} alt="" className="w-full h-full object-cover" />
             </div>
-
-            {/* Match info */}
-            <div className="flex-1 min-w-0">
+            <div className="flex-1">
                 <div className="flex items-center gap-2">
-                    <span className="font-medium text-sm truncate">{HERO_NAMES[match.heroId] || `Hero ${match.heroId}`}</span>
-                    <Badge variant={match.win ? 'default' : 'destructive'} className="text-[10px] h-4">
-                        {match.win ? 'Vitória' : 'Derrota'}
-                    </Badge>
+                    <span className="font-medium text-sm">{HERO_NAMES[match.heroId] || 'Hero'}</span>
+                    <Badge variant={match.win ? 'default' : 'destructive'} className="text-[10px] px-1.5 py-0">{match.win ? 'Vitória' : 'Derrota'}</Badge>
                 </div>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
-                    <span className={`font-medium ${isGoodKDA ? 'text-emerald-400' : 'text-muted-foreground'}`}>{match.kda}</span>
-                    <span>•</span>
+                    <span>{match.kda} KDA</span>
                     <span>{Math.floor(match.duration / 60)}m</span>
-                    {match.averageRank && match.averageRank > 0 && (
-                        <>
-                            <span>•</span>
-                            <span className="text-violet-400">Rank {match.averageRank}</span>
-                        </>
-                    )}
+                    <span className="text-primary">{tierName}</span>
                 </div>
-            </div>
-
-            {/* KDA Score */}
-            <div className="text-right">
-                <div className={`text-lg font-bold ${isGoodKDA ? 'text-emerald-400' : 'text-muted-foreground'}`}>
-                    {kda}
-                </div>
-                <div className="text-[10px] text-muted-foreground">KDA</div>
             </div>
         </motion.div>
     );
@@ -618,12 +566,13 @@ function LoadingSkeleton() {
             <Skeleton className="h-32 rounded-2xl" />
             <div className="grid grid-cols-4 gap-3">{[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24 rounded-xl" />)}</div>
             <Skeleton className="h-64 rounded-2xl" />
+            <Skeleton className="h-48 rounded-2xl" />
             <div className="grid grid-cols-2 gap-4"><Skeleton className="h-56 rounded-2xl" /><Skeleton className="h-56 rounded-2xl" /></div>
         </div>
     );
 }
 
-function ErrorState({ error, showPrivateModal, onShowModal }: { error: string; showPrivateModal?: boolean; onShowModal?: () => void }) {
+function ErrorState({ error, onShowModal }: { error: string; showPrivateModal?: boolean; onShowModal?: () => void }) {
     const isPrivateError = error.includes('privado') || error.includes('Turbo');
     return (
         <div className="container mx-auto p-4 flex flex-col items-center justify-center min-h-[50vh] gap-4">
