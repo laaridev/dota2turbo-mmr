@@ -674,8 +674,27 @@ function TMMRExplanationModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                             <p className="text-sm text-gray-300 leading-relaxed">
                                 O TMMR mede sua performance comparando suas vitórias com o que seria esperado de um jogador
                                 com 50% de winrate. Mas aqui está o diferencial: <strong className="text-white">vitórias em lobbies
-                                    de rank mais alto valem mais pontos</strong>.
+                                    de rank mais alto valem mais créditos</strong>.
                             </p>
+                        </div>
+
+                        {/* Why not just winrate? */}
+                        <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4">
+                            <h3 className="font-semibold text-amber-400 mb-2">🤔 Por que não apenas Winrate?</h3>
+                            <div className="space-y-2 text-sm text-gray-300">
+                                <p>
+                                    <strong className="text-amber-300">❌ Winrate puro:</strong> Pode ser inflado jogando sempre em lobbies fáceis (Crusader/Archon).
+                                    60% WR em Legend não é igual a 60% WR em Divine.
+                                </p>
+                                <p>
+                                    <strong className="text-amber-300">❌ Volume de vitórias:</strong> Premia quem joga muito, não quem joga bem.
+                                    5000 vitórias com 50% WR não deveria valer mais que 500 vitórias com 65% WR.
+                                </p>
+                                <p>
+                                    <strong className="text-emerald-400">✓ TMMR:</strong> Equilibra qualidade (rank do lobby) com consistência (superar 50% esperado),
+                                    normalizado pelo volume para não beneficiar apenas quem joga muito.
+                                </p>
+                            </div>
                         </div>
 
                         {/* Section 1: Weighted Wins */}

@@ -73,7 +73,6 @@ export function BetaNoticeModal() {
                                 O primeiro sistema de ranking para Dota 2 Turbo
                             </motion.p>
 
-                            {/* Current Status */}
                             <motion.div
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -83,10 +82,26 @@ export function BetaNoticeModal() {
                                 <h3 className="text-sm font-semibold text-amber-400 mb-2">⚠️ Estamos em Desenvolvimento Ativo</h3>
                                 <p className="text-xs text-gray-300 leading-relaxed mb-2">
                                     O sistema de <strong className="text-white">TMMR v5.2</strong> está em fase beta.
-                                    Vitórias em lobbies de rank mais alto valem mais pontos. Jogadores com poucos jogos têm penalidade de maturidade.
+                                    Vitórias em lobbies de rank mais alto valem mais créditos. Jogadores com poucos jogos têm penalidade de maturidade.
                                 </p>
                                 <p className="text-xs text-gray-400">
                                     Atualmente, os perfis são atualizados <strong className="text-white">manualmente a cada 7 dias</strong>.
+                                </p>
+                            </motion.div>
+
+                            {/* Why not just winrate? */}
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.45 }}
+                                className="bg-white/5 border border-white/10 rounded-lg p-4 mb-4 text-left"
+                            >
+                                <h3 className="text-sm font-semibold text-white mb-2">🤔 Por que não apenas Winrate?</h3>
+                                <p className="text-xs text-gray-300 leading-relaxed">
+                                    <strong className="text-amber-400">Winrate</strong> sozinho pode ser inflado jogando em lobbies fáceis.
+                                    <strong className="text-primary"> Volume de vitórias</strong> premia quem joga muito, não quem joga bem.
+                                    O <strong className="text-emerald-400">TMMR</strong> equilibra isso: vitórias contra oponentes mais fortes valem mais,
+                                    e jogadores com poucos jogos ainda precisam provar consistência.
                                 </p>
                             </motion.div>
 
