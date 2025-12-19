@@ -8,14 +8,21 @@ function getRankMultiplier(rank: number): number {
 }
 
 function getRankTier(rank: number): string {
-    if (rank < 10) return 'Herald';
-    if (rank < 20) return 'Guardian';
-    if (rank < 30) return 'Crusader';
-    if (rank < 40) return 'Archon';
-    if (rank < 50) return 'Legend';
-    if (rank < 60) return 'Ancient';
-    if (rank < 70) return 'Divine';
-    return 'Immortal';
+    // OpenDota avg_rank format: first digit = tier, second digit = stars
+    // e.g., 75 = Divine 5, 63 = Ancient 3, 80+ = Immortal
+    const tier = Math.floor(rank / 10);
+
+    switch (tier) {
+        case 1: return 'Herald';
+        case 2: return 'Guardian';
+        case 3: return 'Crusader';
+        case 4: return 'Archon';
+        case 5: return 'Legend';
+        case 6: return 'Ancient';
+        case 7: return 'Divine';
+        case 8: return 'Immortal';
+        default: return tier < 1 ? 'Unranked' : 'Immortal';
+    }
 }
 
 export async function GET(

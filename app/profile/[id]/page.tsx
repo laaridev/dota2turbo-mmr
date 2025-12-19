@@ -586,13 +586,13 @@ export default function ProfilePage() {
 
 // Components
 function RecentMatchCard({ match, index }: { match: RecentMatch; index: number }) {
-    const tierName = match.averageRank ? (
-        match.averageRank >= 70 ? 'Immortal' :
-            match.averageRank >= 60 ? 'Divine' :
-                match.averageRank >= 50 ? 'Ancient' :
-                    match.averageRank >= 40 ? 'Legend' :
-                        match.averageRank >= 30 ? 'Archon' : 'Legend'
-    ) : '?';
+    // OpenDota avg_rank: first digit = tier (1=Herald...8=Immortal)
+    const getTierFromRank = (rank: number): string => {
+        const tier = Math.floor(rank / 10);
+        const tiers = ['Unranked', 'Herald', 'Guardian', 'Crusader', 'Archon', 'Legend', 'Ancient', 'Divine', 'Immortal'];
+        return tiers[tier] || (tier > 8 ? 'Immortal' : 'Unranked');
+    };
+    const tierName = match.averageRank ? getTierFromRank(match.averageRank) : '?';
 
     return (
         <motion.div
