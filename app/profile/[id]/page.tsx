@@ -216,7 +216,7 @@ export default function ProfilePage() {
                                             <span className="text-xs text-muted-foreground">Suas vitórias</span>
                                         </div>
                                         <p className="text-xl font-bold text-emerald-400">{breakdown.weightedWins}</p>
-                                        <p className="text-[10px] text-muted-foreground">pontos ponderados</p>
+                                        <p className="text-[10px] text-muted-foreground">créditos de vitória</p>
                                     </div>
 
                                     {/* Expected */}
@@ -244,8 +244,8 @@ export default function ProfilePage() {
                                         </div>
                                         <p className="text-xs text-muted-foreground mt-1">
                                             {breakdown.performanceScore >= 0
-                                                ? `${(breakdown.weightedWins - breakdown.expectedWins).toFixed(1)} pontos acima do esperado → bônus de ${(breakdown.performanceScore * 3500).toFixed(0)} TMMR`
-                                                : `${(breakdown.expectedWins - breakdown.weightedWins).toFixed(1)} pontos abaixo do esperado → penalidade de ${Math.abs(breakdown.performanceScore * 3500).toFixed(0)} TMMR`
+                                                ? `${(breakdown.weightedWins - breakdown.expectedWins).toFixed(1)} créditos acima do esperado → +${(breakdown.performanceScore * 3500).toFixed(0)} TMMR`
+                                                : `${(breakdown.expectedWins - breakdown.weightedWins).toFixed(1)} créditos abaixo do esperado → ${(breakdown.performanceScore * 3500).toFixed(0)} TMMR`
                                             }
                                         </p>
                                     </div>
@@ -371,9 +371,9 @@ export default function ProfilePage() {
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <div className="w-20 text-right">
+                                                <div className="w-24 text-right">
                                                     <span className="text-sm font-bold text-emerald-400">+{tier.points}</span>
-                                                    <span className="text-xs text-muted-foreground"> pts</span>
+                                                    <span className="text-[10px] text-muted-foreground"> créditos</span>
                                                 </div>
                                             </div>
                                         </motion.div>
@@ -385,7 +385,7 @@ export default function ProfilePage() {
                             <div className="mt-4 p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
                                     <div className="text-center p-2 rounded-lg bg-emerald-500/10">
-                                        <p className="text-[10px] text-muted-foreground">Total de Pontos</p>
+                                        <p className="text-[10px] text-muted-foreground">Seus Créditos</p>
                                         <p className="text-lg font-bold text-emerald-400">
                                             {matchData.rankDistribution.reduce((sum, t) => sum + t.points, 0).toFixed(1)}
                                         </p>
@@ -404,8 +404,8 @@ export default function ProfilePage() {
                                     </div>
                                 </div>
                                 <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
-                                    <strong className="text-white">Pontos de vitória ≠ Bônus TMMR.</strong> Cada vitória gera pontos brutos ({'>'}1.0 em lobbies difíceis).
-                                    O bônus final é a diferença entre seus pontos e o esperado, normalizado pelo volume de jogos.
+                                    <strong className="text-white">Créditos ≠ TMMR.</strong> Cada vitória gera créditos (mais em lobbies difíceis).
+                                    O bônus de TMMR é calculado pela diferença entre seus créditos e o esperado, dividida pelo número de jogos.
                                 </p>
                             </div>
                         </PremiumCard>
@@ -682,10 +682,10 @@ function TMMRExplanationModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                         <div className="space-y-3">
                             <h3 className="font-semibold flex items-center gap-2">
                                 <Sparkles className="w-4 h-4 text-emerald-400" />
-                                Suas Vitórias (Pontos Ponderados)
+                                Suas Vitórias (Créditos)
                             </h3>
                             <p className="text-sm text-gray-300 leading-relaxed">
-                                Cada vez que você ganha uma partida, você ganha pontos. Mas a quantidade de pontos
+                                Cada vez que você ganha uma partida, você ganha créditos. Mas a quantidade de créditos
                                 depende do <strong className="text-white">rank médio</strong> daquele lobby:
                             </p>
                             <div className="bg-white/5 rounded-lg p-4 space-y-2">
