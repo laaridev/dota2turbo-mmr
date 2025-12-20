@@ -212,47 +212,55 @@ export default function ProfilePage() {
 
                             {/* Main Grid */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Left: Stats Cards */}
-                                <div className="space-y-3">
-                                    {/* Your weighted wins */}
-                                    <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <Sparkles className="w-3 h-3 text-emerald-400" />
-                                            <span className="text-xs text-muted-foreground">Suas vitórias</span>
-                                        </div>
-                                        <p className="text-xl font-bold text-emerald-400">{breakdown.weightedWins}</p>
-                                        <p className="text-[10px] text-muted-foreground">créditos de vitória</p>
-                                    </div>
-
-                                    {/* Expected */}
-                                    <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <Target className="w-3 h-3 text-blue-400" />
-                                            <span className="text-xs text-muted-foreground">Esperado (50%)</span>
-                                        </div>
-                                        <p className="text-xl font-bold text-blue-400">{breakdown.expectedWins}</p>
-                                        <p className="text-[10px] text-muted-foreground">{breakdown.games} jogos × 0.5</p>
-                                    </div>
-
-                                    {/* Performance explanation */}
-                                    <div className={`p-3 rounded-xl ${breakdown.performanceScore >= 0 ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-rose-500/10 border border-rose-500/20'}`}>
-                                        <div className="flex items-center justify-between">
+                                {/* Left: Performance Focus */}
+                                <div className="space-y-4">
+                                    {/* Main Performance Card */}
+                                    <div className={`p-4 rounded-xl ${breakdown.performanceScore >= 0 ? 'bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 border border-emerald-500/30' : 'bg-gradient-to-br from-rose-500/20 to-rose-500/5 border border-rose-500/30'}`}>
+                                        <div className="flex items-center justify-between mb-3">
                                             <div className="flex items-center gap-2">
-                                                <TrendingUp className={`w-4 h-4 ${breakdown.performanceScore >= 0 ? 'text-emerald-400' : 'text-rose-400'}`} />
-                                                <span className="text-sm font-medium">
-                                                    {breakdown.performanceScore >= 0 ? 'Você superou o esperado!' : 'Abaixo do esperado'}
-                                                </span>
+                                                <TrendingUp className={`w-5 h-5 ${breakdown.performanceScore >= 0 ? 'text-emerald-400' : 'text-rose-400'}`} />
+                                                <span className="font-semibold">Sua Performance</span>
                                             </div>
-                                            <span className={`text-lg font-bold ${breakdown.performanceScore >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                                                {breakdown.performanceScore >= 0 ? '+' : ''}{(breakdown.performanceScore * 3500).toFixed(0)} pts
+                                            <span className={`text-2xl font-black ${breakdown.performanceScore >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                                {breakdown.performanceScore >= 0 ? '+' : ''}{(breakdown.performanceScore * 100).toFixed(1)}%
                                             </span>
                                         </div>
-                                        <p className="text-xs text-muted-foreground mt-1">
+
+                                        {/* Visual Progress Bar */}
+                                        <div className="h-3 bg-white/10 rounded-full overflow-hidden mb-3">
+                                            <motion.div
+                                                className={`h-full rounded-full ${breakdown.performanceScore >= 0 ? 'bg-gradient-to-r from-emerald-500 to-emerald-400' : 'bg-gradient-to-r from-rose-500 to-rose-400'}`}
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${Math.min(Math.abs(breakdown.performanceScore) * 500, 100)}%` }}
+                                                transition={{ duration: 0.8 }}
+                                            />
+                                        </div>
+
+                                        <p className="text-sm text-muted-foreground">
                                             {breakdown.performanceScore >= 0
-                                                ? `${(breakdown.weightedWins - breakdown.expectedWins).toFixed(1)} créditos acima do esperado → +${(breakdown.performanceScore * 3500).toFixed(0)} TMMR`
-                                                : `${(breakdown.expectedWins - breakdown.weightedWins).toFixed(1)} créditos abaixo do esperado → ${(breakdown.performanceScore * 3500).toFixed(0)} TMMR`
+                                                ? `Você está ${(breakdown.performanceScore * 100).toFixed(1)}% acima do esperado para seu volume de jogos`
+                                                : `Você está ${Math.abs(breakdown.performanceScore * 100).toFixed(1)}% abaixo do esperado para seu volume de jogos`
                                             }
                                         </p>
+
+                                        <div className="mt-3 p-2 rounded-lg bg-black/20 text-center">
+                                            <span className="text-xs text-muted-foreground">Bônus de TMMR: </span>
+                                            <span className={`text-lg font-bold ${breakdown.performanceScore >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                                {breakdown.performanceScore >= 0 ? '+' : ''}{(breakdown.performanceScore * 3500).toFixed(0)}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Details Row */}
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-center">
+                                            <p className="text-2xl font-bold text-white">{breakdown.games}</p>
+                                            <p className="text-[10px] text-muted-foreground">partidas analisadas</p>
+                                        </div>
+                                        <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-center">
+                                            <p className="text-2xl font-bold text-white">{breakdown.avgMultiplier?.toFixed(2) || '1.00'}x</p>
+                                            <p className="text-[10px] text-muted-foreground">multiplicador médio</p>
+                                        </div>
                                     </div>
 
                                     {/* Maturity Penalty */}
@@ -420,9 +428,9 @@ export default function ProfilePage() {
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <div className="w-24 text-right">
-                                                    <span className="text-sm font-bold text-emerald-400">+{tier.points}</span>
-                                                    <span className="text-[10px] text-muted-foreground"> créditos</span>
+                                                <div className="w-20 text-right">
+                                                    <span className="text-sm font-bold text-white">{tier.wins}</span>
+                                                    <span className="text-[10px] text-muted-foreground"> wins</span>
                                                 </div>
                                             </div>
                                         </motion.div>
@@ -430,31 +438,12 @@ export default function ProfilePage() {
                                 })}
                             </div>
 
-                            {/* Summary and Explanation */}
+                            {/* Simple Explanation */}
                             <div className="mt-4 p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-                                    <div className="text-center p-2 rounded-lg bg-emerald-500/10">
-                                        <p className="text-[10px] text-muted-foreground">Seus Créditos</p>
-                                        <p className="text-lg font-bold text-emerald-400">
-                                            {matchData.rankDistribution.reduce((sum, t) => sum + t.points, 0).toFixed(1)}
-                                        </p>
-                                    </div>
-                                    <div className="text-center p-2 rounded-lg bg-blue-500/10">
-                                        <p className="text-[10px] text-muted-foreground">Esperado (50% WR)</p>
-                                        <p className="text-lg font-bold text-blue-400">
-                                            {breakdown?.expectedWins?.toFixed(1) || '—'}
-                                        </p>
-                                    </div>
-                                    <div className="text-center p-2 rounded-lg bg-primary/10">
-                                        <p className="text-[10px] text-muted-foreground">Diferença ÷ Jogos</p>
-                                        <p className="text-lg font-bold text-primary">
-                                            {breakdown ? `${breakdown.performanceScore >= 0 ? '+' : ''}${(breakdown.performanceScore * 3500).toFixed(0)}` : '—'} TMMR
-                                        </p>
-                                    </div>
-                                </div>
-                                <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
-                                    <strong className="text-white">Créditos ≠ TMMR.</strong> Cada vitória gera créditos (mais em lobbies difíceis).
-                                    O bônus de TMMR é calculado pela diferença entre seus créditos e o esperado, dividida pelo número de jogos.
+                                <p className="text-xs text-muted-foreground text-center leading-relaxed">
+                                    <strong className="text-white">Lobbies mais difíceis = mais peso.</strong>
+                                    Vitórias em Divine/Immortal contribuem mais para sua performance do que vitórias em ranks menores.
+                                    O multiplicador médio é {breakdown?.avgMultiplier?.toFixed(2) || '1.00'}x.
                                 </p>
                             </div>
                         </PremiumCard>
